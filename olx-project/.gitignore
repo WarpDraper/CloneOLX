@@ -1,0 +1,15 @@
+# .NET (C#) сміття
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+*.suo
+*.sln.docstates
+# Node.js (Frontend) сміття
+node_modules/
+dist/
+.next/
+.env
+# Системне сміття
+.DS_Store
+Thumbs.db
