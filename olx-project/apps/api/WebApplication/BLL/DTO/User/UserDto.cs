@@ -1,4 +1,4 @@
-﻿namespace OnlineLibrary_BookKey.DTO.User
+﻿namespace OLXCLONE.DTO.User
 {
     public class UserDto
     {

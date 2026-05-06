@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace OnlineLibrary_BookKey.DTO.Authorize
+namespace OLXCLONE.DTO.Authorize
 {
     public class LoginDto
     {

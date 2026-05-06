@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using OnlineLibrary_BookKey.DTO.User;
+using OLXCLONE.DTO.User;
 
-namespace OnlineLibrary_BookKey.Controllers.Api
+namespace OLXCLONE.Controllers.Api
 {
     [Route("api/[controller]")]
     [ApiController]

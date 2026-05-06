@@ -1,5 +1,6 @@
 using AuthBLL.EmailService;
 using AuthDomain;
+using BLL.AuthService;
 using BLL.JwtToken;
 using DAL;
 using DAL.Context;
@@ -11,8 +12,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using OnlineLibrary_BookKey.Configuration.Role;
-using OnlineLibrary_BookKey.Middleware;
+using OLXCLONE.Configuration.Role;
+using OLXCLONE.Middleware;
 using System.Reflection.Metadata;
 using TaskerDAL;
 using TaskerDAL.UnitOfWork;
@@ -31,15 +32,18 @@ builder.Services.AddDbContext<ApplicationContext>(options =>
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
-    options.Password.RequiredLength = 3;
+    options.Password.RequiredLength = 8;
     options.Password.RequireDigit = false;
     options.Password.RequireLowercase = false;
     options.Password.RequireUppercase = false;
     options.Password.RequireNonAlphanumeric = false;
     options.SignIn.RequireConfirmedEmail = true;
-    options.User.RequireUniqueEmail = false;
-    options.SignIn.RequireConfirmedAccount = false;
+    options.User.RequireUniqueEmail = true;
+
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
+    options.SignIn.RequireConfirmedAccount = true;
 })
 .AddEntityFrameworkStores<ApplicationContext>()
 .AddDefaultTokenProviders();
@@ -75,6 +79,7 @@ builder.Services.AddAuthentication(options =>
 // ==========================================
 builder.Services.AddTransient<ITokenService, TokenService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddAutoMapper(x => x.AddProfile<MappingProfile>());
 var emailSet = builder.Configuration.GetSection("EmailSettings").Get<EmailSettings>();
 builder.Services.AddSingleton(emailSet);
@@ -128,7 +133,6 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 WebApplication25.Configuration.Mapping.ServiceLocator.ServiceProviderPublic = app.Services;
-
 
 if (app.Environment.IsDevelopment())
 {

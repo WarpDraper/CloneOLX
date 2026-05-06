@@ -5,6 +5,7 @@
 *.user
 *.suo
 *.sln.docstates
+appsettings.json
 # Node.js (Frontend) сміття
 node_modules/
 dist/

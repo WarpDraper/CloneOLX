@@ -1,7 +1,7 @@
 ﻿using AuthDomain;
 using Microsoft.AspNetCore.Identity;
 
-namespace OnlineLibrary_BookKey.Configuration.Role
+namespace OLXCLONE.Configuration.Role
 {
     public static class DbInitializer
     {

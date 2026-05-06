@@ -1,8 +1,8 @@
 ﻿using AuthDomain;
 using AutoMapper;
+using BLL.DTO.Authorize;
 using BLL.JwtToken;
 using Microsoft.AspNetCore.Identity;
-using OnlineLibrary_BookKey.DTO.Authorize;
 
 namespace WebApplication25.Configuration.Mapping
 {
@@ -14,26 +14,7 @@ namespace WebApplication25.Configuration.Mapping
            var _tokenService = ServiceLocator.ServiceProviderPublic.GetService<TokenService>();
 
             CreateMap<RegisterDto, ApplicationUser>()
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
-                  .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName));
-
-
-          /*  CreateMap<Book, BookDto>();
-
-
-            CreateMap<CreateBookDto, Book>()
-                .ForMember(dest => dest.Rating, opt => opt.Ignore());
-
-            CreateMap<UpdateBookDto, Book>();
-
-            CreateMap<Domain.BookUser, UserLibraryDto>()
-            .ForMember(dest => dest.BookId, opt => opt.MapFrom(src => src.BookId))
-            .ForMember(dest => dest.IsFinished, opt => opt.MapFrom(src => src.IsFinished))
-            .ForMember(dest => dest.AddedDate, opt => opt.MapFrom(src => src.AddedDate))
-
-            .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Book.Title))
-            .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.Book.Author))
-            .ForMember(dest => dest.Image, opt => opt.MapFrom(src => src.Book.Image));*/
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email));
         }
     }
 
