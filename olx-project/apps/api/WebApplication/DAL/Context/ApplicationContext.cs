@@ -21,7 +21,5 @@ namespace DAL.Context
         {
             base.OnModelCreating(builder);
         }
-
-        public DbSet<ApplicationUser> Users { get; set; }
     }
 }
