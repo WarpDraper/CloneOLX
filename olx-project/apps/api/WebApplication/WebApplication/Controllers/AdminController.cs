@@ -13,9 +13,9 @@ namespace OLXCLONE.Controllers.Api
     public class AdminController : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly RoleManager<AppRole> _roleManager;
 
-        public AdminController(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager)
+        public AdminController(UserManager<AppUser> userManager, RoleManager<AppRole> roleManager)
         {
             _userManager = userManager;
             _roleManager = roleManager;

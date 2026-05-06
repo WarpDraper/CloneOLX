@@ -89,12 +89,11 @@ builder.Services.AddSwaggerGen(options =>
     // Налаштування кнопки Authorize
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
+        Description = "JWT Authorization header using the Bearer scheme.",
         Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Введіть 'Bearer' [пробіл] і ваш токен.\n\nПриклад: \"Bearer eyJhbGciOiJIUzI1Ni...\""
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer"
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -102,14 +101,13 @@ builder.Services.AddSwaggerGen(options =>
         {
             new OpenApiSecurityScheme
             {
-                // ОСЬ ТУТ БУЛА ПОМИЛКА. Тепер все правильно:
                 Reference = new OpenApiReference
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
+                    Type=ReferenceType.SecurityScheme,
+                    Id="Bearer"
                 }
             },
-            new string[] {}
+            new string[]{}
         }
     });
 });
@@ -135,7 +133,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
@@ -149,7 +147,7 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var userManager = services.GetRequiredService<UserManager<AppUser>>();
-        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+        var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
         await DbInitializer.SeedAsync(userManager, roleManager);
     }
     catch (Exception ex)
