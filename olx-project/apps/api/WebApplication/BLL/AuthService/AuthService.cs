@@ -1,5 +1,5 @@
 ﻿using AuthBLL.EmailService;
-using AuthDomain;
+using Domain;
 using BLL.DTO.Authorize;
 using BLL.JwtToken;
 using Google.Apis.Auth;
@@ -16,15 +16,15 @@ namespace BLL.AuthService
 {
     public class AuthService : IAuthService
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly SignInManager<AppUser> _signInManager;
         private readonly ITokenService _jwtService;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
 
         public AuthService(
-        UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager,
+        UserManager<AppUser> userManager,
+        SignInManager<AppUser> signInManager,
         ITokenService jwtService,
         IEmailService emailService,
         IConfiguration configuration)
@@ -38,7 +38,7 @@ namespace BLL.AuthService
 
         public async Task<bool> RegisterAsync(RegisterDto model)
         {
-            var user = new ApplicationUser
+            var user = new AppUser
             {
                 Email = model.Email,
                 UserName = model.Email,
@@ -185,7 +185,7 @@ namespace BLL.AuthService
 
                 if (user == null)
                 {
-                    user = new ApplicationUser
+                    user = new AppUser
                     {
                         Email = payload.Email,
                         UserName = payload.Email,

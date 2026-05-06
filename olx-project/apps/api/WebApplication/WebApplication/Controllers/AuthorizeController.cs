@@ -1,6 +1,6 @@
 ﻿
 using AuthBLL.EmailService;
-using AuthDomain;
+using Domain;
 using AutoMapper;
 using BLL.AuthService;
 using BLL.DTO.Authorize;

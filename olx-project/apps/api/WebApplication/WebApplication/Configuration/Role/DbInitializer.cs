@@ -1,11 +1,11 @@
-﻿using AuthDomain;
+﻿using Domain;
 using Microsoft.AspNetCore.Identity;
 
 namespace OLXCLONE.Configuration.Role
 {
     public static class DbInitializer
     {
-        public static async Task SeedAsync(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+        public static async Task SeedAsync(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             // 1. Створюємо ролі, якщо їх ще немає
             await roleManager.CreateAsync(new IdentityRole("Admin"));
@@ -17,7 +17,7 @@ namespace OLXCLONE.Configuration.Role
 
             if (adminUser == null)
             {
-                var newAdmin = new ApplicationUser
+                var newAdmin = new AppUser
                 {
                     UserName = "admin",
                     Email = adminEmail,
