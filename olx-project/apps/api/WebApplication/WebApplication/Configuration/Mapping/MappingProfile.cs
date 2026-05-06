@@ -1,4 +1,4 @@
-﻿using AuthDomain;
+﻿using Domain;
 using AutoMapper;
 using BLL.DTO.Authorize;
 using BLL.JwtToken;
@@ -13,7 +13,7 @@ namespace WebApplication25.Configuration.Mapping
         public MappingProfile() {
            var _tokenService = ServiceLocator.ServiceProviderPublic.GetService<TokenService>();
 
-            CreateMap<RegisterDto, ApplicationUser>()
+            CreateMap<RegisterDto, AppUser>()
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email));
         }
     }
@@ -21,8 +21,8 @@ namespace WebApplication25.Configuration.Mapping
     public class TokenServiceProvider
     {
         private readonly IConfiguration _configuration;
-        private readonly UserManager<ApplicationUser> _userManager;
-        public TokenServiceProvider(IConfiguration configuration, UserManager<ApplicationUser> userManager)
+        private readonly UserManager<AppUser> _userManager;
+        public TokenServiceProvider(IConfiguration configuration, UserManager<AppUser> userManager)
         {
             _configuration = configuration;
             _userManager = userManager;

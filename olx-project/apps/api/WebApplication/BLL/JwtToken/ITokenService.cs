@@ -1,4 +1,4 @@
-﻿using AuthDomain;
+﻿using Domain;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
@@ -8,7 +8,7 @@ namespace BLL.JwtToken
 {
     public interface ITokenService
     {
-        Task<string> CreateTokenAsync(ApplicationUser user);
+        Task<string> CreateTokenAsync(AppUser user);
         string CreateRefreshToken();
         ClaimsPrincipal GetPrincopalFromExpiredToken(string token);
     }

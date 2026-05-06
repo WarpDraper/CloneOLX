@@ -1,4 +1,4 @@
-﻿using AuthDomain;
+﻿using Domain;
 using System.Diagnostics;
 using MailKit.Net.Smtp;
 using MimeKit;
