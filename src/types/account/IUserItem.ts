@@ -4,4 +4,6 @@ export interface IUserItem {
     name: string;
     email: string;
     image: string;
+    status: string;
+    registerDate: string;
 }

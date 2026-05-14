@@ -4,7 +4,7 @@ import { LockOutlined, UnlockOutlined, MailOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useDispatch } from 'react-redux';
 import { addNotification } from '../../../store/notificationSlice';
-import { useGetUsersQuery, useToggleUserBlockMutation } from '../../../services/api';
+import { useGetUsersQuery, useToggleUserBlockMutation } from '../../../services/adminService.ts';
 
 interface UserData {
   id: string;
@@ -15,7 +15,7 @@ interface UserData {
 }
 
 const UsersPage: React.FC = () => {
-  const { data: users = [], isLoading } = useGetUsersQuery({});
+  const { data: users = [], isLoading } = useGetUsersQuery();
   const [toggleBlock] = useToggleUserBlockMutation();
   const [isMessageModalVisible, setIsMessageModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
@@ -54,9 +54,9 @@ const UsersPage: React.FC = () => {
     { title: 'Ім\'я', dataIndex: 'name', key: 'name' },
     { title: 'Email', dataIndex: 'email', key: 'email' },
     { title: 'Дата реєстрації', dataIndex: 'registerDate', key: 'registerDate' },
-    { 
-      title: 'Статус', 
-      key: 'status', 
+    {
+      title: 'Статус',
+      key: 'status',
       render: (_, record) => (
         <Tag color={record.status === 'active' ? 'green' : 'red'}>
           {record.status === 'active' ? 'Активний' : 'Заблокований'}
@@ -68,7 +68,7 @@ const UsersPage: React.FC = () => {
       key: 'actions',
       render: (_, record) => (
         <Space size="middle">
-          <Button 
+          <Button
             type={record.status === 'active' ? 'default' : 'primary'}
             danger={record.status === 'active'}
             icon={record.status === 'active' ? <LockOutlined /> : <UnlockOutlined />}
@@ -77,7 +77,7 @@ const UsersPage: React.FC = () => {
           >
              {record.status === 'active' ? 'Заблокувати' : 'Розблокувати'}
           </Button>
-          <Button 
+          <Button
             type="primary"
             icon={<MailOutlined />}
             size="small"
@@ -96,11 +96,11 @@ const UsersPage: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#002f34]">Управління користувачами</h1>
       </div>
-      
-      <Table 
-        columns={columns} 
-        dataSource={users} 
-        rowKey="id" 
+
+      <Table
+        columns={columns as any}
+        dataSource={users}
+        rowKey="id"
         loading={isLoading}
         pagination={{ pageSize: 10 }}
       />
@@ -115,15 +115,15 @@ const UsersPage: React.FC = () => {
         footer={null}
       >
         <Form form={form} layout="vertical" onFinish={sendMessage} className="mt-4">
-          <Form.Item 
-            name="subject" 
+          <Form.Item
+            name="subject"
             label="Тема"
             rules={[{ required: true, message: 'Будь ласка, введіть тему' }]}
           >
             <Input placeholder="Наприклад: Попередження про порушення правил" />
           </Form.Item>
-          <Form.Item 
-            name="message" 
+          <Form.Item
+            name="message"
             label="Текст повідомлення"
             rules={[{ required: true, message: 'Будь ласка, введіть текст повідомлення' }]}
           >

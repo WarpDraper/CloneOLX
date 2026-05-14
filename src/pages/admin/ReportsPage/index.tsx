@@ -4,7 +4,7 @@ import { CheckCircleOutlined, DeleteOutlined, StopOutlined } from '@ant-design/i
 import type { ColumnsType } from 'antd/es/table';
 import { useDispatch } from 'react-redux';
 import { addNotification } from '../../../store/notificationSlice';
-import { useGetReportsQuery, useUpdateReportStatusMutation, useToggleUserBlockMutation } from '../../../services/api';
+import { useToggleUserBlockMutation, useGetReportsQuery, useUpdateReportStatusMutation } from '../../../services/adminService.ts';
 
 interface ReportData {
   id: string;
@@ -17,7 +17,7 @@ interface ReportData {
 }
 
 const ReportsPage: React.FC = () => {
-  const { data: reports = [], isLoading } = useGetReportsQuery({});
+  const { data: reports = [], isLoading } = useGetReportsQuery();
   const [updateStatus] = useUpdateReportStatusMutation();
   const [toggleBlock] = useToggleUserBlockMutation();
   const dispatch = useDispatch();
@@ -48,21 +48,21 @@ const ReportsPage: React.FC = () => {
   const columns: ColumnsType<ReportData> = [
     { title: 'ID Скарги', dataIndex: 'id', key: 'id', width: 90 },
     { title: 'Хто поскаржився', dataIndex: 'reporterName', key: 'reporterName' },
-    { 
-      title: 'Об\'єкт', 
-      key: 'target', 
+    {
+      title: 'Об\'єкт',
+      key: 'target',
       render: (_, record) => (
         <span className="font-semibold text-blue-600 cursor-pointer hover:underline">
-          {record.targetType === 'ad' ? 'Оголошення ' : 'Користувач '} 
+          {record.targetType === 'ad' ? 'Оголошення ' : 'Користувач '}
           {record.targetId}
         </span>
       )
     },
     { title: 'Причина', dataIndex: 'reason', key: 'reason' },
     { title: 'Дата', dataIndex: 'date', key: 'date', width: 140 },
-    { 
-      title: 'Статус', 
-      key: 'status', 
+    {
+      title: 'Статус',
+      key: 'status',
       width: 120,
       render: (_, record) => {
         const colors = {
@@ -85,18 +85,18 @@ const ReportsPage: React.FC = () => {
         <Space size="middle">
           {record.status === 'pending' && (
             <>
-              <Button 
-                type="primary" 
-                icon={<CheckCircleOutlined />} 
-                size="small" 
+              <Button
+                type="primary"
+                icon={<CheckCircleOutlined />}
+                size="small"
                 className="bg-green-600 hover:!bg-green-500"
                 onClick={() => handleStatusChange(record.id, 'resolved')}
               >
                 Підтвердити
               </Button>
-              <Button 
-                type="default" 
-                icon={<DeleteOutlined />} 
+              <Button
+                type="default"
+                icon={<DeleteOutlined />}
                 size="small"
                 onClick={() => handleStatusChange(record.id, 'dismissed')}
               >
@@ -127,11 +127,11 @@ const ReportsPage: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#002f34]">Обробка скарг</h1>
       </div>
-      
-      <Table 
-        columns={columns} 
-        dataSource={reports} 
-        rowKey="id" 
+
+      <Table
+        columns={columns}
+        dataSource={reports}
+        rowKey="id"
         loading={isLoading}
         pagination={{ pageSize: 10 }}
       />

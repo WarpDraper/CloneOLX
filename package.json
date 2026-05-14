@@ -12,6 +12,7 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.2",
     "antd": "^6.3.5",
+    "antd-img-crop": "^4.30.0",
     "bootstrap": "^5.3.8",
     "object-to-formdata": "^4.5.1",
     "react": "^19.2.4",
