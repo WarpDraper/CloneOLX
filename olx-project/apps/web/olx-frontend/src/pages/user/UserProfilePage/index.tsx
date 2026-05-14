@@ -83,7 +83,7 @@ const UserProfilePage: React.FC = () => {
            <div className="flex flex-col gap-6 max-w-xl">
              <div>
                <p className="text-sm text-gray-500 mb-1">Ім'я</p>
-               <p className="text-base text-[#002f34] font-semibold">{user?.firstName || 'Користувач'}</p>
+               <p className="text-base text-[#002f34] font-semibold">{user?.email || 'Користувач'}</p>
              </div>
              <div>
                <p className="text-sm text-gray-500 mb-1">Місцезнаходження</p>
