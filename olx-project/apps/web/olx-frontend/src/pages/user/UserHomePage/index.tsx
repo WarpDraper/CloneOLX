@@ -5,10 +5,10 @@ import {
 } from '@ant-design/icons';
 import { Input } from 'antd';
 
-import { useGetCategoriesQuery } from '../../../services/api';
+// import { useGetCategoriesQuery } from '../../../services/api';
 
 const UserHomePage: React.FC = () => {
-  const { data: categories = [], isLoading } = useGetCategoriesQuery({});
+  // const { data: categories = [], isLoading } = useGetCategoriesQuery({});
   return (
     <>
       <section className="bg-[#f2f4f5] py-8 px-4 md:px-8 flex justify-center">
@@ -39,22 +39,22 @@ const UserHomePage: React.FC = () => {
 
       <section className="py-12 px-4 max-w-[1240px] mx-auto w-full">
         <h2 className="text-center text-3xl font-bold text-[#002f34] mb-12">Розділи на сервісі OLX</h2>
-        <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-8 gap-y-10 gap-x-4">
-          {isLoading ? (
-            <div className="col-span-full text-center py-10 text-gray-400">Завантаження категорій...</div>
-          ) : categories.length === 0 ? (
-            <div className="col-span-full text-center py-10 text-gray-400">Категорії відсутні</div>
-          ) : categories.map((cat: any) => (
-            <div key={cat.id} className="flex flex-col items-center group cursor-pointer">
-              <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-3 transition-transform group-hover:scale-105 shadow-sm ${cat.color || 'bg-gray-100'}`}>
-                {cat.icon ? <span className="text-3xl" dangerouslySetInnerHTML={{ __html: cat.icon }}></span> : <span className="text-3xl">📁</span>}
-              </div>
-              <span className="text-xs md:text-sm font-semibold text-[#002f34] text-center px-1 leading-tight group-hover:underline">
-                {cat.title}
-              </span>
-            </div>
-          ))}
-        </div>
+        {/*<div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-8 gap-y-10 gap-x-4">*/}
+        {/*  {isLoading ? (*/}
+        {/*    <div className="col-span-full text-center py-10 text-gray-400">Завантаження категорій...</div>*/}
+        {/*  ) : categories.length === 0 ? (*/}
+        {/*    <div className="col-span-full text-center py-10 text-gray-400">Категорії відсутні</div>*/}
+        {/*  ) : categories.map((cat: any) => (*/}
+        {/*    <div key={cat.id} className="flex flex-col items-center group cursor-pointer">*/}
+        {/*      <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-3 transition-transform group-hover:scale-105 shadow-sm ${cat.color || 'bg-gray-100'}`}>*/}
+        {/*        {cat.icon ? <span className="text-3xl" dangerouslySetInnerHTML={{ __html: cat.icon }}></span> : <span className="text-3xl">📁</span>}*/}
+        {/*      </div>*/}
+        {/*      <span className="text-xs md:text-sm font-semibold text-[#002f34] text-center px-1 leading-tight group-hover:underline">*/}
+        {/*        {cat.title}*/}
+        {/*      </span>*/}
+        {/*    </div>*/}
+        {/*  ))}*/}
+        {/*</div>*/}
       </section>
 
       <section className="bg-[#002f34] py-8 px-4 mt-auto">

@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-  MessageOutlined,
-  HeartOutlined,
-  BellOutlined,
-  UserOutlined
+    MessageOutlined,
+    HeartOutlined,
+    BellOutlined,
+    UserOutlined
 } from '@ant-design/icons';
 import { Button, Badge, Popover, List, Typography } from 'antd';
 import { useSelector, useDispatch } from 'react-redux';
@@ -13,9 +13,15 @@ import { markAsRead, markAllAsRead } from '../../store/notificationSlice';
 import type { NotificationItem } from '../../store/notificationSlice';
 
 const Header: React.FC = () => {
+    const dispatch = useDispatch();
+
   const { items } = useSelector((state: RootState) => state.notifications);
-  const dispatch = useDispatch();
+    const { isAuth, user } = useSelector((state: RootState) => state.auth);
+
   const unreadCount = items.filter((n: NotificationItem) => !n.read).length;
+
+
+
 
   const notificationContent = (
     <div className="w-80 max-h-96 flex flex-col">
@@ -58,6 +64,7 @@ const Header: React.FC = () => {
       </div>
     </div>
   );
+
   return (
     <header className="bg-[#002f34] text-white py-4 px-4 md:px-8 flex items-center justify-between sticky top-0 z-50">
       <div className="flex items-center gap-10">
@@ -85,9 +92,9 @@ const Header: React.FC = () => {
           </Badge>
         </Popover>
 
-        <Link to="/login" className="flex items-center gap-2 cursor-pointer hover:text-[#23e5db] transition-colors text-white">
+        <Link to={isAuth ? "/profile" : "/login"} className="flex items-center gap-2 cursor-pointer hover:text-[#23e5db] transition-colors text-white">
           <UserOutlined className="text-xl" />
-          <span>Мій профіль</span>
+          <span>{isAuth ? (user?.email || "Профіль") : "Увійти"}</span>
         </Link>
         <Button className="bg-white text-[#002f34] border-0 font-bold px-6 h-10 rounded shadow-md hover:bg-gray-100 transition-colors ml-2">
           Додати оголошення

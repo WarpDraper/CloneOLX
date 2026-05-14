@@ -1,39 +1,8 @@
 import React from 'react';
-import { Form, Input, Button, message } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { loginStart, loginSuccess, loginFailure } from '../../../store/authSlice';
-import { useRegisterMutation } from '../../../services/api';
-import type { RootState } from '../../../store';
+import  RegisterForm  from "../../../components/form/RegisterForm";
+import { Link } from "react-router-dom";
 
 const RegisterPage: React.FC = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { loading } = useSelector((state: RootState) => state.auth);
-  const [register, { isLoading }] = useRegisterMutation();
-
-  const onFinish = async (values: any) => {
-    dispatch(loginStart());
-    try {
-      const response = await register({
-        email: values.email,
-        password: values.password,
-        firstName: values.firstName,
-        lastName: values.lastName,
-      }).unwrap();
-      
-      dispatch(loginSuccess({
-        user: response.user,
-        token: response.token
-      }));
-      message.success('Registration successful!');
-      navigate('/');
-    } catch (error: any) {
-      dispatch(loginFailure(error?.data?.message || 'Registration failed'));
-      message.error(error?.data?.message || 'Registration failed');
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -64,101 +33,7 @@ const RegisterPage: React.FC = () => {
               </Link>
             </p>
           </div>
-
-          <Form
-            name="register_form"
-            className="register-form mt-8"
-            onFinish={onFinish}
-            layout="vertical"
-            size="large"
-          >
-            <div className="flex gap-4 mb-4">
-              <Form.Item
-                name="firstName"
-                className="w-1/2 mb-0"
-                rules={[{ required: true, message: 'First name is required!' }]}
-              >
-                <Input 
-                  prefix={<UserOutlined className="site-form-item-icon text-gray-400" />} 
-                  placeholder="First Name" 
-                  className="rounded-lg py-2"
-                />
-              </Form.Item>
-              <Form.Item
-                name="lastName"
-                className="w-1/2 mb-0"
-                rules={[{ required: true, message: 'Last name is required!' }]}
-              >
-                <Input 
-                  placeholder="Last Name" 
-                  className="rounded-lg py-2"
-                />
-              </Form.Item>
-            </div>
-
-            <Form.Item
-              name="email"
-              rules={[
-                { required: true, message: 'Please input your Email!' },
-                { type: 'email', message: 'Please enter a valid email!' }
-              ]}
-            >
-              <Input 
-                prefix={<MailOutlined className="site-form-item-icon text-gray-400" />} 
-                placeholder="Email Address" 
-                className="rounded-lg py-2"
-              />
-            </Form.Item>
-
-            <Form.Item
-              name="password"
-              rules={[
-                { required: true, message: 'Please input your Password!' },
-                { min: 6, message: 'Password must be at least 6 characters.' }
-              ]}
-              hasFeedback
-            >
-              <Input.Password
-                prefix={<LockOutlined className="site-form-item-icon text-gray-400" />}
-                placeholder="Password"
-                className="rounded-lg py-2"
-              />
-            </Form.Item>
-
-            <Form.Item
-              name="confirm"
-              dependencies={['password']}
-              hasFeedback
-              rules={[
-                { required: true, message: 'Please confirm your password!' },
-                ({ getFieldValue }) => ({
-                  validator(_, value) {
-                    if (!value || getFieldValue('password') === value) {
-                      return Promise.resolve();
-                    }
-                    return Promise.reject(new Error('The two passwords do not match!'));
-                  },
-                }),
-              ]}
-            >
-              <Input.Password
-                prefix={<LockOutlined className="site-form-item-icon text-gray-400" />}
-                placeholder="Confirm Password"
-                className="rounded-lg py-2"
-              />
-            </Form.Item>
-
-            <Form.Item className="mt-6">
-              <Button 
-                type="primary" 
-                htmlType="submit" 
-                loading={loading || isLoading}
-                className="w-full bg-[#002f34] hover:!bg-[#002f34]/90 h-12 rounded-lg text-base font-semibold shadow-md border-0"
-              >
-                Create Account
-              </Button>
-            </Form.Item>
-          </Form>
+            <RegisterForm />
         </div>
       </div>
     </div>
