@@ -51,6 +51,29 @@ namespace WebApplication25.Controllers
             return BadRequest(new { Message = "Помилка реєстрації. Можливо, такий Email вже існує." });
         }
 
+        /// <summary>
+        /// Реєстрація з верифікацією reCaptcha v3
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("regist-captcha")]
+        public async Task<IActionResult> RegistWithCaptcha([FromBody] RegisterDto value, [FromQuery] string recaptchaToken)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            if (string.IsNullOrEmpty(recaptchaToken))
+                return BadRequest(new { Message = "reCaptcha токен відсутній" });
+
+            _logger.LogInformation("Реєстрація нового користувача з reCaptcha: {Email}", value.Email);
+
+            var result = await _authService.RegisterAsync(value, recaptchaToken);
+
+            if (result)
+                return Ok(new { Message = "Реєстрація успішна. Перевірте пошту для підтвердження." });
+
+            _logger.LogWarning("Невдала спроба реєстрації з reCaptcha: {Email}", value.Email);
+            return BadRequest(new { Message = "Помилка реєстрації. Рекаптча не пройшла перевірку або Email вже існує." });
+        }
+
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto value)
@@ -73,6 +96,42 @@ namespace WebApplication25.Controllers
             }
 
             _logger.LogInformation("Користувач {Email} успішно увійшов", value.Email);
+
+            return Ok(new
+            {
+                Token = result.Token,
+                RefreshToken = result.RefreshToken,
+                Email = value.Email
+            });
+        }
+
+        /// <summary>
+        /// Вхід з верифікацією reCaptcha v3
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("login-captcha")]
+        public async Task<IActionResult> LoginWithCaptcha([FromBody] LoginDto value, [FromQuery] string recaptchaToken)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            if (string.IsNullOrEmpty(recaptchaToken))
+                return BadRequest(new { Message = "reCaptcha токен відсутній" });
+
+            _logger.LogInformation("Спроба входу з reCaptcha: {Email}", value.Email);
+
+            var result = await _authService.LoginAsync(value, recaptchaToken);
+
+            if (!result.IsSuccess)
+            {
+                _logger.LogWarning("Вхід з reCaptcha не вдався для {Email}: {Message}", value.Email, result.Message);
+
+                if (result.Message != null && result.Message.Contains("заблоковано"))
+                    return StatusCode(403, new { Message = result.Message });
+
+                return Unauthorized(new { Message = result.Message });
+            }
+
+            _logger.LogInformation("Користувач {Email} успішно увійшов з reCaptcha", value.Email);
 
             return Ok(new
             {

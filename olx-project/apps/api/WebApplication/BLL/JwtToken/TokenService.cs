@@ -2,10 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -27,18 +24,18 @@ namespace BLL.JwtToken
         {
             var claims = new List<Claim>()
             {
-                new Claim("email", user.Email ?? ""),
-                new Claim("id", user.Id.ToString())
+                new Claim(ClaimTypes.Email, user.Email ?? ""),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
             };
 
             var roles = await _userManager.GetRolesAsync(user);
 
             foreach (var role in roles)
             {
-                claims.Add(new Claim("role", role));
+                claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWTSettings:key"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWTSettings:key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
@@ -54,30 +51,30 @@ namespace BLL.JwtToken
 
         public string CreateRefreshToken()
         {
-            var randomNumber = new byte[32];
-            using (var num = RandomNumberGenerator.Create())//случайний набір чисел 
+            var randomNumber = new byte[64];
+            using (var rng = RandomNumberGenerator.Create())
             {
-                num.GetBytes(randomNumber);
+                rng.GetBytes(randomNumber);
             }
-           return Convert.ToBase64String(randomNumber);
+            return Convert.ToBase64String(randomNumber);
         }
 
-        public ClaimsPrincipal GetPrincopalFromExpiredToken(string token)//старий токен
-        {//застарілий токен сюди приходить, розшифровує, і записує у новий створений ті дані зі старого
-            var tokenHandler = new JwtSecurityTokenHandler();//авто. перевірка на теперешнього токена
-            var valid = new TokenValidationParameters//тут новий токен ( шаблон ) - він зчитується з JWTSettings (в appsettings.json) 
-            {//старий токен має бути розшифрованим 
-                ValidateIssuer = true,//перевірка видавця
-                ValidateAudience = true,//перевірка на хто може читати
-                ValidateLifetime = false,//перевірка життя не тре
+        public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = false,
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = _configuration["JWTSettings:Issuer"],
                 ValidAudience = _configuration["JWTSettings:Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWTSettings:key"]))
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWTSettings:key"]!))
             };
-            return tokenHandler.ValidateToken(token, valid, out _);
-            //старий токен і шаблон на який можна перевірити
-            //якщо буде співпадати то буде створювати новий токен
+            
+            var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
+            return principal;
         }
 
     }

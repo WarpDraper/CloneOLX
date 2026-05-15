@@ -1,104 +1,92 @@
-﻿using Domain;
+﻿using BLL.AdminService;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using OLXCLONE.DTO.User;
+using System.Security.Claims;
 
-namespace OLXCLONE.Controllers.Api
+namespace WebApplication.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")] // Тільки для еліти 
     public class AdminController : ControllerBase
     {
-        private readonly UserManager<AppUser> _userManager;
-        private readonly RoleManager<AppRole> _roleManager;
+        private readonly IAdminService _adminService;
+        private readonly ILogger<AdminController> _logger;
 
-        public AdminController(UserManager<AppUser> userManager, RoleManager<AppRole> roleManager)
+        public AdminController(IAdminService adminService, ILogger<AdminController> logger)
         {
-            _userManager = userManager;
-            _roleManager = roleManager;
+            _adminService = adminService;
+            _logger = logger;
         }
 
-        // 1. ОТРИМАТИ ВСІХ ЮЗЕРІВ (Для таблиці в адмінці)
-        // GET: api/admin/users
+        // 1. Отримати всіх користувачів
         [HttpGet("users")]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers()
         {
-            var users = await _userManager.Users.ToListAsync();
-            var userDtos = new List<UserDto>();
+            _logger.LogInformation("Адмін запитав список усіх користувачів");
+            var users = await _adminService.GetAllUsersAsync();
+            return Ok(users);
+        }
 
-            foreach (var user in users)
+        // 2. Отримати конкретного юзера по ID
+        [HttpGet("users/{id}")]
+        public async Task<IActionResult> GetUserById(long id)
+        {
+            var user = await _adminService.GetUserByIdAsync(id);
+            if (user == null) return NotFound(new { Message = "Користувача не знайдено" });
+
+            return Ok(user);
+        }
+
+        // 3. Забанити юзера (Твоя спеціалізація: Безпека)
+        [HttpPost("users/{id}/ban")]
+        public async Task<IActionResult> BanUser(long id, [FromBody] string reason)
+        {
+            var currentUserIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!long.TryParse(currentUserIdClaim, out var currentUserId))
             {
-                var roles = await _userManager.GetRolesAsync(user);
-
-                userDtos.Add(new UserDto
-                {
-                    Id = user.Id,
-                    UserName = user.UserName,
-                    Email = user.Email,
-                    Roles = roles
-                });
+                _logger.LogWarning("Не вдалося визначити поточного користувача при спробі бану");
+                return Forbid();
             }
 
-            return Ok(userDtos);
+            if (currentUserId == id) return BadRequest("Не можна забанити самого себе!");
+
+            var success = await _adminService.BanUserAsync(id, reason);
+            if (!success) return BadRequest("Не вдалося забанити користувача");
+
+            _logger.LogWarning("Користувача {Id} було забанено. Причина: {Reason}", id, reason);
+            return Ok(new { Message = "Користувача успішно забанено" });
         }
 
-        // 2. ВИДАЛИТИ ЮЗЕРА (БАН)
-        // DELETE: api/admin/users/{id}
+        // 4. Розбанити
+        [HttpPost("users/{id}/unban")]
+        public async Task<IActionResult> UnbanUser(long id)
+        {
+            var result = await _adminService.UnbanUserAsync(id);
+            if (!result) return BadRequest("Не вдалося розблокувати користувача");
+
+            return Ok(new { Message = "Користувача успішно розблоковано" });
+        }
+
+        // 5. Призначити адміном
+        [HttpPost("users/{id}/make-admin")]
+        public async Task<IActionResult> MakeAdmin(long id)
+        {
+            var result = await _adminService.AddAdminRoleAsync(id);
+            if (!result) return BadRequest("Помилка при призначенні ролі");
+
+            return Ok(new { Message = "Користувач тепер адмін" });
+        }
+
+        // 6. Повне видалення (Тільки для критичних випадків)
         [HttpDelete("users/{id}")]
-        public async Task<IActionResult> DeleteUser(string id)
+        public async Task<IActionResult> DeleteUser(long id)
         {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null) return NotFound("Юзера не знайдено");
+            var result = await _adminService.DeleteUserAsync(id);
+            if (!result) return BadRequest("Помилка при видаленні користувача");
 
-            if (User.Identity.Name == user.UserName)
-                return BadRequest("Не можна видалити самого себе!");
-
-            var result = await _userManager.DeleteAsync(user);
-
-            if (result.Succeeded) return NoContent();
-
-            return BadRequest("Помилка при видаленні");
-        }
-
-        // 3. ВИДАТИ РОЛЬ (Зробити адміном або розжалувати)
-        // POST: api/admin/assign-role
-        [HttpPost("assign-role")]
-        public async Task<IActionResult> AssignRole(string userId, string roleName)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return NotFound("Юзера немає");
-
-            var roleExists = await _roleManager.RoleExistsAsync(roleName);
-            if (!roleExists) return BadRequest("Такої ролі не існує");
-
-            // Додаємо роль
-            var result = await _userManager.AddToRoleAsync(user, roleName);
-
-            if (result.Succeeded) return Ok($"Роль {roleName} додано користувачу {user.UserName}");
-
-            return BadRequest("Помилка додавання ролі");
-        }
-
-        // 4. СТАТИСТИКА (Dashboard)
-        // GET: api/admin/stats
-        [HttpGet("stats")]
-        public async Task<IActionResult> GetStats()
-        {
-            var userCount = await _userManager.Users.CountAsync();
-            // Тут ти можеш звернутися до BookService, щоб дізнатися кількість книг
-            // Але поки що просто для прикладу:
-
-            var stats = new
-            {
-                TotalUsers = userCount,
-                ServerTime = DateTime.UtcNow,
-                Message = "System is healthy"
-            };
-
-            return Ok(stats);
+            return NoContent();
         }
     }
 }

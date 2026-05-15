@@ -1,8 +1,12 @@
 ﻿using Domain;
 using AutoMapper;
 using BLL.DTO.Authorize;
+using BLL.DTO.User;
+using BLL.DTO.Report;
 using BLL.JwtToken;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace WebApplication25.Configuration.Mapping
 {
@@ -15,6 +19,17 @@ namespace WebApplication25.Configuration.Mapping
 
             CreateMap<RegisterDto, AppUser>()
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email));
+
+            // Privacy Mappings
+            CreateMap<AppUser, UserPublicProfileDto>();
+            CreateMap<PrivacySettingsDto, AppUser>()
+                .ForMember(dest => dest.IsPhoneNumberPrivate, opt => opt.MapFrom(src => src.IsPhoneNumberPrivate))
+                .ForMember(dest => dest.IsLocationPrivate, opt => opt.MapFrom(src => src.IsLocationPrivate));
+
+            // Report Mappings
+            CreateMap<Report, ReportDto>()
+                .ForMember(dest => dest.TargetUserName, opt => opt.MapFrom(src => src.TargetUser.UserName));
+            CreateMap<CreateReportDto, Report>();
         }
     }
 

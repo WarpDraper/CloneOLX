@@ -10,7 +10,11 @@ namespace BLL.AuthService
     public interface IAuthService
     {
         Task<bool> RegisterAsync(RegisterDto model);
+        Task<bool> RegisterAsync(RegisterDto model, string recaptchaToken);
+        
         Task<AuthResultDto> LoginAsync(LoginDto model);
+        Task<AuthResultDto> LoginAsync(LoginDto model, string recaptchaToken);
+        
         Task<AuthResultDto> RefreshTokenAsync(RefreshTokenDto model);
         Task<bool> ConfirmEmailAsync(string userId, string token);
         Task<bool> ForgotPasswordAsync(ForgotPasswordDto model);

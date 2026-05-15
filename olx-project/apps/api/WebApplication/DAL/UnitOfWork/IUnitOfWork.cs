@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TaskerDAL;
+using DAL.Repository;
 
 namespace DAL.UnitOfWork
 {
@@ -12,6 +13,10 @@ namespace DAL.UnitOfWork
     {
       //  IRepository<Book> BookRepository { get; }
        // IRepository<BookUser> BookUserRepository { get; }
+        IReportRepository Reports { get; }
+        
+        Task SaveAsync();
         void Save();
     }
 }
+

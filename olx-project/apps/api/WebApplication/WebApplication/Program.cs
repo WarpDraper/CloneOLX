@@ -1,26 +1,23 @@
 using AuthBLL.EmailService;
 using BLL.AuthService;
 using BLL.JwtToken;
-using DAL;
 using DAL.Context;
+using DAL.Repository;
 using DAL.UnitOfWork;
 using Domain;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OLXCLONE.Configuration.Role;
 using OLXCLONE.Middleware;
-using System.Reflection.Metadata;
 using System.Text;
-using TaskerDAL;
 using TaskerDAL.UnitOfWork;
 using WebApplication25.Configuration.Mapping;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = global::Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(args);
 
 // ==========================================
 // 1. ПІДКЛЮЧЕННЯ БАЗИ, КОНТРОЛЕРІВ ТА IDENTITY
@@ -39,6 +36,15 @@ builder.Services.AddIdentity<AppUser, AppRole>(options =>
     options.Password.RequireLowercase = false;
     options.Password.RequireUppercase = false;
     options.Password.RequireNonAlphanumeric = false;
+
+    // LOCKOUT CONFIGURATION для захисту від brute-force
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
+
+    // User Settings
+    options.User.RequireUniqueEmail = true;
+    options.SignIn.RequireConfirmedEmail = false;
 })
 .AddEntityFrameworkStores<ApplicationContext>()
 .AddDefaultTokenProviders();
@@ -75,6 +81,14 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddTransient<ITokenService, TokenService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Нові сервіси
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
+builder.Services.AddHttpClient<BLL.RecaptchaService.IRecaptchaService, BLL.RecaptchaService.RecaptchaService>();
+builder.Services.AddScoped<BLL.PrivacyService.IPrivacyService, BLL.PrivacyService.PrivacyService>();
+builder.Services.AddScoped<BLL.NotificationService.INotificationService, BLL.NotificationService.NotificationService>();
+builder.Services.AddScoped<BLL.AdminService.IAdminService, BLL.AdminService.AdminService>();
+
 builder.Services.AddAutoMapper(x => x.AddProfile<MappingProfile>());
 var emailSet = builder.Configuration.GetSection("EmailSettings").Get<EmailSettings>();
 builder.Services.AddSingleton(emailSet);

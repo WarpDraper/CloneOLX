@@ -1,4 +1,6 @@
-﻿namespace WebApplication25.Configuration.Mapping
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+namespace WebApplication25.Configuration.Mapping
 {
     public static class ServiceLocator
     {
