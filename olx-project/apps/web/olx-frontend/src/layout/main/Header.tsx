@@ -11,12 +11,16 @@ import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../../store';
 import { markAsRead, markAllAsRead } from '../../store/notificationSlice';
 import type { NotificationItem } from '../../store/notificationSlice';
+import { useLingui } from '@lingui/react';
+import { Trans } from '@lingui/macro';
+import { dynamicActivate } from '../../i18n';
 
 const Header: React.FC = () => {
     const dispatch = useDispatch();
 
   const { items } = useSelector((state: RootState) => state.notifications);
     const { isAuth, user } = useSelector((state: RootState) => state.auth);
+    const { i18n } = useLingui();
 
   const unreadCount = items.filter((n: NotificationItem) => !n.read).length;
 
@@ -26,7 +30,7 @@ const Header: React.FC = () => {
   const notificationContent = (
     <div className="w-80 max-h-96 flex flex-col">
       <div className="flex justify-between items-center mb-2 px-4 shadow-sm pb-2">
-        <span className="font-bold text-[#002f34]">Сповіщення</span>
+        <span className="font-bold text-[#002f34]"><Trans>Сповіщення</Trans></span>
         {unreadCount > 0 && (
           <Button type="link" size="small" onClick={() => dispatch(markAllAsRead())}>
             Прочитано всі
@@ -35,7 +39,7 @@ const Header: React.FC = () => {
       </div>
       <div className="overflow-y-auto overflow-x-hidden flex-1">
         {items.length === 0 ? (
-          <div className="text-center text-gray-400 py-8">Немає нових сповіщень</div>
+          <div className="text-center text-gray-400 py-8"><Trans>Немає нових сповіщень</Trans></div>
         ) : (
           <List
             size="small"
@@ -77,12 +81,18 @@ const Header: React.FC = () => {
       <div className="flex items-center gap-6 text-sm font-semibold">
         <div className="hidden md:flex items-center gap-2 cursor-pointer hover:text-[#23e5db] transition-colors">
           <MessageOutlined className="text-xl" />
-          <span>Чат</span>
+          <span><Trans>Чат</Trans></span>
         </div>
         <div className="hidden lg:flex items-center gap-2 border-l border-r border-[#1a4449] px-4">
-          <span className="cursor-pointer hover:text-[#23e5db] transition-colors">Укр</span>
+          <span 
+            className={`cursor-pointer hover:text-[#23e5db] transition-colors ${i18n.locale === 'ua' ? 'text-white' : 'text-gray-400'}`}
+            onClick={() => dynamicActivate('ua')}
+          >Укр</span>
           <span className="text-gray-400">|</span>
-          <span className="text-gray-400 cursor-pointer hover:text-[#23e5db] transition-colors">Рус</span>
+          <span 
+            className={`cursor-pointer hover:text-[#23e5db] transition-colors ${i18n.locale === 'en' ? 'text-white' : 'text-gray-400'}`}
+            onClick={() => dynamicActivate('en')}
+          >Eng</span>
         </div>
         <HeartOutlined className="text-xl px-2 cursor-pointer hover:text-[#23e5db] transition-colors hidden sm:block" />
 
@@ -94,10 +104,10 @@ const Header: React.FC = () => {
 
         <Link to={isAuth ? "/profile" : "/login"} className="flex items-center gap-2 cursor-pointer hover:text-[#23e5db] transition-colors text-white">
           <UserOutlined className="text-xl" />
-          <span>{isAuth ? (user?.email || "Профіль") : "Увійти"}</span>
+          <span>{isAuth ? (user?.name || <Trans>Профіль</Trans>) : <Trans>Увійти</Trans>}</span>
         </Link>
         <Button className="bg-white text-[#002f34] border-0 font-bold px-6 h-10 rounded shadow-md hover:bg-gray-100 transition-colors ml-2">
-          Додати оголошення
+          <Trans>Додати оголошення</Trans>
         </Button>
       </div>
     </header>

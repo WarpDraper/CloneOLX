@@ -1,22 +1,18 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { ILoginResult} from "../types/account/ILoginResult.ts";
+import { jwtDecode } from "jwt-decode";
+import type {IUserItem} from "../types/account/IUserItem.ts";
+
 
 interface AuthState {
-    user: ILoginResult | null;
+    user: IUserItem | null; // Тут будуть дані з токена
     token: string | null;
     isAuth: boolean;
 }
 
-// Функція для отримання початкового стану з localStorage
 const getInitialState = (): AuthState => {
     const savedData = localStorage.getItem("auth");
     if (savedData) {
-        const parsed = JSON.parse(savedData);
-        return {
-            user: parsed.user,
-            token: parsed.token,
-            isAuth: true,
-        };
+        return JSON.parse(savedData);
     }
     return { user: null, token: null, isAuth: false };
 };
@@ -25,22 +21,33 @@ const authSlice = createSlice({
     name: "auth",
     initialState: getInitialState(),
     reducers: {
-        setAuth: (state, action: PayloadAction<{ token: string; email: string }>) => {
+        setAuth: (state, action: PayloadAction<{ token: string }>) => {
+            const { token } = action.payload;
 
-            state.token = action.payload.token;
-            state.user = { email: action.payload.email } as any;
+            // Декодуємо токен
+            const decoded: any = jwtDecode(token);
+
+            const user : IUserItem = {
+                id: decoded.id,
+                email: decoded.email,
+                name: decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || decoded.unique_name,
+                avatar: decoded.avatar,
+                location: decoded.location,
+                phoneNumber: decoded.phoneNumber,
+                role: decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ||
+                    decoded.role || ""
+            };
+
+            state.token = token;
+            state.user = user;
             state.isAuth = true;
 
-            localStorage.setItem("auth", JSON.stringify({
-                user: state.user,
-                token: state.token
-            }));
+            localStorage.setItem("auth", JSON.stringify(state));
         },
         logout: (state) => {
             state.user = null;
             state.token = null;
             state.isAuth = false;
-            // Видаляємо з LocalStorage
             localStorage.removeItem("auth");
         },
     },
