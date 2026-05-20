@@ -39,7 +39,6 @@ const LoginForm: React.FC = () => {
 
             dispatch(setAuth({
                 token: userData.token,
-                email: userData.email
             }));
 
             navigate("/");

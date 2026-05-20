@@ -11,7 +11,6 @@ export const accountService = createApi({
     endpoints: (builder) => ({
         register: builder.mutation<IUserItem, IRegisterUser>({
             query: (body) => {
-
                 return {
                     url: "/regist",
                     method: "POST",
@@ -22,7 +21,6 @@ export const accountService = createApi({
         }),
         login: builder.mutation<ILoginResult, IUserLogin>({
             query: (body) => {
-
                 return {
                     url: "/login",
                     method: "POST",
