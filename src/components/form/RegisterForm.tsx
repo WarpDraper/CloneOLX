@@ -43,6 +43,8 @@ const RegisterForm: React.FC = () => {
 
         try {
             await register({ ...formValues, imageFile: fileList[0].originFileObj }).unwrap();
+            const userData = await register(formValues).unwrap();
+            console.log("Дані користувача:", userData);
             navigate("/");
         } catch (err: any) {
             if (err?.data?.errors) {

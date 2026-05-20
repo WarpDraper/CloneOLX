@@ -1,73 +1,82 @@
-# React + TypeScript + Vite
+# Проєкт — Як запустити і що зроблено
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Огляд
+Це фронтенд частина OLX-подібного клону, написана на React + TypeScript. Використовуються сучасні підходи: компоненти, маршрутизація (`react-router-dom` v6), авторизація, сторінки профілю та адмін-панель з вкладеними layout-ами.
 
-Currently, two official plugins are available:
+## Що реалізовано
+- Авторизація (login) та реєстрація (signup).
+- Сторінка профілю користувача.
+- Адмін-панель з окремим layout-ом і вкладеними маршрутами.
+- Маршрутизація через `react-router-dom` v6.
+- Типізація через TypeScript.
+- HTTP-клієнт для взаємодії з бекендом (з урахуванням змінної оточення API URL).
+- Базові форми та валідація (частково).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Передумови
+- Node.js (рекомендовано v16+) і npm встановлені.
+- Бекенд API запущений і доступний (вкажіть адресу в змінних оточення).
+- Рекомендується використовувати будь-який сучасний редактор/IDE (WebStorm, VSCode тощо).
 
-## React Compiler
+## Налаштування змінних оточення
+- Для Create React App:
+  - Створіть файл `.env` у корені проекту і додайте:
+    REACT_APP_API_URL=http://localhost:5098
+- Для Vite:
+  - Створіть файл `.env` і додайте:
+    VITE_API_URL=http://localhost:5098
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Замініть `http://localhost:5098` на адресу вашого бекенду при потребі.
 
-## Expanding the ESLint configuration
+## Інсталяція і запуск
+1. Встановіть залежності:
+   - Windows / Linux / macOS:
+   ```
+   npm install
+   ```
+   
+     
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+2. Запуск у режимі розробки:
+   - Якщо проект використовує Create React App:
+   ```
+     npm start
+   ```
+   - Якщо проект використовує Vite:
+   ```
+     npm run dev
+   ```
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+3. Збірка production:
+```
+   npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+4. Додаткові скрипти (якщо присутні в package.json):
+   - Тести:
+   ```
+     npm test
+   ```
+      - Лінтинг:
+   ```
+     npm run lint
+   ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+(Перевірте `package.json` у проєкті для точних скриптів — імена можуть відрізнятись.)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Типові проблеми та поради
+- Якщо інтерфейс не бачить бекенд:
+  - Переконайтесь, що змінна оточення встановлена і збірка перезапущена.
+  - Для Create React App змінні починаються з `REACT_APP_`.
+  - Для Vite — з `VITE_`.
+- CORS: якщо бекенд блокує запити, налаштуйте CORS на сервері.
+- Порти: перевірте, що порт у змінних оточення і порт бекенду співпадають.
+
+## Структура (коротко)
+- src/components — повторно використовувані UI-компоненти
+- src/pages — сторінки (Login, Profile, Admin тощо)
+- src/layouts — layout-компоненти (для сайт/адмін)
+- src/services — запити до API та клієнт
+- src/routes — налаштування маршрутизації
+
+## Контакти / Додатково
+- Якщо потрібно додати специфічні приклади env, скриптів або інструкції для CI/CD — додайте запит в issues або оновіть README з прикладами.

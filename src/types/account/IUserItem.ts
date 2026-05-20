@@ -1,9 +1,9 @@
 export interface IUserItem {
-    id: number;
-    lastName: string;
-    name: string;
-    email: string;
-    image: string;
-    status: string;
-    registerDate: string;
+    id: any;
+    email: any;
+    name: any;
+    avatar: any;
+    location: any;
+    phoneNumber: any;
+    role: any;
 }
