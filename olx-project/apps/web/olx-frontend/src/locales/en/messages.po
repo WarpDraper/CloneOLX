@@ -1,0 +1,26 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-05-19 01:01+0300\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: en\n"
+
+msgid "Чат"
+msgstr "Chat"
+
+msgid "Профіль"
+msgstr "Profile"
+
+msgid "Увійти"
+msgstr "Sign in"
+
+msgid "Додати оголошення"
+msgstr "Add listing"
+
+msgid "Сповіщення"
+msgstr "Notifications"
+
+msgid "Немає нових сповіщень"
+msgstr "No new notifications"
