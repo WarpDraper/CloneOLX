@@ -5,11 +5,24 @@ import {
   ExportOutlined, 
   CarOutlined 
 } from '@ant-design/icons';
-import { useSelector } from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import type { RootState } from '../../../store';
+import {logout} from "../../../Slice/authSlice.ts";
+
+
+import { Trans, t } from "@lingui/macro";
+import { useLingui } from "@lingui/react";
+import { dynamicActivate } from "./../../../i18n.ts";
 
 const UserProfilePage: React.FC = () => {
+    useLingui();
   const { user } = useSelector((state: RootState) => state.auth);
+    const dispatch = useDispatch();
+    const { isAuth } = useSelector((state: RootState) => state.auth);
+
+    const handleLogout = () => {
+        dispatch(logout());
+    };
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f2f4f5]">
@@ -54,16 +67,24 @@ const UserProfilePage: React.FC = () => {
         
         <div className="flex items-center gap-6 mb-10">
           <div className="w-24 h-24 rounded-full bg-[#cbf7ee] flex items-center justify-center overflow-hidden flex-shrink-0">
-            <svg viewBox="0 0 100 100" className="w-20 h-20 text-[#002f34] mt-2">
-              <circle cx="50" cy="40" r="22" fill="currentColor"/>
-              <path d="M15,95 C15,65 85,65 85,95" fill="currentColor" />
-              <circle cx="42" cy="35" r="3" fill="#cbf7ee"/>
-              <circle cx="58" cy="35" r="3" fill="#cbf7ee"/>
-            </svg>
+              {user?.avatar ? (
+                  <img
+                      src={user.avatar}
+                      alt="User profile"
+                      className="w-full h-full object-cover"
+                  />
+              ) : (
+                  <svg viewBox="0 0 100 100" className="w-20 h-20 text-[#002f34] mt-2">
+                      <circle cx="50" cy="40" r="22" fill="currentColor"/>
+                      <path d="M15,95 C15,65 85,65 85,95" fill="currentColor" />
+                      <circle cx="42" cy="35" r="3" fill="#cbf7ee"/>
+                      <circle cx="58" cy="35" r="3" fill="#cbf7ee"/>
+                  </svg>
+              )}
           </div>
           <div>
             <h2 className="text-3xl font-bold text-[#002f34] mb-2">Редагування профілю</h2>
-            <a href="#" className="flex items-center gap-1 text-[#002f34] font-semibold hover:underline">
+            <a href="" className="flex items-center gap-1 text-[#002f34] font-semibold hover:underline">
                <ExportOutlined /> Переглянути, як інші бачать мій профіль
             </a>
           </div>
@@ -74,7 +95,15 @@ const UserProfilePage: React.FC = () => {
              <Button className="bg-[#f2f4f5] border-0 text-[#002f34] font-bold px-6 h-10 hover:bg-gray-200">
                Редагувати
              </Button>
+               <Button className="bg-[#f2f4f5] border-0 text-[#002f34] font-bold px-6 h-10 hover:bg-gray-200" onClick={isAuth ? handleLogout : undefined}>
+                   LogOut
+               </Button>
            </div>
+
+            <div className="mt-4 flex gap-2">
+                <button onClick={() => dynamicActivate("ua")} className="border p-2">UA</button>
+                <button onClick={() => dynamicActivate("en")} className="border p-2">EN</button>
+            </div>
            
            <h3 className="text-xs font-bold text-gray-500 tracking-wider mb-8 flex items-center gap-1 uppercase">
              ОСНОВНА ІНФОРМАЦІЯ <InfoCircleOutlined />
@@ -82,16 +111,25 @@ const UserProfilePage: React.FC = () => {
            
            <div className="flex flex-col gap-6 max-w-xl">
              <div>
-               <p className="text-sm text-gray-500 mb-1">Ім'я</p>
-               <p className="text-base text-[#002f34] font-semibold">{user?.email || 'Користувач'}</p>
+               <p className="text-sm text-gray-500 mb-1"><Trans>Ім'я</Trans></p>
+               <p className="text-base text-[#002f34] font-semibold">{user?.name || 'Користувач'}</p>
              </div>
              <div>
-               <p className="text-sm text-gray-500 mb-1">Місцезнаходження</p>
-               <p className="text-base text-[#002f34] font-semibold">Не вказано</p>
+               <p className="text-sm text-gray-500 mb-1"> <Trans> Місцезнаходження </Trans> </p>
+                 {user?.location ? (
+                     <p className="text-base text-[#002f34] font-semibold">{user.location || t`Не вказано`}</p>
+                 ) : (
+                     <p className="text-base text-[#002f34] font-semibold">Не вказано</p>
+                 )}
+
              </div>
              <div>
-               <p className="text-sm text-gray-500 mb-1">Номер телефону</p>
-               <p className="text-base text-[#002f34] font-semibold">Не вказано</p>
+               <p className="text-sm text-gray-500 mb-1"> <Trans> Номер телефону </Trans> </p>
+                 {user?.phoneNumber ? (
+                     <p className="text-base text-[#002f34] font-semibold">{user.phoneNumber}</p>
+                 ) : (
+                     <p className="text-base text-[#002f34] font-semibold">Не вказано</p>
+                 )}
              </div>
            </div>
         </div>
