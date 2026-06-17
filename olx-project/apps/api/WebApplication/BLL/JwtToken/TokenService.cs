@@ -25,7 +25,11 @@ namespace BLL.JwtToken
             var claims = new List<Claim>()
             {
                 new Claim(ClaimTypes.Email, user.Email ?? ""),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+
+                new Claim("phoneNumber", user.PhoneNumber ?? ""),
+                new Claim("city", user.Location ?? ""), 
+                new Claim("avatarUrl", user.AvatarUrl ?? "")
             };
 
             var roles = await _userManager.GetRolesAsync(user);

@@ -331,6 +331,7 @@ namespace BLL.AuthService
                 return AuthResultDto.Fail("Недійсний Google токен");
             }
         }
+
         public async Task<AuthResultDto> UpdateProfileAsync(string userId, UpdateProfileDto model)
         {
             try

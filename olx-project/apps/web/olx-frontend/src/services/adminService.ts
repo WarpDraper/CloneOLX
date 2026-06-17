@@ -23,25 +23,11 @@ export const adminService = createApi({
             invalidatesTags: ['User'],
         }),
 
-        getReports: builder.query<any, void>({
-            query: () => '/reports',
-            providesTags: ['Report'],
-        }),
 
-        updateReportStatus: builder.mutation<void, { id: number | string; status: string }>({
-            query: ({ id, status }) => ({
-                url: `/reports/${id}/status`,
-                method: 'PUT',
-                body: { status },
-            }),
-            invalidatesTags: ['Report'],
-        }),
     }),
 });
 
 export const {
     useGetUsersQuery,
     useToggleUserBlockMutation,
-    useGetReportsQuery,
-    useUpdateReportStatusMutation
 } = adminService;
