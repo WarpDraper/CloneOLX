@@ -2,7 +2,7 @@ export interface IUserItem {
     id: any;
     email: any;
     name: any;
-    avatar: any;
+    avatarUrl: any;
     location: any;
     phoneNumber: any;
     role: any;

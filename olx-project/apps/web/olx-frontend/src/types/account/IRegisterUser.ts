@@ -4,5 +4,5 @@ export interface IRegisterUser {
     phone: string;
     email: string;
     password: string;
-    imageFile?: File | null;
+    avatarUrl?: File | null;
 }

@@ -27,6 +27,7 @@ namespace BLL.JwtToken
                 new Claim(ClaimTypes.Email, user.Email ?? ""),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
 
+                new Claim(ClaimTypes.Name, user.UserName ?? "Користувач"),
                 new Claim("phoneNumber", user.PhoneNumber ?? ""),
                 new Claim("city", user.Location ?? ""), 
                 new Claim("avatarUrl", user.AvatarUrl ?? "")

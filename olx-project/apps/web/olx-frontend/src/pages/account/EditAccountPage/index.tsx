@@ -4,31 +4,24 @@ import { PhoneOutlined, EnvironmentOutlined, UserOutlined, UploadOutlined } from
 import type { RcFile } from 'antd/es/upload/interface';
 
 import { useUpdateProfileMutation, useUploadAvatarMutation } from '../../../services/accountService.ts';
-import { useSelector } from 'react-redux';
-
-interface UpdateProfileFormValues {
-    phoneNumber?: string;
-    city?: string;
-    avatarUrl?: string;
-    isPhoneNumberPrivate: boolean;
-    isLocationPrivate: boolean;
-}
+import { useSelector, useDispatch } from 'react-redux';
+import type { IUpdateProfile } from '../../../types/account/IUpdateProfile.ts';
+import { updateUser } from '../../../Slice/authSlice';
 
 const EditProfilePage: React.FC = () => {
+    const dispatch = useDispatch();
     const [form] = Form.useForm();
     const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
     const [uploadAvatar, { isLoading: isUploading }] = useUploadAvatarMutation();
 
-    // Локальний стейт для відображення прев'ю (Base64 або URL з бекенду)
     const [previewUrl, setPreviewUrl] = useState<string>('');
-
     const currentUser = useSelector((state: any) => state.auth?.user);
 
     useEffect(() => {
         if (currentUser) {
             form.setFieldsValue({
                 phoneNumber: currentUser.phoneNumber,
-                city: currentUser.city,
+                city: currentUser.location || currentUser.city, // підлаштовуємо під назву поля у формі
                 avatarUrl: currentUser.avatarUrl,
                 isPhoneNumberPrivate: currentUser.isPhoneNumberPrivate ?? false,
                 isLocationPrivate: currentUser.isLocationPrivate ?? false,
@@ -39,21 +32,16 @@ const EditProfilePage: React.FC = () => {
         }
     }, [currentUser, form]);
 
-    // Кастомна функція завантаження файлу
+
     const handleCustomUpload = async (options: any) => {
         const { file, onSuccess, onError } = options;
-
         const formData = new FormData();
-        formData.append('file', file); // Ключ 'file' має збігатися з назвою параметра в C# (IFormFile file)
+        formData.append('file', file);
 
         try {
-            // 1. Відправляємо файл на сервер
             const response = await uploadAvatar(formData).unwrap();
-
-            // 2. Бекенд повернув { url: "шлях_до_картинки" }. Записуємо його в приховане поле форми
             form.setFieldValue('avatarUrl', response.url);
             setPreviewUrl(response.url);
-
             onSuccess("OK");
             message.success('Фото успішно завантажено!');
         } catch (error) {
@@ -62,24 +50,28 @@ const EditProfilePage: React.FC = () => {
         }
     };
 
-    // Валідація файлу перед завантаженням (розмір та формат)
     const beforeUpload = (file: RcFile) => {
         const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-        if (!isJpgOrPng) {
-            message.error('Ви можете завантажити тільки JPG/PNG файли!');
-        }
+        if (!isJpgOrPng) message.error('Ви можете завантажити тільки JPG/PNG файли!');
         const isLt2M = file.size / 1024 / 1024 < 2;
-        if (!isLt2M) {
-            message.error('Розмір фото не може перевищувати 2MB!');
-        }
+        if (!isLt2M) message.error('Розмір фото не може перевищувати 2MB!');
         return isJpgOrPng && isLt2M;
     };
 
-    const onFinish = async (values: UpdateProfileFormValues) => {
+
+    const onFinish = async (values: IUpdateProfile & { city?: string }) => {
         try {
             await updateProfile(values).unwrap();
+
+            dispatch(updateUser({
+                phoneNumber: values.phoneNumber,
+                location: values.city,
+                avatarUrl: values.avatarUrl,
+            }));
+
             message.success('Профіль успішно оновлено!');
         } catch (error: any) {
+            console.error("Помилка оновлення", error);
             message.error(error?.data?.Message || 'Помилка оновлення профілю.');
         }
     };
@@ -89,7 +81,6 @@ const EditProfilePage: React.FC = () => {
             <h1 className="text-2xl font-bold text-[#002f34] mb-6">Редагування профілю</h1>
 
             <Form form={form} layout="vertical" onFinish={onFinish}>
-                {/* Приховане поле, яке зберігає URL для DTO */}
                 <Form.Item name="avatarUrl" hidden>
                     <Input />
                 </Form.Item>
@@ -116,18 +107,14 @@ const EditProfilePage: React.FC = () => {
 
                         <Card className="shadow-sm mb-6" title="Конфіденційність">
                             <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                                <div>
-                                    <div className="font-semibold text-[#002f34]">Приховати номер телефону</div>
-                                </div>
+                                <div><div className="font-semibold text-[#002f34]">Приховати номер телефону</div></div>
                                 <Form.Item name="isPhoneNumberPrivate" valuePropName="checked" className="mb-0">
                                     <Switch checkedChildren="Так" unCheckedChildren="Ні" />
                                 </Form.Item>
                             </div>
 
                             <div className="flex justify-between items-center py-3">
-                                <div>
-                                    <div className="font-semibold text-[#002f34]">Приховати місцезнаходження</div>
-                                </div>
+                                <div><div className="font-semibold text-[#002f34]">Приховати місцезнаходження</div></div>
                                 <Form.Item name="isLocationPrivate" valuePropName="checked" className="mb-0">
                                     <Switch checkedChildren="Так" unCheckedChildren="Ні" />
                                 </Form.Item>
@@ -135,13 +122,19 @@ const EditProfilePage: React.FC = () => {
                         </Card>
 
                         <Form.Item>
-                            <Button type="primary" htmlType="submit" loading={isUpdating} size="large" className="bg-[#002f34] hover:!bg-[#004f56] px-8 h-12">
+                            {/* ВИПРАВЛЕНО: прибрали onClick={handleSaveProfile()}, тепер усе контролює htmlType="submit" */}
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                loading={isUpdating}
+                                size="large"
+                                className="bg-[#002f34] hover:!bg-[#004f56] px-8 h-12"
+                            >
                                 Зберегти зміни
                             </Button>
                         </Form.Item>
                     </Col>
 
-                    {/* Права колонка з інтерактивним завантаженням файлу */}
                     <Col xs={24} md={8}>
                         <Card className="shadow-sm text-center bg-gray-50">
                             <div className="mb-4 text-sm font-semibold text-gray-500">Фото профілю</div>
@@ -154,11 +147,10 @@ const EditProfilePage: React.FC = () => {
                                 />
                             </div>
 
-                            {/* Компонент завантаження */}
                             <Upload
                                 name="avatar"
                                 listType="picture"
-                                showUploadList={false} // Приховуємо стандартний список файлів AntD
+                                showUploadList={false}
                                 beforeUpload={beforeUpload}
                                 customRequest={handleCustomUpload}
                             >
