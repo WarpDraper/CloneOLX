@@ -1,84 +1,210 @@
-import React from 'react';
-import { 
-  SearchOutlined,
-  EnvironmentOutlined
-} from '@ant-design/icons';
-import { Input } from 'antd';
-
-// import { useGetCategoriesQuery } from '../../../services/api';
+import React, { useState } from 'react';
+import { SearchOutlined, EnvironmentOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
+import {
+  QUICK_SEARCH_TAGS,
+  CATEGORIES,
+  RECOMMENDATIONS,
+  HERO_SLIDES,
+} from '../../../data/homePageData';
 
 const UserHomePage: React.FC = () => {
-  // const { data: categories = [], isLoading } = useGetCategoriesQuery({});
+  const [activeSlide, setActiveSlide] = useState(0);
+  const slide = HERO_SLIDES[activeSlide];
+
   return (
-    <>
-      <section className="bg-[#f2f4f5] py-8 px-4 md:px-8 flex justify-center">
-        <div className="max-w-[1200px] w-full flex flex-col md:flex-row shadow-sm rounded-md overflow-hidden bg-white">
-          <div className="flex-1 flex items-center border-b md:border-b-0 md:border-r border-gray-200 p-2">
-            <SearchOutlined className="text-gray-500 text-xl ml-2 mr-3" />
-            <Input 
-              placeholder="Що шукаєте?" 
-              bordered={false} 
-              className="w-full text-base h-12 shadow-none focus:ring-0" 
-            />
+    <div className="bg-white">
+      <section className="bg-mm-navy">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-4">
+          <div className="flex flex-col lg:flex-row items-stretch gap-0 rounded-xl overflow-hidden">
+            <div className="flex-[2] flex items-center bg-white/10 border-b lg:border-b-0 lg:border-r border-white/10 px-4 py-3">
+              <SearchOutlined className="text-white/70 text-lg mr-3" />
+              <input
+                type="text"
+                placeholder="Я шукаю..."
+                className="w-full bg-transparent text-white placeholder:text-white/60 text-sm outline-none"
+              />
+            </div>
+            <div className="flex-1 flex items-center bg-white/10 border-b lg:border-b-0 lg:border-r border-white/10 px-4 py-3">
+              <EnvironmentOutlined className="text-white/70 text-lg mr-3" />
+              <input
+                type="text"
+                placeholder="Київська обл."
+                className="w-full bg-transparent text-white placeholder:text-white/60 text-sm outline-none"
+              />
+            </div>
+            <button
+              type="button"
+              className="bg-mm-purple hover:bg-mm-purple-dark text-white font-bold text-sm px-8 py-3.5 transition-colors"
+            >
+              Пошук
+            </button>
           </div>
-          <div className="flex-1 flex items-center p-2 relative">
-            <EnvironmentOutlined className="text-gray-500 text-xl ml-2 mr-3" />
-            <Input 
-              placeholder="Уся Україна" 
-              bordered={false} 
-              className="w-full text-base h-12 shadow-none focus:ring-0" 
-            />
-          </div>
-          <div className="p-2 w-full md:w-auto bg-white flex justify-center">
-             <button className="bg-[#002f34] hover:bg-[#002f34]/90 text-white font-bold h-12 px-10 rounded w-full md:w-auto flex items-center justify-center gap-2 transition-colors">
-               Пошук <SearchOutlined />
-             </button>
+
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 pb-1 text-sm">
+            <span className="text-white/60 font-medium">Топ запити:</span>
+            {QUICK_SEARCH_TAGS.map((tag, index) => (
+              <React.Fragment key={tag}>
+                <button
+                  type="button"
+                  className="text-white/90 hover:text-white hover:underline transition-colors"
+                >
+                  {tag}
+                </button>
+                {index < QUICK_SEARCH_TAGS.length - 1 && (
+                  <span className="text-white/40 hidden sm:inline">,</span>
+                )}
+              </React.Fragment>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="py-12 px-4 max-w-[1240px] mx-auto w-full">
-        <h2 className="text-center text-3xl font-bold text-[#002f34] mb-12">Розділи на сервісі OLX</h2>
-        {/*<div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-8 gap-y-10 gap-x-4">*/}
-        {/*  {isLoading ? (*/}
-        {/*    <div className="col-span-full text-center py-10 text-gray-400">Завантаження категорій...</div>*/}
-        {/*  ) : categories.length === 0 ? (*/}
-        {/*    <div className="col-span-full text-center py-10 text-gray-400">Категорії відсутні</div>*/}
-        {/*  ) : categories.map((cat: any) => (*/}
-        {/*    <div key={cat.id} className="flex flex-col items-center group cursor-pointer">*/}
-        {/*      <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-3 transition-transform group-hover:scale-105 shadow-sm ${cat.color || 'bg-gray-100'}`}>*/}
-        {/*        {cat.icon ? <span className="text-3xl" dangerouslySetInnerHTML={{ __html: cat.icon }}></span> : <span className="text-3xl">📁</span>}*/}
-        {/*      </div>*/}
-        {/*      <span className="text-xs md:text-sm font-semibold text-[#002f34] text-center px-1 leading-tight group-hover:underline">*/}
-        {/*        {cat.title}*/}
-        {/*      </span>*/}
-        {/*    </div>*/}
-        {/*  ))}*/}
-        {/*</div>*/}
+      <section className="max-w-[1280px] mx-auto px-4 md:px-6 py-6">
+        <div className="relative bg-mm-lavender rounded-2xl overflow-hidden min-h-[220px] md:min-h-[260px]">
+          <button
+            type="button"
+            aria-label="Попередній слайд"
+            className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/80 hover:bg-white shadow flex items-center justify-center text-mm-purple transition-colors"
+            onClick={() => setActiveSlide((prev) => (prev === 0 ? HERO_SLIDES.length - 1 : prev - 1))}
+          >
+            <LeftOutlined />
+          </button>
+          <button
+            type="button"
+            aria-label="Наступний слайд"
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/80 hover:bg-white shadow flex items-center justify-center text-mm-purple transition-colors"
+            onClick={() => setActiveSlide((prev) => (prev === HERO_SLIDES.length - 1 ? 0 : prev + 1))}
+          >
+            <RightOutlined />
+          </button>
+
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-8 md:px-12 py-8 md:py-10">
+            <div className="flex-1 z-[1]">
+              <h1 className="text-2xl md:text-3xl font-bold text-mm-navy mb-3 leading-tight">
+                {slide.title}
+              </h1>
+              <p className="text-gray-600 text-sm md:text-base mb-6 max-w-md leading-relaxed">
+                {slide.subtitle}
+              </p>
+              <button
+                type="button"
+                className="bg-mm-orange hover:bg-orange-500 text-white font-bold text-sm px-6 py-2.5 rounded-lg transition-colors shadow-sm"
+              >
+                {slide.cta}
+              </button>
+            </div>
+            <div className="flex-1 flex justify-center md:justify-end z-[1]">
+              <img
+                src={slide.image}
+                alt="MultiMart"
+                className="max-h-[180px] md:max-h-[220px] w-auto object-contain rounded-lg shadow-lg"
+              />
+            </div>
+          </div>
+
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+            {HERO_SLIDES.map((_, index) => (
+              <button
+                key={index}
+                type="button"
+                aria-label={`Слайд ${index + 1}`}
+                onClick={() => setActiveSlide(index)}
+                className={`w-2 h-2 rounded-full transition-colors ${index === activeSlide ? 'bg-mm-purple' : 'bg-mm-purple/30'}`}
+              />
+            ))}
+          </div>
+        </div>
       </section>
 
-      <section className="bg-[#002f34] py-8 px-4 mt-auto">
-        <div className="max-w-[1000px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-6 text-white">
-            <div className="flex gap-2 items-end">
-              <div className="w-3 h-8 bg-blue-500 rounded-sm"></div>
-              <div className="w-4 h-14 bg-indigo-400 rounded-sm"></div>
-              <div className="w-3 h-10 bg-yellow-400 rounded-sm relative">
-                <div className="absolute -top-3 -right-2 w-3 h-3 rounded-full bg-yellow-400"></div>
-                <div className="absolute top-2 w-full h-[2px] bg-white -rotate-45 -right-4"></div>
+      <section className="max-w-[1280px] mx-auto px-4 md:px-6 pb-8">
+        <h2 className="text-xl font-bold text-mm-navy mb-5">Категорії</h2>
+        <div className="flex gap-4 md:gap-6 overflow-x-auto pb-2 scrollbar-hide">
+          {CATEGORIES.map((category) => (
+            <button
+              key={category.id}
+              type="button"
+              className="flex flex-col items-center gap-2.5 min-w-[80px] group shrink-0"
+            >
+              <div className="w-[72px] h-[72px] rounded-full overflow-hidden border-2 border-gray-100 group-hover:border-mm-purple transition-colors shadow-sm">
+                <img
+                  src={category.image}
+                  alt={category.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <span className="text-xs font-medium text-gray-700 text-center leading-tight group-hover:text-mm-purple transition-colors max-w-[90px]">
+                {category.title}
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="max-w-[1280px] mx-auto px-4 md:px-6 pb-12">
+        <h2 className="text-xl font-bold text-mm-navy mb-5">Рекомендації для вас</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {RECOMMENDATIONS.map((item) => (
+            <article
+              key={item.id}
+              className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
+            >
+              <div className="aspect-[4/3] overflow-hidden bg-gray-100">
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="p-3">
+                <h3 className="text-sm font-semibold text-mm-navy line-clamp-2 mb-1 leading-snug">
+                  {item.title}
+                </h3>
+                <p className="text-sm font-bold text-mm-navy mb-1.5">{item.price}</p>
+                <p className="text-xs text-gray-500 leading-tight">
+                  {item.location}
+                  <br />
+                  {item.time}
+                </p>
+              </div>
+            </article>
+          ))}
+
+          <div className="bg-mm-lavender-light rounded-xl border border-purple-100 p-4 flex flex-col items-center justify-center text-center min-h-[280px]">
+            <h3 className="text-sm font-bold text-mm-navy mb-4">Додаток MultiMart</h3>
+            <div className="w-24 h-24 bg-white rounded-lg border border-gray-200 mb-4 flex items-center justify-center p-2">
+              <svg viewBox="0 0 100 100" className="w-full h-full" aria-hidden="true">
+                <rect x="10" y="10" width="12" height="12" fill="#1B1B2F" />
+                <rect x="26" y="10" width="12" height="12" fill="#1B1B2F" />
+                <rect x="42" y="10" width="12" height="12" fill="#1B1B2F" />
+                <rect x="10" y="26" width="12" height="12" fill="#1B1B2F" />
+                <rect x="42" y="26" width="12" height="12" fill="#1B1B2F" />
+                <rect x="58" y="26" width="12" height="12" fill="#1B1B2F" />
+                <rect x="74" y="26" width="12" height="12" fill="#1B1B2F" />
+                <rect x="10" y="42" width="12" height="12" fill="#1B1B2F" />
+                <rect x="42" y="42" width="12" height="12" fill="#1B1B2F" />
+                <rect x="58" y="42" width="12" height="12" fill="#1B1B2F" />
+                <rect x="10" y="58" width="12" height="12" fill="#1B1B2F" />
+                <rect x="26" y="58" width="12" height="12" fill="#1B1B2F" />
+                <rect x="42" y="58" width="12" height="12" fill="#1B1B2F" />
+                <rect x="58" y="58" width="12" height="12" fill="#1B1B2F" />
+                <rect x="74" y="58" width="12" height="12" fill="#1B1B2F" />
+                <rect x="42" y="74" width="12" height="12" fill="#1B1B2F" />
+                <rect x="58" y="74" width="12" height="12" fill="#1B1B2F" />
+                <rect x="74" y="74" width="12" height="12" fill="#1B1B2F" />
+              </svg>
+            </div>
+            <div className="flex flex-col gap-2 w-full">
+              <div className="bg-mm-navy text-white text-xs font-bold py-2 px-3 rounded-md">
+                App Store
+              </div>
+              <div className="bg-mm-navy text-white text-xs font-bold py-2 px-3 rounded-md">
+                Google Play
               </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-300 font-semibold mb-1">Виділяйтеся як компанія!</p>
-              <h3 className="text-xl font-bold">Перегляньте пропозицію OLX для бізнесу</h3>
-            </div>
           </div>
-          <button className="bg-white text-[#002f34] font-bold py-2 px-6 rounded hover:bg-gray-100 transition-colors">
-            Детальніше
-          </button>
         </div>
       </section>
-    </>
+    </div>
   );
 };
 

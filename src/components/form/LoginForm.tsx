@@ -1,12 +1,13 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { useDispatch } from "react-redux";
-import { useLoginMutation } from "../../services/accountService.ts"; // Припустимо, назва така
-import type { IUserLogin } from "../../types/account/IUserLogin.ts"; // Тіп тільки з email та password
+import { useLoginMutation } from "../../services/accountService.ts";
+import type { IUserLogin } from "../../types/account/IUserLogin.ts"; //
 import InputField from "../inputs/InputField.tsx";
 import BaseButton from "../inputs/BaseButton.tsx";
 import { parseServerValidationErrors } from "../../utils/parseServerValidationErrors.ts";
 import { setAuth } from "../../Slice/authSlice.ts";
+import {Link} from "react-router-dom";
 
 const LoginForm: React.FC = () => {
     const navigate = useNavigate();
@@ -79,6 +80,10 @@ const LoginForm: React.FC = () => {
                     <p className="text-red-700 text-sm">{formError}</p>
                 </div>
             )}
+
+            <Link to="/forgot-password" className="font-bold text-[#002f34] hover:text-[#23e5db] transition-colors">
+                I forgot my password.
+            </Link>
 
             <BaseButton
                 type="submit"
