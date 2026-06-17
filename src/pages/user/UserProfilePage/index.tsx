@@ -65,9 +65,9 @@ const UserProfilePage: React.FC = () => {
         
         <div className="flex items-center gap-6 mb-10">
           <div className="w-24 h-24 rounded-full bg-[#cbf7ee] flex items-center justify-center overflow-hidden flex-shrink-0">
-              {user?.avatar ? (
+              {user?.avatarUrl ? (
                   <img
-                      src={user.avatar}
+                      src={user.avatarUrl}
                       alt="User profile"
                       className="w-full h-full object-cover"
                   />
