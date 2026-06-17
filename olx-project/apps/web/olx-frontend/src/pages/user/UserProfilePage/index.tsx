@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 import React from 'react';
 import { Button } from 'antd';
 import { 
@@ -6,23 +7,20 @@ import {
   CarOutlined 
 } from '@ant-design/icons';
 import {useDispatch, useSelector} from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import type { RootState } from '../../../store';
 import {logout} from "../../../Slice/authSlice.ts";
 
-
-import { Trans, t } from "@lingui/macro";
-import { useLingui } from "@lingui/react";
-import { dynamicActivate } from "./../../../i18n.ts";
-
 const UserProfilePage: React.FC = () => {
-    useLingui();
-  const { user } = useSelector((state: RootState) => state.auth);
+    const navigate = useNavigate();
+    const { user } = useSelector((state: RootState) => state.auth);
     const dispatch = useDispatch();
     const { isAuth } = useSelector((state: RootState) => state.auth);
 
     const handleLogout = () => {
         dispatch(logout());
     };
+
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f2f4f5]">
@@ -92,18 +90,13 @@ const UserProfilePage: React.FC = () => {
 
         <div className="bg-white rounded shadow-sm border border-gray-100 p-8 mb-6 relative">
            <div className="absolute top-8 right-8">
-             <Button className="bg-[#f2f4f5] border-0 text-[#002f34] font-bold px-6 h-10 hover:bg-gray-200">
+             <Button className="bg-[#f2f4f5] border-0 text-[#002f34] font-bold px-6 h-10 hover:bg-gray-200" onClick={() => navigate('/update-profile')}>
                Редагувати
              </Button>
                <Button className="bg-[#f2f4f5] border-0 text-[#002f34] font-bold px-6 h-10 hover:bg-gray-200" onClick={isAuth ? handleLogout : undefined}>
                    LogOut
                </Button>
            </div>
-
-            <div className="mt-4 flex gap-2">
-                <button onClick={() => dynamicActivate("ua")} className="border p-2">UA</button>
-                <button onClick={() => dynamicActivate("en")} className="border p-2">EN</button>
-            </div>
            
            <h3 className="text-xs font-bold text-gray-500 tracking-wider mb-8 flex items-center gap-1 uppercase">
              ОСНОВНА ІНФОРМАЦІЯ <InfoCircleOutlined />
@@ -111,20 +104,20 @@ const UserProfilePage: React.FC = () => {
            
            <div className="flex flex-col gap-6 max-w-xl">
              <div>
-               <p className="text-sm text-gray-500 mb-1"><Trans>Ім'я</Trans></p>
+               <p className="text-sm text-gray-500 mb-1">Ім'я</p>
                <p className="text-base text-[#002f34] font-semibold">{user?.name || 'Користувач'}</p>
              </div>
              <div>
-               <p className="text-sm text-gray-500 mb-1"> <Trans> Місцезнаходження </Trans> </p>
+               <p className="text-sm text-gray-500 mb-1"> Місцезнаходження </p>
                  {user?.location ? (
-                     <p className="text-base text-[#002f34] font-semibold">{user.location || t`Не вказано`}</p>
+                     <p className="text-base text-[#002f34] font-semibold">{user.location}</p>
                  ) : (
                      <p className="text-base text-[#002f34] font-semibold">Не вказано</p>
                  )}
 
              </div>
              <div>
-               <p className="text-sm text-gray-500 mb-1"> <Trans> Номер телефону </Trans> </p>
+               <p className="text-sm text-gray-500 mb-1"> Номер телефону </p>
                  {user?.phoneNumber ? (
                      <p className="text-base text-[#002f34] font-semibold">{user.phoneNumber}</p>
                  ) : (

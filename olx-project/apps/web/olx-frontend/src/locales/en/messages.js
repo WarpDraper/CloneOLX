@@ -1,1 +1,0 @@
-/*eslint-disable*/module.exports={messages:JSON.parse("{\"5ahexo\":[\"Notifications\"],\"8y2JnO\":[\"Profile\"],\"SF4if4\":[\"Chat\"],\"V1RWuj\":[\"Sign in\"],\"bF_KSZ\":[\"Add listing\"],\"lC3JPX\":[\"No new notifications\"]}")};

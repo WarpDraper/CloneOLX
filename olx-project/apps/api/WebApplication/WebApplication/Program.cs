@@ -1,6 +1,7 @@
 using AuthBLL.EmailService;
 using BLL.AuthService;
 using BLL.JwtToken;
+using BLL.ReportService;
 using DAL.Context;
 using DAL.Repository;
 using DAL.UnitOfWork;
@@ -81,6 +82,8 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddTransient<ITokenService, TokenService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+// Реєстрація сервісу скарг
+builder.Services.AddScoped<IReportService, ReportService>();
 
 // Нові сервіси
 builder.Services.AddScoped<IReportRepository, ReportRepository>();

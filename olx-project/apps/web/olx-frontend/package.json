@@ -7,13 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "lang:extract": "lingui extract",
-    "lang:compile": "lingui compile"
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@lingui/core": "^6.0.1",
-    "@lingui/react": "^6.0.1",
     "@reduxjs/toolkit": "^2.11.2",
     "antd": "^6.3.5",
     "antd-img-crop": "^4.30.0",
@@ -27,12 +23,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
-    "@lingui/babel-plugin-lingui-macro": "^6.0.1",
-    "@lingui/cli": "^6.0.1",
-    "@lingui/format-po": "^6.0.1",
-    "@lingui/macro": "^5.9.5",
-    "@lingui/swc-plugin": "^6.0.0",
-    "@lingui/vite-plugin": "^6.0.1",
     "@rolldown/plugin-babel": "^0.2.3",
     "@tailwindcss/vite": "^4.2.2",
     "@types/node": "^24.12.0",
