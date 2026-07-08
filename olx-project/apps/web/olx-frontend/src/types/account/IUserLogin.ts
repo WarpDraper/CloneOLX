@@ -1,5 +1,6 @@
 export interface IUserLogin {
     email: string;
     password: string;
-    isAuth: boolean;
+    recapthcaToken: string; // саме "thca"
+    action: string;
 }
