@@ -17,17 +17,17 @@ namespace Olx.BLL.Exstensions
 {
     public static class OlxBLLServiceExtensions
     {
-        public static void AddOlxBLLServices(this IServiceCollection services,IConfiguration configuration)
+        public static void AddOlxBLLServices(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-            services.AddValidatorsFromAssemblies(AppDomain.CurrentDomain.GetAssemblies());
+            services.AddAutoMapper(cfg => cfg.AddMaps(typeof(AccountService).Assembly));
+            services.AddValidatorsFromAssemblyContaining<AccountService>();
             services.AddScoped<IImageService, ImageService>();
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IFilterValueService, FilterValueService>();
             services.AddScoped<IFilterService, FilterService>();
             services.AddScoped<ICategoryService, CategoryService>();
-            services.AddScoped<IAdvertService,AdvertService>();
+            services.AddScoped<IAdvertService, AdvertService>();
             services.AddScoped<IChatService, ChatService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAdminMessageService, AdminMessageService>();
@@ -38,11 +38,11 @@ namespace Olx.BLL.Exstensions
             services.AddHostedService<ImageCeanupService>();
             services.AddHostedService<AdminMesssageCleanupService>();
 
-
             services.AddMailKit(optionBuilder =>
             {
-                MailSettings? settings = configuration.GetSection(nameof(MailSettings)).Get<MailSettings>()
-                ?? throw new HttpException(Errors.JwtSettingsReadError, HttpStatusCode.InternalServerError);
+                var settings = configuration.GetSection(nameof(MailSettings)).Get<MailSettings>()
+                    ?? throw new HttpException(Errors.JwtSettingsReadError, HttpStatusCode.InternalServerError);
+
                 optionBuilder.UseMailKit(new MailKitOptions()
                 {
                     Server = settings.Server,

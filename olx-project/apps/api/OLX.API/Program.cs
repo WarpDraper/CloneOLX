@@ -4,12 +4,15 @@ using Olx.DAL.Exstension;
 using OLX.API.Extensions;
 using OLX.API.Middlewares;
 
+// Точка входу API: налаштовує сервіси, middleware та запускає веб-додаток.
 var builder = WebApplication.CreateBuilder(args);
 
+// Реєструємо підключення до бази даних, бізнес-логіку та API-специфічні сервіси.
 builder.Services.AddOlxDbContext(builder.Configuration);
 builder.Services.AddOlxBLLServices(builder.Configuration);
 builder.Services.AddOlxApiConfigurations(builder.Configuration);
 
+// Додаємо Swagger, API explorer та SignalR для документування й реального часу.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR();
@@ -28,8 +31,12 @@ builder.Services.AddCors(options =>
 
 
 var app = builder.Build();
+
+// Увімкнути HTTPS редирект і глобальний обробник винятків перед обробкою запитів.
 app.UseHttpsRedirection();
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
+// Включаємо Swagger UI та статичні файли, а також підтримку культур.
 app.UseSwagger();
 app.UseSwaggerUI();
 app.AddStaticFiles();
@@ -46,6 +53,8 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.SetMaxRequestBodySize();
+
+// Мапимо SignalR-хаб і контролери, а потім застосовуємо міграції та seed-дані.
 app.MapHub<MessageHub>("/hub");
 app.MapControllers();
 app.DataBaseMigrate();

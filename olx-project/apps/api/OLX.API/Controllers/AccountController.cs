@@ -11,10 +11,12 @@ namespace OLX.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    // Контролер облікових операцій: надає API для входу, реєстрації, профілю та управління улюбленими оголошеннями.
     public class AccountController(IAccountService accountService) : ControllerBase
     {
        // private readonly string _refreshTokenCookiesName = configuration["RefreshTokenCookiesName"]!;
 
+        // Повертає список улюблених оголошень поточного користувача.
         [Authorize(Roles = Roles.User)]
         [HttpGet("favorites")]
         public async Task<IActionResult> GetFavorites()
@@ -23,6 +25,7 @@ namespace OLX.API.Controllers
             return Ok(favorites);
         }
 
+        // Аутентифікує користувача за email/паролем і повертає токени доступу.
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] AuthRequest model )
         {
@@ -31,6 +34,7 @@ namespace OLX.API.Controllers
             return Ok(authResponse);
         }
 
+        // Аутентифікує користувача через Google access token.
         [HttpPost("login/google")]
         public async Task<IActionResult> GoogleLogin([FromQuery] string googleAccessToken)
         {
@@ -39,6 +43,7 @@ namespace OLX.API.Controllers
             return Ok(authResponse);
         }
 
+        // Виходить із системи й анулює refresh token, якщо він надійшов.
         [HttpPost("user/logout")]
         public async Task<IActionResult> LogOut([FromBody] LogoutModel? logoutModel)
         {
@@ -56,6 +61,7 @@ namespace OLX.API.Controllers
             return Ok();
         }
 
+        // Оновлює токени доступу за допомогою refresh token.
         [HttpPost("user/refresh")]
         public async Task<IActionResult> RefreshTokens([FromBody] RefreshRequest? refreshRequest)
         {
@@ -75,6 +81,7 @@ namespace OLX.API.Controllers
             return Ok(authResponse);
         }
 
+        // Підтверджує email користувача за допомогою коду/моделі підтвердження.
         [HttpPost("email/confirm")]
         public async Task<IActionResult> ConfirmEmail([FromBody] EmailConfirmationModel confirmationModel)
         {
@@ -82,6 +89,7 @@ namespace OLX.API.Controllers
             return Ok();
         }
 
+        // Надсилає лист з підтвердженням email на вказану адресу.
         [HttpPost("email/sendconfirm")]
         public async Task<IActionResult> SendConfirmEmail([FromQuery] string email)
         {
@@ -89,6 +97,7 @@ namespace OLX.API.Controllers
             return Ok();
         }
 
+        // Ініціює процес відновлення пароля для користувача.
         [HttpPost("password/fogot")]
         public async Task<IActionResult> FogotPassword([FromQuery] string email)
         {
@@ -96,6 +105,7 @@ namespace OLX.API.Controllers
             return Ok();
         }
 
+        // Задає новий пароль після відновлення доступу.
         [HttpPost("password/reset")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel resetPasswordModel)
         {
@@ -103,6 +113,7 @@ namespace OLX.API.Controllers
             return Ok();
         }
 
+        // Оновлює профіль поточного користувача та повертає новий access token.
         [Authorize(Roles = Roles.User)]
         [HttpPost("edit/user")]
         public async Task<IActionResult> EditUser([FromForm] UserEditModel userEditModel)
@@ -111,6 +122,7 @@ namespace OLX.API.Controllers
              return Ok( new UserEditResponse() { AccessToken = token} );
         }
 
+        // Оновлює профіль адміністратора та повертає новий access token.
         [Authorize(Roles = Roles.Admin)]
         [HttpPost("edit/admin")]
         public async Task<IActionResult> EditAdmin([FromForm] UserEditModel userEditModel)
@@ -119,6 +131,7 @@ namespace OLX.API.Controllers
             return Ok(new UserEditResponse() { AccessToken = token });
         }
 
+        // Блокує обліковий запис іншого користувача.
         [Authorize(Roles = Roles.Admin)]
         [HttpPost("block")]
         public async Task<IActionResult> BlockUser([FromBody] UserBlockModel userBlockModel)
@@ -127,6 +140,7 @@ namespace OLX.API.Controllers
             return Ok();
         }
 
+        // Додає оголошення до списку улюблених поточного користувача.
         [Authorize(Roles = Roles.User)]
         [HttpPost("favorites/add/{advertId:int}")]
         public async Task<IActionResult> AddToFavorites([FromRoute] int advertId)
@@ -135,6 +149,7 @@ namespace OLX.API.Controllers
             return Ok();
         }
 
+        // Додає кілька оголошень до списку улюблених за один запит.
         [Authorize(Roles = Roles.User)]
         [HttpPost("favorites/add/range")]
         public async Task<IActionResult> AddToFavoritesRange([FromBody] IEnumerable<int> advertIds)
@@ -143,6 +158,7 @@ namespace OLX.API.Controllers
             return Ok();
         }
 
+        // Перевіряє пароль адміністратора перед чутливими діями.
         [Authorize(Roles = Roles.Admin)]
         [HttpPost("password/check")]
         public async Task<IActionResult> CheckPassword([FromBody] CheckPasswordRequest request)
@@ -151,6 +167,7 @@ namespace OLX.API.Controllers
             return Ok();
         }
 
+        // Створює нового адміністратора.
         [Authorize(Roles = Roles.Admin)]
         [HttpPut("register/admin")]
         public async Task<IActionResult> AddAdmin([FromForm] UserCreationModel adminModel)
@@ -159,6 +176,7 @@ namespace OLX.API.Controllers
             return Ok();
         }
 
+        // Реєструє нового звичайного користувача.
         [HttpPut("register/user")]
         public async Task<IActionResult> AddUser([FromForm] UserCreationModel userModel)
         {
@@ -166,6 +184,7 @@ namespace OLX.API.Controllers
             return Ok();
         }
         
+        // Видаляє оголошення зі списку улюблених поточного користувача.
         [Authorize(Roles = Roles.User)]
         [HttpDelete("favorites/remove/{advertId:int}")]
         public async Task<IActionResult> RemoveFromFavorites([FromRoute] int advertId)
@@ -174,7 +193,7 @@ namespace OLX.API.Controllers
             return Ok();
         }
 
-
+        // Видаляє обліковий запис за вказаним ідентифікатором.
         [Authorize]
         [HttpDelete("delete")]
         public async Task<IActionResult> RemoveAccount([FromQuery] int id)
