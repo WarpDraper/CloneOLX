@@ -43,13 +43,25 @@ namespace Olx.BLL.Services
         {
             var claims = new List<Claim>
             {
-                new (ClaimTypes.NameIdentifier,user.Id.ToString()),
+                // 1. ID користувача (тут усе добре)
+                new (ClaimTypes.NameIdentifier, user.Id.ToString()),
+        
+                // 2. Використовуємо стандартний ClaimTypes.Email (фронтенд його розпізнає краще)
+                new (ClaimTypes.Email, user.Email!),
+        
+                // 3. Склеюємо ім'я та прізвище у стандартний ClaimTypes.Name
+                new (ClaimTypes.Name, $"{user.FirstName} {user.LastName}".Trim()),
+        
+                // Залишаємо ці поля про всяк випадок, якщо вони потрібні в інших місцях
                 new ("firstName", user.FirstName ?? string.Empty),
                 new ("lastName", user.LastName ?? string.Empty),
-                new ("email", user.Email!),
                 new ("phoneNumber", user.PhoneNumber ?? string.Empty),
-                new ("photo", user.Photo ?? string.Empty),
-                new ("settlement", user.SettlementRef ?? string.Empty),
+        
+                // 4. Перейменовуємо "photo" на "avatarUrl", як хоче фронтенд
+                new ("avatarUrl", user.Photo ?? string.Empty),
+        
+                // 5. Перейменовуємо "settlement" на "city" для відображення локації
+                new ("city", user.SettlementRef ?? string.Empty),
                 new ("website", user.WebSite ?? string.Empty),
             };
             var roles = await userManager.GetRolesAsync(user);
