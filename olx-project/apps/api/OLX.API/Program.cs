@@ -15,6 +15,18 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR();
 builder.Logging.AddConsole();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") 
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); 
+    });
+});
+
+
 var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
@@ -29,7 +41,8 @@ app.AddCultures();
 //    Secure = CookieSecurePolicy.Always,
 //});
 
-app.UseCors("AllowOrigins");
+app.UseRouting();
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.SetMaxRequestBodySize();

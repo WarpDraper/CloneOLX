@@ -1,23 +1,30 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { useDispatch } from "react-redux";
+// 1. Імпортуємо хук для роботи з reCAPTCHA v3
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { useLoginMutation } from "../../services/accountService.ts";
-import type { IUserLogin } from "../../types/account/IUserLogin.ts"; //
+import type { IUserLogin } from "../../types/account/IUserLogin.ts";
 import InputField from "../inputs/InputField.tsx";
 import BaseButton from "../inputs/BaseButton.tsx";
 import { parseServerValidationErrors } from "../../utils/parseServerValidationErrors.ts";
 import { setAuth } from "../../Slice/authSlice.ts";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const LoginForm: React.FC = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [login, { isLoading }] = useLoginMutation();
 
+    // Ініціалізуємо хук капчі всередині компонента
+    const { executeRecaptcha } = useGoogleReCaptcha();
+
+    // ✅ ФІКС 1: Прибрали поле 'isAuth', щоб не було помилки TS2353
     const [formValues, setFormValues] = useState<IUserLogin>({
         email: "",
         password: "",
-        isAuth: false,
+        recapthcaToken: "",
+        action: ""
     });
 
     const [formError, setFormError] = useState<string | null>(null);
@@ -33,13 +40,27 @@ const LoginForm: React.FC = () => {
         setFormError(null);
         setFieldErrors({});
 
+        // Перевіряємо, чи скрипт капчі готовий
+        if (!executeRecaptcha) {
+            setFormError("Захист від роботів завантажується. Спробуйте ще раз через мить.");
+            return;
+        }
+
         try {
-            // await login(formValues).unwrap();
-            const userData = await login(formValues).unwrap();
+            const token = await executeRecaptcha("login");
+
+            const userData = (await login({
+                email: formValues.email,
+                password: formValues.password,
+                recapthcaToken: token,
+                action: "login",
+            } as any).unwrap()) as any;
+
             console.log("Дані користувача:", userData);
 
+            // Передаємо лише токен, як і вимагає твій Redux стор
             dispatch(setAuth({
-                token: userData.token,
+                token: userData.accessToken,
             }));
 
             navigate("/");
