@@ -5,13 +5,18 @@ import { Provider } from 'react-redux';
 import { store } from './store';
 import './index.css';
 import App from './App.tsx';
+import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
+
+const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
       <Provider store={store}>
-          <BrowserRouter>
+          <GoogleReCaptchaProvider reCaptchaKey={recaptchaSiteKey}>
+              <BrowserRouter>
               <App />
           </BrowserRouter>
+          </GoogleReCaptchaProvider>
       </Provider>
   </StrictMode>,
 )
