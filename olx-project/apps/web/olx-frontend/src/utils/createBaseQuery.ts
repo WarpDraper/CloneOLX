@@ -9,7 +9,7 @@ export const createBaseQuery = (endpoint: string) => {
             const token = (getState() as RootState).auth.token;
 
             if (token) {
-                headers.set('Authorization', `Bearer ${token}`); // Виправили тут
+                headers.set('Authorization', `Bearer ${token}`);
             }
             return headers;
         },

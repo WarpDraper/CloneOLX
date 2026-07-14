@@ -1,8 +1,16 @@
 export interface IRegisterUser {
-    name: string;
-    lastName: string;
-    phone: string;
-    email: string;
-    password: string;
-    avatarUrl?: File | null;
+    Email: string;
+    Password: string;
+    PasswordConfirmation: string;
+    FirstName: string;
+    LastName: string;
+    ImageFile?: File | null;
+    WebSite: string;
+    About: string;
+    PhoneNumber: string;
+    SettlementRef: string;
+    RecapthcaToken: string;
+    Action: string;
 }
+
+
