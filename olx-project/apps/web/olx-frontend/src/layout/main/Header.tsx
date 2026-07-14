@@ -21,7 +21,7 @@ const NAV_ITEMS = [
 
 const Header: React.FC = () => {
     const dispatch = useDispatch();
-    const [language, setLanguage] = useState<'ukr' | 'rus'>('ukr');
+    const [language, setLanguage] = useState<'ukr' | 'eng'>('ukr');
     const { items } = useSelector((state: RootState) => state.notifications);
 
     // ДОДАЄМО: витягуємо дані користувача (user) з auth slice
@@ -86,10 +86,10 @@ const Header: React.FC = () => {
                     </button>
                     <button
                         type="button"
-                        onClick={() => setLanguage('rus')}
-                        className={`px-4 py-1.5 transition-colors ${language === 'rus' ? 'bg-mm-orange text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                        onClick={() => setLanguage('eng')}
+                        className={`px-4 py-1.5 transition-colors ${language === 'eng' ? 'bg-mm-orange text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
                     >
-                        Рус
+                        Eng
                     </button>
                 </div>
 
