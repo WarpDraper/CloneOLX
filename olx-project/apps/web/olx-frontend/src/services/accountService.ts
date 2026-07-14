@@ -11,19 +11,20 @@ export const accountService = createApi({
     baseQuery: createBaseQuery("Account"), // Автоматично робить префікс /api/Account
     endpoints: (builder) => ({
 
-        // 1. РЕЄСТРАЦІЯ: у Swagger це PUT /api/Account/register/user
+        // 1. РЕЄСТРАЦІЯ: тепер без примусового JSON-заголовка!
         register: builder.mutation<IUserItem, IRegisterUser>({
             query: (body) => {
                 return {
-                    url: "/register/user", // було /regist/user
-                    method: "PUT",         // було POST
+                    url: "/register/user",
+                    method: "PUT",
                     body: body,
-                    headers: { "Content-Type": "application/json" },
+                    // ❌ ВИДАЛЕНО headers: { "Content-Type": "application/json" }
+                    // Тепер браузер сам встановить multipart/form-data для FormData
                 };
             },
         }),
 
-        // 2. ЛОГІН: у Swagger це POST /api/Account/login (тут усе правильно)
+        // 2. ЛОГІН: тут усе правильно (передаємо звичайний JSON-об'єкт)
         login: builder.mutation<ILoginResult, IUserLogin>({
             query: (body) => {
                 return {
@@ -35,29 +36,29 @@ export const accountService = createApi({
             },
         }),
 
-        // 3. ЗАБУЛИ ПАРОЛЬ: у Swagger це POST /api/Account/password/forgot
+        // 3. ЗАБУЛИ ПАРОЛЬ:
         forgotPassword: builder.mutation<{ message: string }, { email: string }>({
             query: (body) => ({
-                url: "/password/forgot", // було /forgot-password
+                url: "/password/forgot",
                 method: "POST",
                 body,
             }),
         }),
 
-        // 4. СКИДАННЯ ПАРОЛЯ: у Swagger це POST /api/Account/password/reset
+        // 4. СКИДАННЯ ПАРОЛЯ:
         resetPassword: builder.mutation<{ message: string }, { email: string; token: string; newPassword: string }>({
             query: (body) => ({
-                url: "/password/reset", // було /reset-password
+                url: "/password/reset",
                 method: "POST",
                 body,
             }),
         }),
 
-        // 5. ОНОВЛЕННЯ ПРОФІЛЮ: у Swagger це POST /api/Account/edit/user
+        // 5. ОНОВЛЕННЯ ПРОФІЛЮ:
         updateProfile: builder.mutation<void, IUpdateProfile>({
             query: (body) => ({
-                url: "/edit/user", // було /update-profile
-                method: "POST",    // було PUT
+                url: "/edit/user",
+                method: "POST",
                 body,
             }),
         }),
