@@ -1,0 +1,7 @@
+// Дзеркалить Olx.BLL.DTOs.NewPostDtos.WarehousDto (GET /api/newpost/settlements/warehouses?settlementRef=)
+export interface IWarehouse {
+    ref: string;
+    description: string;
+    settlementRef: string;
+    phone: string;
+}

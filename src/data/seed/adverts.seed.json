@@ -1,0 +1,469 @@
+[
+  {
+    "UserId": 2,
+    "PhoneNumber": "+38 (067) 123-45-67",
+    "ContactEmail": "user1@example.com",
+    "ContactPersone": "Іван Іванов",
+    "Title": "1-кімнатна квартира в центрі, євроремонт",
+    "Description": "Затишна 1-кімнатна квартира після якісного євроремонту. Нова сантехніка, меблі та побутова техніка залишаються. Тепла, світла, поруч метро та школа.",
+    "IsContractPrice": false,
+    "Price": 2850000,
+    "CategoryId": 61,
+    "FilterValueIds": [ 1, 2 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1560185893-a55cbc8c57e8?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Квартири",
+    "FilterSelections": {
+      "Кількість кімнат": [ "1" ],
+      "Поверх": [ "п'ятий" ],
+      "Загальна площа": [ "від 30 до 50 м.кв" ]
+    }
+  },
+  {
+    "UserId": 3,
+    "PhoneNumber": "+38 (063) 123-45-67",
+    "ContactEmail": "user2@example.com",
+    "ContactPersone": "Олена Петрівна",
+    "Title": "2-кімнатна квартира з ремонтом, Львів",
+    "Description": "Простора 2-кімнатна квартира у тихому районі. Косметичний ремонт, окрема кухня, балкон засклений. Будинок після капітального ремонту фасаду.",
+    "IsContractPrice": false,
+    "Price": 2150000,
+    "CategoryId": 61,
+    "FilterValueIds": [ 1, 3 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Квартири",
+    "FilterSelections": {
+      "Кількість кімнат": [ "2" ],
+      "Поверх": [ "третій" ],
+      "Загальна площа": [ "від 50 до 70 м.кв" ]
+    }
+  },
+  {
+    "UserId": 4,
+    "PhoneNumber": "+38 (050) 123-45-67",
+    "ContactEmail": "user3@example.com",
+    "ContactPersone": "Микола Іванович",
+    "Title": "3-кімнатна квартира, новобудова, Одеса",
+    "Description": "Простора 3-кімнатна квартира у новому житловому комплексі. Автономне опалення, підземний паркінг, дитячий майданчик на території.",
+    "IsContractPrice": false,
+    "Price": 3600000,
+    "CategoryId": 61,
+    "FilterValueIds": [ 1, 4 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Квартири",
+    "FilterSelections": {
+      "Кількість кімнат": [ "3" ],
+      "Поверх": [ "дев'ятий" ],
+      "Загальна площа": [ "від 70 до 90 м.кв" ]
+    }
+  },
+  {
+    "UserId": 5,
+    "PhoneNumber": "+38 (068) 123-45-67",
+    "ContactEmail": "user4@example.com",
+    "ContactPersone": "Юрій Сергійович",
+    "Title": "Volkswagen Passat B8 2018, дизель",
+    "Description": "Volkswagen Passat B8, 2018 рік, 2.0 TDI, автомат. Один власник, повна сервісна історія, не бита, не фарбована.",
+    "IsContractPrice": false,
+    "Price": 580000,
+    "CategoryId": 24,
+    "FilterValueIds": [ 5, 6 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1533106418989-88406c7cc8ca?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {
+      "Марка": [ "Volkswagen" ],
+      "Тип кузова": [ "Седан" ],
+      "Стан": [ "Вживане" ]
+    }
+  },
+  {
+    "UserId": 2,
+    "PhoneNumber": "+38 (069) 123-45-67",
+    "ContactEmail": "user5@example.com",
+    "ContactPersone": "Марина Олексіївна",
+    "Title": "Hyundai Tucson 2021, позашляховик",
+    "Description": "Hyundai Tucson 2021, бензин, повний привід, автомат. Панорамний дах, підігрів сидінь, камера заднього огляду.",
+    "IsContractPrice": false,
+    "Price": 850000,
+    "CategoryId": 24,
+    "FilterValueIds": [ 5, 7 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1533106418989-88406c7cc8ca?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {
+      "Марка": [ "Hyundai" ],
+      "Тип кузова": [ "Позашляховик / Кроссовер" ],
+      "Стан": [ "Вживане" ]
+    }
+  },
+  {
+    "UserId": 3,
+    "PhoneNumber": "+38 (070) 123-45-67",
+    "ContactEmail": "user6@example.com",
+    "ContactPersone": "Віктор Іванович",
+    "Title": "Kia Sportage 2020, автомат, повний привід",
+    "Description": "Kia Sportage 2020, дизель, 4WD, автоматична коробка передач. Гаражне зберігання, сервісна книжка, перший власник в Україні.",
+    "IsContractPrice": false,
+    "Price": 780000,
+    "CategoryId": 24,
+    "FilterValueIds": [ 5, 8 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {
+      "Марка": [ "Kia" ],
+      "Тип кузова": [ "Позашляховик / Кроссовер" ],
+      "Стан": [ "Вживане" ]
+    }
+  },
+  {
+    "UserId": 4,
+    "PhoneNumber": "+38 (071) 123-45-67",
+    "ContactEmail": "user7@example.com",
+    "ContactPersone": "Ігор Михайлович",
+    "Title": "Apple iPhone 14 Pro 256GB",
+    "Description": "Продам айфон Apple iPhone 14 Pro, 256 ГБ, стан як новий, в комплекті чохол та плівка. Батарея 96%, всі функції працюють ідеально.",
+    "IsContractPrice": false,
+    "Price": 42000,
+    "CategoryId": 89,
+    "FilterValueIds": [ 9, 10 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1592286927505-1def25115558?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Мобільні телефони/смартфони",
+    "FilterSelections": {
+      "Бренд телефону": [ "Apple" ],
+      "Розмір екрану телефону": [ "6.0\" - 6.4\"" ],
+      "Об'єм оперативної пам'яті": [ "8 ГБ" ],
+      "Операційна система": [ "iOS" ]
+    }
+  },
+  {
+    "UserId": 5,
+    "PhoneNumber": "+38 (072) 123-45-67",
+    "ContactEmail": "user8@example.com",
+    "ContactPersone": "Катерина Павлівна",
+    "Title": "Samsung Galaxy S23 Ultra 512GB",
+    "Description": "Samsung Galaxy S23 Ultra, 512 ГБ, з S Pen. Ідеальний стан, гарантія до кінця року, повний комплект та коробка.",
+    "IsContractPrice": false,
+    "Price": 38500,
+    "CategoryId": 89,
+    "FilterValueIds": [ 9, 11 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1580910051074-3eb694886505?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Мобільні телефони/смартфони",
+    "FilterSelections": {
+      "Бренд телефону": [ "Samsung" ],
+      "Розмір екрану телефону": [ "6.5\" і більше" ],
+      "Об'єм оперативної пам'яті": [ "16 ГБ" ],
+      "Операційна система": [ "Android" ]
+    }
+  },
+  {
+    "UserId": 2,
+    "PhoneNumber": "+38 (073) 123-45-67",
+    "ContactEmail": "user9@example.com",
+    "ContactPersone": "Дмитро Олександрович",
+    "Title": "Ноутбук Apple MacBook Pro 14 M2 Pro",
+    "Description": "MacBook Pro 14, чіп M2 Pro, 16 ГБ пам'яті, 512 ГБ SSD. Куплений в Україні, акумулятор 98% циклів, без подряпин.",
+    "IsContractPrice": false,
+    "Price": 78000,
+    "CategoryId": 142,
+    "FilterValueIds": [ 12, 13 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Компьютери ,ноутбуки,сервери",
+    "FilterSelections": {
+      "Тип процесора": [ "Apple M2" ],
+      "Об'єм оперативної пам'яті": [ "16 ГБ" ],
+      "Тип накопичувача": [ "SSD" ],
+      "Об'єм накопичувача": [ "512 ГБ" ],
+      "Тип пам'яті": [ "DDR5" ]
+    }
+  },
+  {
+    "UserId": 3,
+    "PhoneNumber": "+38 (074) 123-45-67",
+    "ContactEmail": "user10@example.com",
+    "ContactPersone": "Софія Миколаївна",
+    "Title": "Ігровий ПК Intel Core i7 / RTX 3070 / 32GB",
+    "Description": "Потужний ігровий комп'ютер: Intel Core i7, 32 ГБ DDR4, відеокарта RTX 3070, NVMe SSD 1 ТБ. Тягне будь-які сучасні ігри на максимальних налаштуваннях.",
+    "IsContractPrice": false,
+    "Price": 65000,
+    "CategoryId": 142,
+    "FilterValueIds": [ 12, 14 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Компьютери ,ноутбуки,сервери",
+    "FilterSelections": {
+      "Тип процесора": [ "Intel Core i7" ],
+      "Відеокарта": [ "NVIDIA GeForce RTX 3070" ],
+      "Об'єм оперативної пам'яті": [ "32 ГБ" ],
+      "Тип накопичувача": [ "NVMe SSD" ],
+      "Об'єм накопичувача": [ "1 ТБ" ],
+      "Тип пам'яті": [ "DDR4" ]
+    }
+  },
+  {
+    "UserId": 4,
+    "PhoneNumber": "+38 (075) 123-45-67",
+    "ContactEmail": "user11@example.com",
+    "ContactPersone": "Анна Вікторівна",
+    "Title": "Жіноче вовняне пальто, зимове, розмір M",
+    "Description": "Тепле вовняне пальто прямого крою, зимовий сезон. Носилось один сезон, ідеальний стан, без плям і затяжок.",
+    "IsContractPrice": false,
+    "Price": 2400,
+    "CategoryId": 178,
+    "FilterValueIds": [ 15, 16 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Жіночий одяг",
+    "FilterSelections": {
+      "Стан": [ "Нове" ],
+      "Колір": [ "Бежевий" ]
+    }
+  },
+  {
+    "UserId": 5,
+    "PhoneNumber": "+38 (076) 123-45-67",
+    "ContactEmail": "user12@example.com",
+    "ContactPersone": "Микола Іванович",
+    "Title": "Чоловіча шкіряна куртка, демісезонна",
+    "Description": "Класична чоловіча куртка з натуральної шкіри, демісезонна. Розмір L, підкладка знімна, кілька кишень.",
+    "IsContractPrice": false,
+    "Price": 3200,
+    "CategoryId": 179,
+    "FilterValueIds": [ 15, 17 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1516257984-b1b4d707412e?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Чоловічий одяг",
+    "FilterSelections": {
+      "Стан": [ "Вживане" ],
+      "Колір": [ "Чорний" ]
+    }
+  },
+  {
+    "UserId": 2,
+    "PhoneNumber": "+38 (077) 123-45-67",
+    "ContactEmail": "user13@example.com",
+    "ContactPersone": "Юрій Сергійович",
+    "Title": "Жіночі шкіряні черевики, зимові, розмір 38",
+    "Description": "Зимові черевики на хутрі, натуральна шкіра, протиковзна підошва. Розмір 38, взуті кілька разів, як нові.",
+    "IsContractPrice": false,
+    "Price": 1850,
+    "CategoryId": 180,
+    "FilterValueIds": [ 15, 18 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Жіноче взуття",
+    "FilterSelections": {
+      "Стан": [ "Нове" ],
+      "Колір": [ "Чорний" ],
+      "Розмір взуття": [ "38" ]
+    }
+  },
+  {
+    "UserId": 3,
+    "PhoneNumber": "+38 (078) 123-45-67",
+    "ContactEmail": "user14@example.com",
+    "ContactPersone": "Марина Олексіївна",
+    "Title": "Чоловічі кросівки Nike Air Max, розмір 42",
+    "Description": "Кросівки Nike Air Max, розмір 42, білі. Взуті кілька разів, зберігалися в коробці, повна комплектація.",
+    "IsContractPrice": false,
+    "Price": 2600,
+    "CategoryId": 181,
+    "FilterValueIds": [ 15, 19 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Чоловіче взуття",
+    "FilterSelections": {
+      "Стан": [ "Вживане" ],
+      "Колір": [ "Білий" ],
+      "Розмір взуття": [ "42" ]
+    }
+  },
+  {
+    "UserId": 4,
+    "PhoneNumber": "+38 (079) 123-45-67",
+    "ContactEmail": "user15@example.com",
+    "ContactPersone": "Ігор Михайлович",
+    "Title": "Перфоратор Bosch GBH 2-26, набір свердел",
+    "Description": "Перфоратор Bosch GBH 2-26 DFR у кейсі, з додатковим набором буров та свердел. Робочий стан, невелика напрацьовка.",
+    "IsContractPrice": false,
+    "Price": 4200,
+    "CategoryId": 210,
+    "FilterValueIds": [ 15 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1581147036324-c1c89c2c8f7f?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Інструменти",
+    "FilterSelections": {
+      "Стан": [ "Вживане" ]
+    }
+  },
+  {
+    "UserId": 5,
+    "PhoneNumber": "+38 (080) 123-45-67",
+    "ContactEmail": "user16@example.com",
+    "ContactPersone": "Катерина Павлівна",
+    "Title": "Пилосос Dyson V15 Detect бездротовий",
+    "Description": "Бездротовий пилосос Dyson V15 Detect з лазерним підсвічуванням пилу. Повний набір насадок, потужна батарея, у відмінному стані.",
+    "IsContractPrice": false,
+    "Price": 18500,
+    "CategoryId": 211,
+    "FilterValueIds": [ 20 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1584992236310-6ded1d34eb8f?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1610557892470-55d587e5f0a2?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Пилососи",
+    "FilterSelections": {
+      "Марка пилососу": [ "Dyson" ],
+      "Стан": [ "Нове" ]
+    }
+  },
+  {
+    "UserId": 2,
+    "PhoneNumber": "+38 (081) 123-45-67",
+    "ContactEmail": "user17@example.com",
+    "ContactPersone": "Дмитро Олександрович",
+    "Title": "Кавоварка DeLonghi еспресо, автоматична",
+    "Description": "Автоматична кавоварка DeLonghi з вбудованою кавомолкою. Готує еспресо, капучино, латте. Мало використовувалась, комплект щіточок додається.",
+    "IsContractPrice": false,
+    "Price": 12500,
+    "CategoryId": 212,
+    "FilterValueIds": [ 15 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Кавоваркі/Кавомолкі",
+    "FilterSelections": {
+      "Стан": [ "Нове" ]
+    }
+  },
+  {
+    "UserId": 3,
+    "PhoneNumber": "+38 (082) 123-45-67",
+    "ContactEmail": "user18@example.com",
+    "ContactPersone": "Софія Миколаївна",
+    "Title": "Акустична гітара Yamaha F310, повний комплект",
+    "Description": "Акустична гітара Yamaha F310, чохол, комплект струн та медіатори в подарунок. Чистий, теплий звук, чудова для початківців.",
+    "IsContractPrice": false,
+    "Price": 3800,
+    "CategoryId": 230,
+    "FilterValueIds": [ 15 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1550985616-10810253b84d?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Музичні інструменти",
+    "FilterSelections": {
+      "Стан": [ "Нове" ]
+    }
+  },
+  {
+    "UserId": 4,
+    "PhoneNumber": "+38 (083) 123-45-67",
+    "ContactEmail": "user19@example.com",
+    "ContactPersone": "Анна Вікторівна",
+    "Title": "Гірський велосипед Author, 27 швидкостей",
+    "Description": "Гірський велосипед Author, алюмінієва рама, 27 швидкостей, дискові гальма. Обслужений, готовий до сезону.",
+    "IsContractPrice": false,
+    "Price": 8900,
+    "CategoryId": 231,
+    "FilterValueIds": [ 15 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Вело",
+    "FilterSelections": {
+      "Стан": [ "Вживане" ]
+    }
+  },
+  {
+    "UserId": 5,
+    "PhoneNumber": "+38 (084) 123-45-67",
+    "ContactEmail": "user20@example.com",
+    "ContactPersone": "Микола Іванович",
+    "Title": "Колекція книг класичної літератури, 15 томів",
+    "Description": "Колекційне видання класичної літератури, 15 томів у твердій палітурці. Гарний стан, без потертостей, зберігалися в шафі.",
+    "IsContractPrice": false,
+    "Price": 950,
+    "CategoryId": 232,
+    "FilterValueIds": [ 15 ],
+    "ImagePaths": [
+      "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Книги / журнали",
+    "FilterSelections": {
+      "Стан": [ "Вживане" ]
+    }
+  }
+]

@@ -12,6 +12,15 @@ import AdminLayout from "./layout/admin/AdminLayout";
 import UsersPage from "./pages/admin/UsersPage";
 import ReportsPage from "./pages/admin/ReportsPage";
 import UpdateProfilePage from "./pages/account/EditAccountPage";
+import AdvertDetailsPage from "./pages/advert/AdvertDetailsPage";
+import SellerProfilePage from "./pages/profile/SellerProfilePage";
+import CategoriesPage from "./pages/category/CategoriesPage";
+import CategoryListingPage from "./pages/category/CategoryListingPage";
+import ChatPage from "./pages/chat/ChatPage";
+import FavoritesPage from "./pages/favorites/FavoritesPage";
+import CreateAdvertPage from "./pages/advert/CreateAdvertPage";
+import SettingsPage from "./pages/account/SettingsPage";
+import CartPage from "./pages/cart/CartPage";
 
 
 function App() {
@@ -28,6 +37,16 @@ function App() {
             <Route element={<MainLayout />}>
               <Route path="/" element={<UserHomePage />} />
               <Route path="/profile" element={<UserProfilePage />} />
+              <Route path="/advert/:id" element={<AdvertDetailsPage />} />
+              <Route path="/profile/:sellerId" element={<SellerProfilePage />} />
+              <Route path="/categories" element={<CategoriesPage />} />
+              <Route path="/category/:id" element={<CategoryListingPage />} />
+              <Route path="/search" element={<CategoryListingPage />} />
+              <Route path="/chat" element={<ChatPage />} />
+              <Route path="/favorites" element={<FavoritesPage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/adverts/create" element={<CreateAdvertPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
             </Route>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />

@@ -5,10 +5,13 @@ import type { IRegisterUser } from "../types/account/IRegisterUser";
 import type { IUserLogin } from "../types/account/IUserLogin.ts";
 import type { ILoginResult } from "../types/account/ILoginResult.ts";
 import type { IUpdateProfile } from "../types/account/IUpdateProfile.ts";
+import type { IAdvert } from "../types/advert/IAdvert";
+import type { IUserEditResponse } from "../types/account/IUserEditResponse";
 
 export const accountService = createApi({
     reducerPath: "accountService",
     baseQuery: createBaseQuery("Account"), // Автоматично робить префікс /api/Account
+    tagTypes: ["Favorites"],
     endpoints: (builder) => ({
 
         // 1. РЕЄСТРАЦІЯ: тепер без примусового JSON-заголовка!
@@ -72,6 +75,41 @@ export const accountService = createApi({
             }),
         }),
 
+        // 7. СПИСОК ОБРАНОГО: GET /api/account/favorites (потребує авторизації).
+        getFavorites: builder.query<IAdvert[], void>({
+            query: () => "/favorites",
+            providesTags: ["Favorites"],
+        }),
+
+        // 8. ДОДАТИ ДО ОБРАНОГО: POST /api/account/favorites/add/{advertId}.
+        addToFavorites: builder.mutation<void, number>({
+            query: (advertId) => ({
+                url: `/favorites/add/${advertId}`,
+                method: "POST",
+            }),
+            invalidatesTags: ["Favorites"],
+        }),
+
+        // 9. ВИДАЛИТИ З ОБРАНОГО: DELETE /api/account/favorites/remove/{advertId}.
+        removeFromFavorites: builder.mutation<void, number>({
+            query: (advertId) => ({
+                url: `/favorites/remove/${advertId}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: ["Favorites"],
+        }),
+
+        // 10. НАЛАШТУВАННЯ ПРОФІЛЮ (Frame 336): POST /api/account/edit/user, multipart/form-data,
+        // точно відповідає UserEditModel (Id/FirstName/LastName/PhoneNumber/SettlementRef/ImageFile/...).
+        // Повертає новий access token — застосовується через setAuth, а не updateUser.
+        editUser: builder.mutation<IUserEditResponse, FormData>({
+            query: (formData) => ({
+                url: "/edit/user",
+                method: "POST",
+                body: formData,
+            }),
+        }),
+
     }),
 });
 
@@ -82,4 +120,8 @@ export const {
     useResetPasswordMutation,
     useUpdateProfileMutation,
     useUploadAvatarMutation,
+    useGetFavoritesQuery,
+    useAddToFavoritesMutation,
+    useRemoveFromFavoritesMutation,
+    useEditUserMutation,
 } = accountService;

@@ -8,6 +8,7 @@ import type { IUserLogin } from "../../types/account/IUserLogin.ts";
 import { parseServerValidationErrors } from "../../utils/parseServerValidationErrors.ts";
 import { setAuth } from "../../Slice/authSlice.ts";
 import { Link } from "react-router-dom";
+import { consumeReturnUrl } from "../../utils/returnUrl.ts";
 
 const LoginForm: React.FC = () => {
     const navigate = useNavigate();
@@ -61,7 +62,7 @@ const LoginForm: React.FC = () => {
                 token: userData.accessToken,
             }));
 
-            navigate("/");
+            navigate(consumeReturnUrl());
         } catch (err: any) {
             if (err?.data?.errors) {
                 const { fieldErrors } = parseServerValidationErrors(err.data.errors);

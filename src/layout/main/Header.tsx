@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
     MessageOutlined,
     HeartOutlined,
     BellOutlined,
     UserOutlined,
+    ShoppingCartOutlined,
 } from '@ant-design/icons';
 import { Badge, Popover, List, Typography, Button } from 'antd';
 import { useSelector, useDispatch } from 'react-redux';
@@ -13,13 +14,15 @@ import { markAsRead, markAllAsRead } from '../../store/notificationSlice';
 import type { NotificationItem } from '../../store/notificationSlice';
 
 const NAV_ITEMS = [
-    { icon: MessageOutlined, label: 'Чати' },
+    { icon: MessageOutlined, label: 'Чати', to: '/chat' },
     { icon: BellOutlined, label: 'Сповіщення', isNotification: true },
-    { icon: HeartOutlined, label: 'Обране' },
+    { icon: ShoppingCartOutlined, label: 'Кошик', to: '/cart', isCart: true },
+    { icon: HeartOutlined, label: 'Обране', to: '/favorites' },
     { icon: UserOutlined, label: 'Кабінет', isProfile: true },
 ];
 
 const Header: React.FC = () => {
+    const navigate = useNavigate();
     const dispatch = useDispatch();
     const [language, setLanguage] = useState<'ukr' | 'eng'>('ukr');
     const { items } = useSelector((state: RootState) => state.notifications);
@@ -28,6 +31,7 @@ const Header: React.FC = () => {
     const { isAuth, user } = useSelector((state: RootState) => state.auth);
 
     const unreadCount = items.filter((n: NotificationItem) => !n.read).length;
+    const cartCount = useSelector((state: RootState) => state.cart.items.reduce((n, i) => n + i.quantity, 0));
 
     const notificationContent = (
         <div className="w-80 max-h-96 flex flex-col">
@@ -94,7 +98,7 @@ const Header: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-4 md:gap-6">
-                    {NAV_ITEMS.map(({ icon: Icon, label, isNotification, isProfile }) => {
+                    {NAV_ITEMS.map(({ icon: Icon, label, isNotification, isCart, isProfile, to }) => {
 
                         const currentLabel = isProfile && isAuth ? (user?.name || 'Кабінет') : label;
 
@@ -102,6 +106,12 @@ const Header: React.FC = () => {
                             <div className="flex flex-col items-center gap-1 cursor-pointer group min-w-[52px]">
                                 {isNotification ? (
                                     <Badge count={unreadCount} size="small" offset={[-2, 2]}>
+                                        <div className="w-10 h-10 rounded-full bg-mm-lavender flex items-center justify-center group-hover:bg-purple-100 transition-colors">
+                                            <Icon className="text-lg text-mm-purple" />
+                                        </div>
+                                    </Badge>
+                                ) : isCart ? (
+                                    <Badge count={cartCount} size="small" offset={[-2, 2]}>
                                         <div className="w-10 h-10 rounded-full bg-mm-lavender flex items-center justify-center group-hover:bg-purple-100 transition-colors">
                                             <Icon className="text-lg text-mm-purple" />
                                         </div>
@@ -139,11 +149,20 @@ const Header: React.FC = () => {
                             );
                         }
 
+                        if (to) {
+                            return (
+                                <Link key={label} to={isAuth ? to : '/login'} className="text-inherit no-underline">
+                                    {content}
+                                </Link>
+                            );
+                        }
+
                         return <div key={label}>{content}</div>;
                     })}
 
                     <button
                         type="button"
+                        onClick={() => navigate(isAuth ? '/adverts/create' : '/login')}
                         className="bg-mm-orange hover:bg-orange-500 text-white font-bold text-sm px-5 py-2.5 rounded-lg transition-colors whitespace-nowrap shadow-sm"
                     >
                         Додати оголошення
