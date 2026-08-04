@@ -630,6 +630,16 @@ namespace Olx.DAL.Migrations
                         .IsUnicode(false)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<double>("Rating")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("double precision")
+                        .HasDefaultValue(5.0);
+
+                    b.Property<int>("ReviewsCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 

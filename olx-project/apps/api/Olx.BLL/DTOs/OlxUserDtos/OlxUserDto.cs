@@ -15,6 +15,8 @@
         public DateTime LastActivity { get; set; }
         public string? WebSite { get; set; }
         public string? About { get; set; }
+        public double Rating { get; set; }
+        public int ReviewsCount { get; set; }
         public string? SettlementRef { get; set; }
         public string? SettlementDescrption { get; set; }
         public IEnumerable<int> Adverts { get; set; } = [];

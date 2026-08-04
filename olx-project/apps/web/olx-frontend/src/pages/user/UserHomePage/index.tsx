@@ -1,44 +1,109 @@
-import React, { useState } from 'react';
-import { SearchOutlined, EnvironmentOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
-import {
-  QUICK_SEARCH_TAGS,
-  CATEGORIES,
-  RECOMMENDATIONS,
-  HERO_SLIDES,
-} from '../../../data/homePageData';
+import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Select } from 'antd';
+import { SearchOutlined, EnvironmentOutlined, LeftOutlined, RightOutlined, AppstoreOutlined } from '@ant-design/icons';
+import { QUICK_SEARCH_TAGS, HERO_SLIDES } from '../../../data/homePageData';
+import { UA_CITIES } from '../../../data/ukrainianCities';
+import { useGetCategoriesQuery } from '../../../services/categoryService';
+import { useGetAdvertsPageQuery } from '../../../services/advertService';
+import RecommendationCard from '../../../components/advert/RecommendationCard';
+import MegaMenu from '../../../components/catalog/MegaMenu';
+import CategoryAvatar from '../../../components/catalog/CategoryAvatar';
+import SellerWidget from '../../../components/advert/SellerWidget';
+import { getSeedAdverts, getSeedSellers, getSeedTopLevelCategories } from '../../../utils/seedHydration';
 
 const UserHomePage: React.FC = () => {
+  const navigate = useNavigate();
   const [activeSlide, setActiveSlide] = useState(0);
+  const [isCatalogOpen, setIsCatalogOpen] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const [city, setCity] = useState<string | undefined>(undefined);
   const slide = HERO_SLIDES[activeSlide];
+
+  const goToSearch = (query: string) => {
+    const trimmed = query.trim();
+    if (!trimmed && !city) return;
+    const params = new URLSearchParams();
+    if (trimmed) params.set('q', trimmed);
+    if (city) params.set('city', city);
+    navigate(`/search?${params.toString()}`);
+  };
+
+  // Категорії верхнього рівня — GET /api/Category/get (публічний).
+  const { data: categories, isLoading: isCategoriesLoading } = useGetCategoriesQuery();
+  const apiTopLevelCategories = (categories ?? []).filter((c) => c.parentId === null);
+  // Фолбек на локальні seed-дані (Categories.json), якщо бекенд ще не засіяний/недоступний.
+  const topLevelCategories = !isCategoriesLoading && apiTopLevelCategories.length === 0
+    ? getSeedTopLevelCategories()
+    : apiTopLevelCategories;
+
+  // Рекомендації для головної — POST /api/Advert/get/page (публічний), останні підтверджені оголошення.
+  const { data: advertsPage, isLoading: isAdvertsLoading } = useGetAdvertsPageQuery({
+    size: 12,
+    page: 1,
+    sortKey: 'date',
+    isDescending: true,
+    approved: true,
+  });
+  // Фолбек на локальні seed-дані (Adverts.json), якщо бекенд не повернув оголошень.
+  const recommendations = !isAdvertsLoading && (advertsPage?.items?.length ?? 0) === 0
+    ? getSeedAdverts()
+    : advertsPage?.items ?? [];
+
+  // Продавці для стрічки "Популярні продавці" — публічного списку продавців ще немає,
+  // тож секція завжди живиться з seed-даних (Users.json).
+  const featuredSellers = useMemo(() => getSeedSellers(), []);
 
   return (
     <div className="bg-white">
-      <section className="bg-mm-navy">
+      <section className="bg-mm-navy relative">
         <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-4">
           <div className="flex flex-col lg:flex-row items-stretch gap-0 rounded-xl overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setIsCatalogOpen((prev) => !prev)}
+              aria-expanded={isCatalogOpen}
+              className={`hidden lg:flex items-center gap-2 px-5 font-semibold text-sm text-white transition-colors shrink-0 ${isCatalogOpen ? 'bg-mm-purple-dark' : 'bg-mm-purple hover:bg-mm-purple-dark'}`}
+            >
+              <AppstoreOutlined className="text-base" />
+              Каталог
+            </button>
             <div className="flex-[2] flex items-center bg-white/10 border-b lg:border-b-0 lg:border-r border-white/10 px-4 py-3">
               <SearchOutlined className="text-white/70 text-lg mr-3" />
               <input
                 type="text"
                 placeholder="Я шукаю..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && goToSearch(searchText)}
                 className="w-full bg-transparent text-white placeholder:text-white/60 text-sm outline-none"
               />
             </div>
             <div className="flex-1 flex items-center bg-white/10 border-b lg:border-b-0 lg:border-r border-white/10 px-4 py-3">
-              <EnvironmentOutlined className="text-white/70 text-lg mr-3" />
-              <input
-                type="text"
-                placeholder="Київська обл."
-                className="w-full bg-transparent text-white placeholder:text-white/60 text-sm outline-none"
+              <EnvironmentOutlined className="text-white/70 text-lg mr-3 shrink-0" />
+              <Select
+                variant="borderless"
+                placeholder="Вся Україна"
+                allowClear
+                value={city}
+                onChange={(value) => setCity(value)}
+                className="w-full [&_.ant-select-selection-placeholder]:text-white/60 [&_.ant-select-selection-item]:text-white"
+                popupMatchSelectWidth={false}
+                options={UA_CITIES.map((c) => ({ value: c, label: c }))}
               />
             </div>
             <button
               type="button"
+              onClick={() => goToSearch(searchText)}
               className="bg-mm-purple hover:bg-mm-purple-dark text-white font-bold text-sm px-8 py-3.5 transition-colors"
             >
               Пошук
             </button>
           </div>
+
+          {isCatalogOpen && (
+            <MegaMenu categories={topLevelCategories} onClose={() => setIsCatalogOpen(false)} />
+          )}
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 pb-1 text-sm">
             <span className="text-white/60 font-medium">Топ запити:</span>
@@ -46,6 +111,7 @@ const UserHomePage: React.FC = () => {
               <React.Fragment key={tag}>
                 <button
                   type="button"
+                  onClick={() => goToSearch(tag)}
                   className="text-white/90 hover:text-white hover:underline transition-colors"
                 >
                   {tag}
@@ -119,91 +185,75 @@ const UserHomePage: React.FC = () => {
       <section className="max-w-[1280px] mx-auto px-4 md:px-6 pb-8">
         <h2 className="text-xl font-bold text-mm-navy mb-5">Категорії</h2>
         <div className="flex gap-4 md:gap-6 overflow-x-auto pb-2 scrollbar-hide">
-          {CATEGORIES.map((category) => (
-            <button
-              key={category.id}
-              type="button"
-              className="flex flex-col items-center gap-2.5 min-w-[80px] group shrink-0"
-            >
-              <div className="w-[72px] h-[72px] rounded-full overflow-hidden border-2 border-gray-100 group-hover:border-mm-purple transition-colors shadow-sm">
-                <img
-                  src={category.image}
-                  alt={category.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <span className="text-xs font-medium text-gray-700 text-center leading-tight group-hover:text-mm-purple transition-colors max-w-[90px]">
-                {category.title}
-              </span>
-            </button>
+          {isCategoriesLoading && (
+            <p className="text-sm text-gray-400">Завантаження категорій...</p>
+          )}
+          {topLevelCategories.map((category) => (
+            <CategoryAvatar key={category.id} category={category} className="min-w-[80px]" />
           ))}
         </div>
       </section>
 
       <section className="max-w-[1280px] mx-auto px-4 md:px-6 pb-12">
-        <h2 className="text-xl font-bold text-mm-navy mb-5">Рекомендації для вас</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {RECOMMENDATIONS.map((item) => (
-            <article
-              key={item.id}
-              className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
-            >
-              <div className="aspect-[4/3] overflow-hidden bg-gray-100">
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <div className="p-3">
-                <h3 className="text-sm font-semibold text-mm-navy line-clamp-2 mb-1 leading-snug">
-                  {item.title}
-                </h3>
-                <p className="text-sm font-bold text-mm-navy mb-1.5">{item.price}</p>
-                <p className="text-xs text-gray-500 leading-tight">
-                  {item.location}
-                  <br />
-                  {item.time}
-                </p>
-              </div>
-            </article>
-          ))}
+        <div className="bg-mm-navy rounded-2xl p-5 md:p-6">
+          <h2 className="text-lg font-bold text-white mb-4">Рекомендації для вас</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {isAdvertsLoading && (
+              <p className="text-sm text-white/50 col-span-full">Завантаження оголошень...</p>
+            )}
+            {recommendations.map((advert) => (
+              <RecommendationCard key={advert.id} advert={advert} />
+            ))}
 
-          <div className="bg-mm-lavender-light rounded-xl border border-purple-100 p-4 flex flex-col items-center justify-center text-center min-h-[280px]">
-            <h3 className="text-sm font-bold text-mm-navy mb-4">Додаток MultiMart</h3>
-            <div className="w-24 h-24 bg-white rounded-lg border border-gray-200 mb-4 flex items-center justify-center p-2">
-              <svg viewBox="0 0 100 100" className="w-full h-full" aria-hidden="true">
-                <rect x="10" y="10" width="12" height="12" fill="#1B1B2F" />
-                <rect x="26" y="10" width="12" height="12" fill="#1B1B2F" />
-                <rect x="42" y="10" width="12" height="12" fill="#1B1B2F" />
-                <rect x="10" y="26" width="12" height="12" fill="#1B1B2F" />
-                <rect x="42" y="26" width="12" height="12" fill="#1B1B2F" />
-                <rect x="58" y="26" width="12" height="12" fill="#1B1B2F" />
-                <rect x="74" y="26" width="12" height="12" fill="#1B1B2F" />
-                <rect x="10" y="42" width="12" height="12" fill="#1B1B2F" />
-                <rect x="42" y="42" width="12" height="12" fill="#1B1B2F" />
-                <rect x="58" y="42" width="12" height="12" fill="#1B1B2F" />
-                <rect x="10" y="58" width="12" height="12" fill="#1B1B2F" />
-                <rect x="26" y="58" width="12" height="12" fill="#1B1B2F" />
-                <rect x="42" y="58" width="12" height="12" fill="#1B1B2F" />
-                <rect x="58" y="58" width="12" height="12" fill="#1B1B2F" />
-                <rect x="74" y="58" width="12" height="12" fill="#1B1B2F" />
-                <rect x="42" y="74" width="12" height="12" fill="#1B1B2F" />
-                <rect x="58" y="74" width="12" height="12" fill="#1B1B2F" />
-                <rect x="74" y="74" width="12" height="12" fill="#1B1B2F" />
-              </svg>
-            </div>
-            <div className="flex flex-col gap-2 w-full">
-              <div className="bg-mm-navy text-white text-xs font-bold py-2 px-3 rounded-md">
-                App Store
+            <div className="bg-mm-lavender-light rounded-xl border border-purple-100 p-4 flex flex-col items-center justify-center text-center min-h-[280px]">
+              <h3 className="text-sm font-bold text-mm-navy mb-1">Додаток MultiMart</h3>
+              <p className="text-xs text-gray-500 mb-4">Купуйте та продавайте зручно зі смартфона</p>
+              <div className="w-24 h-24 bg-white rounded-lg border border-gray-200 mb-4 flex items-center justify-center p-2">
+                <svg viewBox="0 0 100 100" className="w-full h-full" aria-hidden="true">
+                  <rect x="10" y="10" width="12" height="12" fill="#1B1B2F" />
+                  <rect x="26" y="10" width="12" height="12" fill="#1B1B2F" />
+                  <rect x="42" y="10" width="12" height="12" fill="#1B1B2F" />
+                  <rect x="10" y="26" width="12" height="12" fill="#1B1B2F" />
+                  <rect x="42" y="26" width="12" height="12" fill="#1B1B2F" />
+                  <rect x="58" y="26" width="12" height="12" fill="#1B1B2F" />
+                  <rect x="74" y="26" width="12" height="12" fill="#1B1B2F" />
+                  <rect x="10" y="42" width="12" height="12" fill="#1B1B2F" />
+                  <rect x="42" y="42" width="12" height="12" fill="#1B1B2F" />
+                  <rect x="58" y="42" width="12" height="12" fill="#1B1B2F" />
+                  <rect x="10" y="58" width="12" height="12" fill="#1B1B2F" />
+                  <rect x="26" y="58" width="12" height="12" fill="#1B1B2F" />
+                  <rect x="42" y="58" width="12" height="12" fill="#1B1B2F" />
+                  <rect x="58" y="58" width="12" height="12" fill="#1B1B2F" />
+                  <rect x="74" y="58" width="12" height="12" fill="#1B1B2F" />
+                  <rect x="42" y="74" width="12" height="12" fill="#1B1B2F" />
+                  <rect x="58" y="74" width="12" height="12" fill="#1B1B2F" />
+                  <rect x="74" y="74" width="12" height="12" fill="#1B1B2F" />
+                </svg>
               </div>
-              <div className="bg-mm-navy text-white text-xs font-bold py-2 px-3 rounded-md">
-                Google Play
+              <div className="flex flex-col gap-2 w-full mb-3">
+                <div className="bg-mm-navy text-white text-xs font-bold py-2 px-3 rounded-md">
+                  App Store
+                </div>
+                <div className="bg-mm-navy text-white text-xs font-bold py-2 px-3 rounded-md">
+                  Google Play
+                </div>
               </div>
+              <a href="/" className="text-xs font-bold text-mm-purple hover:underline">Детальніше</a>
             </div>
           </div>
         </div>
       </section>
+
+      {featuredSellers.length > 0 && (
+        <section className="max-w-[1280px] mx-auto px-4 md:px-6 pb-12">
+          <h2 className="text-xl font-bold text-mm-navy mb-5">Популярні продавці</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            {featuredSellers.map((seller) => (
+              <SellerWidget key={seller.id} seller={seller} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 };

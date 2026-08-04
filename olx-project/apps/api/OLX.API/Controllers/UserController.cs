@@ -24,6 +24,8 @@ namespace OLX.API.Controllers
         public async Task<IActionResult> GetAdmins() => Ok(await userService.Get(true));
 
         
+        // Публічний перегляд профілю продавця — доступний анонімним відвідувачам (потрібно для /profile/:sellerId).
+        [AllowAnonymous]
         [HttpGet("get/{id:int}")]
         public async Task<IActionResult> Get([FromRoute] int id) => Ok(await userService.Get(id));
 

@@ -28,6 +28,9 @@ namespace Olx.BLL.Entities
         [StringLength(4000)]
         public string? About { get; set; }
 
+        public double Rating { get; set; } = 5.0;
+        public int ReviewsCount { get; set; } = 0;
+
         [StringLength(36)]
         [Unicode(false)]
         public string? SettlementRef { get; set; }

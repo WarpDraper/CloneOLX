@@ -9,6 +9,8 @@ namespace Olx.DAL.Data.EntityConfigs
         public void Configure(EntityTypeBuilder<OlxUser> builder)
         {
             builder.HasKey(x => x.Id);
+            builder.Property(x => x.Rating).HasDefaultValue(5.0);
+            builder.Property(x => x.ReviewsCount).HasDefaultValue(0);
             builder.HasMany(x => x.Adverts)
                 .WithOne(x => x.User)
                 .HasForeignKey(x => x.UserId)

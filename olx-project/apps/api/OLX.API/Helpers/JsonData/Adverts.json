@@ -10,7 +10,7 @@
     "Price": 15000,
     "CategoryId": 89,
     "FilterValueIds": [ 2, 62, 34, 109 ],
-    "ImagePaths": [ "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600" ],
+    "ImagePaths": [ "https://picsum.photos/seed/olx-img-1/800/600", "https://picsum.photos/seed/olx-img-2/800/600", "https://picsum.photos/seed/olx-img-3/800/600", "https://picsum.photos/seed/olx-img-4/800/600", "https://picsum.photos/seed/olx-img-5/800/600" ],
     "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329"
   },
   {
@@ -24,7 +24,7 @@
     "Price": 35000,
     "CategoryId": 142,
     "FilterValueIds": [ 1, 21, 63, 57, 59, 108 ],
-    "ImagePaths": [ "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600" ],
+    "ImagePaths": [ "https://picsum.photos/seed/olx-img-6/800/600", "https://picsum.photos/seed/olx-img-7/800/600", "https://picsum.photos/seed/olx-img-8/800/600", "https://picsum.photos/seed/olx-img-9/800/600", "https://picsum.photos/seed/olx-img-10/800/600" ],
     "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329"
   },
   {
@@ -38,7 +38,7 @@
     "Price": 22000,
     "CategoryId": 38,
     "FilterValueIds": [ 2, 64, 59, 15, 118 ],
-    "ImagePaths": [ "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600" ],
+    "ImagePaths": [ "https://picsum.photos/seed/olx-img-11/800/600", "https://picsum.photos/seed/olx-img-12/800/600", "https://picsum.photos/seed/olx-img-13/800/600", "https://picsum.photos/seed/olx-img-14/800/600", "https://picsum.photos/seed/olx-img-15/800/600" ],
     "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329"
   },
   {
@@ -52,7 +52,7 @@
     "Price": 8000,
     "CategoryId": 36,
     "FilterValueIds": [ 1, 109 ],
-    "ImagePaths": [ "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600" ],
+    "ImagePaths": [ "https://picsum.photos/seed/olx-img-16/800/600", "https://picsum.photos/seed/olx-img-17/800/600", "https://picsum.photos/seed/olx-img-18/800/600", "https://picsum.photos/seed/olx-img-19/800/600", "https://picsum.photos/seed/olx-img-20/800/600" ],
     "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329"
   },
   {
@@ -66,7 +66,7 @@
     "Price": 16000,
     "CategoryId": 89,
     "FilterValueIds": [ 2, 62, 34, 110 ],
-    "ImagePaths": [ "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600" ],
+    "ImagePaths": [ "https://picsum.photos/seed/olx-img-21/800/600", "https://picsum.photos/seed/olx-img-22/800/600", "https://picsum.photos/seed/olx-img-23/800/600", "https://picsum.photos/seed/olx-img-24/800/600", "https://picsum.photos/seed/olx-img-25/800/600" ],
     "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329"
   },
   {
@@ -80,7 +80,7 @@
     "Price": 45000,
     "CategoryId": 136,
     "FilterValueIds": [ 1, 311, 105, 138 ],
-    "ImagePaths": [ "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600" ],
+    "ImagePaths": [ "https://picsum.photos/seed/olx-img-26/800/600", "https://picsum.photos/seed/olx-img-27/800/600", "https://picsum.photos/seed/olx-img-28/800/600", "https://picsum.photos/seed/olx-img-29/800/600", "https://picsum.photos/seed/olx-img-30/800/600" ],
     "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329"
   },
   {
@@ -94,7 +94,7 @@
     "Price": 12000,
     "CategoryId": 97,
     "FilterValueIds": [ 1, 108 ],
-    "ImagePaths": [ "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600" ],
+    "ImagePaths": [ "https://picsum.photos/seed/olx-img-31/800/600", "https://picsum.photos/seed/olx-img-32/800/600", "https://picsum.photos/seed/olx-img-33/800/600", "https://picsum.photos/seed/olx-img-34/800/600", "https://picsum.photos/seed/olx-img-35/800/600" ],
     "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329"
   },
   {
@@ -108,7 +108,7 @@
     "Price": 15000,
     "CategoryId": 41,
     "FilterValueIds": [ 2, 106 ],
-    "ImagePaths": [ "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600" ],
+    "ImagePaths": [ "https://picsum.photos/seed/olx-img-36/800/600", "https://picsum.photos/seed/olx-img-37/800/600", "https://picsum.photos/seed/olx-img-38/800/600", "https://picsum.photos/seed/olx-img-39/800/600", "https://picsum.photos/seed/olx-img-40/800/600" ],
     "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329"
   },
   {
@@ -122,7 +122,7 @@
     "Price": 25000,
     "CategoryId": 103,
     "FilterValueIds": [ 2 ],
-    "ImagePaths": [ "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600" ],
+    "ImagePaths": [ "https://picsum.photos/seed/olx-img-41/800/600", "https://picsum.photos/seed/olx-img-42/800/600", "https://picsum.photos/seed/olx-img-43/800/600", "https://picsum.photos/seed/olx-img-44/800/600", "https://picsum.photos/seed/olx-img-45/800/600" ],
     "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329"
   },
   {
@@ -136,7 +136,7 @@
     "Price": 28000,
     "CategoryId": 41,
     "FilterValueIds": [ 1, 105 ],
-    "ImagePaths": [ "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600" ],
+    "ImagePaths": [ "https://picsum.photos/seed/olx-img-46/800/600", "https://picsum.photos/seed/olx-img-47/800/600", "https://picsum.photos/seed/olx-img-48/800/600", "https://picsum.photos/seed/olx-img-49/800/600", "https://picsum.photos/seed/olx-img-50/800/600" ],
     "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329"
   },
   {
@@ -150,7 +150,7 @@
     "Price": 18000,
     "CategoryId": 38,
     "FilterValueIds": [ 1, 311, 62 ],
-    "ImagePaths": [ "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600", "https://picsum.photos/800/600" ],
+    "ImagePaths": [ "https://picsum.photos/seed/olx-img-51/800/600", "https://picsum.photos/seed/olx-img-52/800/600", "https://picsum.photos/seed/olx-img-53/800/600", "https://picsum.photos/seed/olx-img-54/800/600", "https://picsum.photos/seed/olx-img-55/800/600" ],
     "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329"
   }
 ]

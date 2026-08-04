@@ -28,6 +28,7 @@ namespace Olx.BLL.Exstensions
             services.AddScoped<IFilterService, FilterService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IAdvertService, AdvertService>();
+            services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IChatService, ChatService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAdminMessageService, AdminMessageService>();
