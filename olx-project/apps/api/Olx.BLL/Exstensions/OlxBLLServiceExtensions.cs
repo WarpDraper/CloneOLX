@@ -35,6 +35,9 @@ namespace Olx.BLL.Exstensions
             services.AddScoped<IAdvertImageService, AdvertImageService>();
             services.AddScoped<INewPostService, NewPostService>();
             services.AddScoped<IBackupDataService, BackupDataService>();
+            // Singleton, not scoped: presence must be shared by every Hub instance/request,
+            // not re-created per DI scope. See ConnectionTracker's doc comment.
+            services.AddSingleton<IConnectionTracker, ConnectionTracker>();
             services.AddHostedService<TokenCleanupService>();
             services.AddHostedService<ImageCeanupService>();
             services.AddHostedService<AdminMesssageCleanupService>();

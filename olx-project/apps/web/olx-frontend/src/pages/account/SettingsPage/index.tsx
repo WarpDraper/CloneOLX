@@ -5,7 +5,7 @@ import { Upload, Avatar, message } from "antd";
 import { UserOutlined, UploadOutlined, PhoneOutlined } from "@ant-design/icons";
 import type { RcFile } from "antd/es/upload/interface";
 import type { RootState } from "../../../store";
-import { useGetSellerProfileQuery } from "../../../services/profileService";
+import { useGetSellerProfileQuery, isRealUserId } from "../../../services/profileService";
 import { useEditUserMutation } from "../../../services/accountService";
 import { setAuth } from "../../../Slice/authSlice";
 import { buildImageUrl, IMAGE_SIZES } from "../../../utils/buildImageUrl";
@@ -33,7 +33,7 @@ const SettingsPage: React.FC = () => {
         if (!isAuth) navigate("/login", { replace: true });
     }, [isAuth, navigate]);
 
-    const { data: profile, isLoading: isProfileLoading } = useGetSellerProfileQuery(currentUserId, { skip: !currentUserId });
+    const { data: profile, isLoading: isProfileLoading } = useGetSellerProfileQuery(currentUserId, { skip: !isRealUserId(currentUserId) });
     const [editUser, { isLoading: isSaving }] = useEditUserMutation();
 
     const [firstName, setFirstName] = useState("");

@@ -8,7 +8,7 @@ namespace Olx.BLL.Entities
     public class Order : BaseEntity
     {
         public int UserId { get; set; }
-        public OlxUser User { get; set; }
+        public OlxUser User { get; set; } = null!;
         public DateTime Date { get; set; } = DateTime.UtcNow;
         public DeliveryType DeliveryType { get; set; }
         public PaymentMethod PaymentMethod { get; set; }

@@ -44,11 +44,14 @@ const AdvertDetailsPage: React.FC = () => {
     const dispatch = useDispatch();
     const { isAuth } = useSelector((state: RootState) => state.auth);
 
-    const { data: apiAdvert, isLoading, isError } = useGetAdvertByIdQuery(advertId, { skip: !advertId });
+    // Seed-hydrated adverts use synthetic negative ids (see utils/seedHydration.ts) — never
+    // issue a real API request for those (backend rejects e.g. GET /api/Advert/get/-2149 with 400).
+    const isValidApiId = Number.isFinite(advertId) && advertId > 0;
+    const { data: apiAdvert, isLoading, isError } = useGetAdvertByIdQuery(advertId, { skip: !isValidApiId });
 
     // Фолбек на локальні seed-дані (adverts.seed.json), якщо C# API повернуло помилку/порожньо
     // (offline dev / щойно піднята БД) — не застосовується, поки триває реальний запит.
-    const usingSeedFallback = !isLoading && (isError || !apiAdvert);
+    const usingSeedFallback = !isValidApiId || (!isLoading && (isError || !apiAdvert));
     const seedAdvert = useMemo(
         () => (usingSeedFallback ? getSeedAdverts().find((a) => a.id === advertId) : undefined),
         [usingSeedFallback, advertId]
@@ -107,7 +110,9 @@ const AdvertDetailsPage: React.FC = () => {
         action();
     };
 
-    const handleAddToCart = () => {
+    // Was missing the auth check other "add to cart" entry points already have — unauthenticated
+    // users must never get the item added or the "Додано в кошик" toast, just a redirect.
+    const handleAddToCart = () => requireAuth(() => {
         const cover = [...advert.images].sort((a, b) => a.priority - b.priority)[0];
         dispatch(addToCart({
             advertId: advert.id,
@@ -117,7 +122,7 @@ const AdvertDetailsPage: React.FC = () => {
             quantity,
         }));
         dispatch(addNotification({ type: "success", title: "Додано в кошик", message: advert.title }));
-    };
+    });
 
     const handleBuy = () => requireAuth(async () => {
         await buyAdvert(advert.id).unwrap();
@@ -160,8 +165,10 @@ const AdvertDetailsPage: React.FC = () => {
                         <button
                             type="button"
                             onClick={handleToggleFavorite}
-                            aria-label="Додати в обране"
-                            className="shrink-0 w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-mm-purple hover:bg-mm-lavender transition-colors"
+                            aria-label={isFavorite ? "Прибрати з обраного" : "Додати в обране"}
+                            className={`shrink-0 w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-mm-lavender transition-colors ${
+                                isFavorite ? "text-red-500" : "text-mm-purple"
+                            }`}
                         >
                             {isFavorite ? <HeartFilled /> : <HeartOutlined />}
                         </button>

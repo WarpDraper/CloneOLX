@@ -14,6 +14,11 @@ namespace Olx.BLL.Helpers
         public const string AdminLockAdvert = "AdminLockAdvert";
         public const string AdminRemoveAccount = "AdminRemoveAccount";
         public const string AdminLockAccount = "AdminLockAccount";
+        // Presence — broadcast to every connected client whenever a user's live-connection
+        // count goes 0 -> 1 (came online) or 1 -> 0 (went offline). Payload: (int userId, string
+        // lastSeenIso). See MessageHub.OnConnectedAsync/OnDisconnectedAsync.
+        public const string UserOnline = "UserOnline";
+        public const string UserOffline = "UserOffline";
     }
 }
 

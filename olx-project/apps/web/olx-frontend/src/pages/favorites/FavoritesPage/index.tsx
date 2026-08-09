@@ -26,6 +26,18 @@ const FavoritesPage: React.FC = () => {
     const { data: favorites = [], isLoading } = useGetFavoritesQuery(undefined, { skip: !isAuth });
     const [removeFromFavorites] = useRemoveFromFavoritesMutation();
     const [page, setPage] = useState(1);
+    // Ids currently fading out — hidden immediately via CSS transition, then actually removed
+    // from the API/cache once the transition finishes, so the card unmounts smoothly instead
+    // of popping out the instant the list refetches.
+    const [removingIds, setRemovingIds] = useState<number[]>([]);
+
+    const handleUnfavorite = (advertId: number) => {
+        setRemovingIds((prev) => [...prev, advertId]);
+        window.setTimeout(() => {
+            removeFromFavorites(advertId);
+            setRemovingIds((prev) => prev.filter((id) => id !== advertId));
+        }, 200);
+    };
 
     const pageItems = useMemo(() => {
         const start = (page - 1) * PAGE_SIZE;
@@ -49,14 +61,20 @@ const FavoritesPage: React.FC = () => {
                 </div>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 items-start">
                         {pageItems.map((advert) => (
-                            <AdvertCard
+                            <div
                                 key={advert.id}
-                                advert={advert}
-                                isFavorite
-                                onToggleFavorite={(a) => removeFromFavorites(a.id)}
-                            />
+                                className={`transition-all duration-200 ease-in ${
+                                    removingIds.includes(advert.id) ? "opacity-0 scale-95" : "opacity-100 scale-100"
+                                }`}
+                            >
+                                <AdvertCard
+                                    advert={advert}
+                                    isFavorite
+                                    onToggleFavorite={(a) => handleUnfavorite(a.id)}
+                                />
+                            </div>
                         ))}
                     </div>
                     {favorites.length > PAGE_SIZE && (

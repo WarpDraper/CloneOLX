@@ -28,12 +28,17 @@ namespace Olx.BLL.Mapper
             CreateMap<OlxUser, OlxUserDto>()
                 .ForMember(x => x.SettlementDescrption, opt => opt.MapFrom(z => z.Settlement != null ? z.Settlement.Description : null))
                 .ForMember(x => x.Adverts, opt => opt.MapFrom(z => z.Adverts.Select(y => y.Id)))
-                .ForMember(x => x.FavoriteAdverts, opt => opt.MapFrom(z => z.FavoriteAdverts.Select(y => y.Id)));
+                .ForMember(x => x.FavoriteAdverts, opt => opt.MapFrom(z => z.FavoriteAdverts.Select(y => y.Id)))
+                // Not a DB column — backed by IConnectionTracker, stamped post-mapping (see
+                // OnlineStatusExtensions). Must stay ignored here so ProjectTo's SQL projection
+                // doesn't attempt (and fail) to translate it.
+                .ForMember(x => x.IsOnline, opt => opt.Ignore());
 
             CreateMap<UserEditModel, OlxUser>();
 
             CreateMap<OlxUser, OlxUserShortDto>()
-                 .ForMember(x => x.SettlementDescrption, opt => opt.MapFrom(z => z.Settlement != null ? z.Settlement.Description : null));
+                 .ForMember(x => x.SettlementDescrption, opt => opt.MapFrom(z => z.Settlement != null ? z.Settlement.Description : null))
+                 .ForMember(x => x.IsOnline, opt => opt.Ignore());
 
             CreateMap<UserPageRequest, OlxUserFilter>();
         }

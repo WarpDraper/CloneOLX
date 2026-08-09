@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Olx.BLL.DTOs.OlxUserDtos;
 using Olx.BLL.Entities;
 using Olx.BLL.Exceptions;
+using Olx.BLL.Exstensions;
 using Olx.BLL.Helpers;
 using Olx.BLL.Interfaces;
 using Olx.BLL.Models.Page;
@@ -21,7 +22,8 @@ namespace Olx.BLL.Services
         RoleManager<IdentityRole<int>> roleManager,
         IRepository<IdentityUserRole<int>> userRolesRepo,
         IRepository<OlxUser> userRepo,
-        IMapper mapper) : IUserService
+        IMapper mapper,
+        IConnectionTracker connectionTracker) : IUserService
     {
         private async Task<IEnumerable<int>> _getAdminsIds() 
         {
@@ -39,7 +41,7 @@ namespace Olx.BLL.Services
             var users = await mapper.ProjectTo<OlxUserDto>(userRepo.GetQuery()
                 .Where(x => isAdmin == adminsIds.Contains(x.Id)))
                 .ToListAsync();
-            return users;
+            return users.WithOnlineStatus(connectionTracker);
         } 
 
         public async Task<OlxUserDto> Get(int id, bool isAdmin = false) 
@@ -50,7 +52,7 @@ namespace Olx.BLL.Services
                 var user = await userRepo.GetByIDAsync(id);
                 if (user is not null && (await userManager.IsInRoleAsync(user, Roles.Admin)) == isAdmin)
                 {
-                    return userDto;
+                    return userDto.WithOnlineStatus(connectionTracker);
                 }
             }
             throw new HttpException(Errors.InvalidUserId, HttpStatusCode.BadRequest);
@@ -70,11 +72,12 @@ namespace Olx.BLL.Services
             return new()
             {
                 Total = page.Total,
-                Items = page.Items
+                Items = page.Items.WithOnlineStatus(connectionTracker)
             };
         }
 
         public async Task<IEnumerable<OlxUserDto>> GetLocked() =>
-            await mapper.ProjectTo<OlxUserDto>(userRepo.GetQuery().Where(x => x.LockoutEnd != null && x.LockoutEnd > DateTime.Now)).ToArrayAsync();
+            (await mapper.ProjectTo<OlxUserDto>(userRepo.GetQuery().Where(x => x.LockoutEnd != null && x.LockoutEnd > DateTime.Now)).ToArrayAsync())
+                .WithOnlineStatus(connectionTracker);
     }
 }

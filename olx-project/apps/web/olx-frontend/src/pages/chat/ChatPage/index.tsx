@@ -4,9 +4,10 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import { useGetChatsQuery, useGetChatMessagesQuery, useSendMessageMutation, useCreateChatMutation, useSetReadedMutation } from "../../../services/chatService";
 import { useGetAdvertByIdQuery, useGetAdvertsByRangeMutation } from "../../../services/advertService";
-import { useGetSellerProfileQuery } from "../../../services/profileService";
+import { useGetSellerProfileQuery, isRealUserId } from "../../../services/profileService";
 import { useChatHub } from "../../../hooks/useChatHub";
 import { buildImageUrl, IMAGE_SIZES } from "../../../utils/buildImageUrl";
+import FallbackImage from "../../../components/common/FallbackImage";
 import SellerWidget from "../../../components/advert/SellerWidget";
 import ChatThreadList from "./ChatThreadList";
 import ChatWindow, { type ChatWindowAdvert } from "./ChatWindow";
@@ -121,7 +122,10 @@ const ChatPage: React.FC = () => {
             ? selectedChat.seller.id
             : selectedChat.buyer.id
         : null;
-    const { data: counterpartProfile } = useGetSellerProfileQuery(counterpartId ?? 0, { skip: !counterpartId });
+    // Chat counterparts can be seed-hydrated sellers with synthetic negative ids (see
+    // utils/seedHydration.ts) — the backend can never resolve those (GET /api/User/get/-1747 ->
+    // 400 Bad Request), so only fire the request for real, positive backend ids.
+    const { data: counterpartProfile } = useGetSellerProfileQuery(counterpartId ?? 0, { skip: !isRealUserId(counterpartId) });
 
     const counterpartSeller = selectedChat
         ? counterpartProfile ?? null
@@ -129,7 +133,7 @@ const ChatPage: React.FC = () => {
         ? pendingAdvert.user
         : null;
 
-    const { data: sellerPickerProfile } = useGetSellerProfileQuery(pendingSellerId!, { skip: !pendingSellerId });
+    const { data: sellerPickerProfile } = useGetSellerProfileQuery(pendingSellerId ?? 0, { skip: !isRealUserId(pendingSellerId) });
     const [getAdvertsByRange, { data: sellerAdverts, isLoading: isSellerAdvertsLoading }] = useGetAdvertsByRangeMutation();
     useEffect(() => {
         if (sellerPickerProfile && sellerPickerProfile.adverts.length > 0) {
@@ -193,7 +197,14 @@ const ChatPage: React.FC = () => {
                                                 className="flex items-center gap-3 border border-gray-100 rounded-lg p-2 hover:border-mm-purple transition-colors text-left"
                                             >
                                                 <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100 shrink-0">
-                                                    {imageUrl && <img src={imageUrl} alt={advert.title} className="w-full h-full object-cover" />}
+                                                    <FallbackImage
+                                                        src={imageUrl}
+                                                        fallbackKeyword={advert.title}
+                                                        uniqueSeed={advert.id}
+                                                        alt={advert.title}
+                                                        className="w-full h-full object-cover"
+                                                        placeholder={<div className="w-full h-full bg-gray-100" />}
+                                                    />
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="text-sm font-semibold text-mm-navy truncate">{advert.title}</p>

@@ -15,9 +15,10 @@ const NotificationManager: React.FC = () => {
 
     if (popupsToRun.length > 0) {
       popupsToRun.forEach(n => {
-        // Trigger the antd notification UI
+        // Trigger the antd notification UI (antd v6 deprecated `message` on NotificationConfig
+        // in favor of `title` — using `message` here throws a console deprecation warning).
         api[n.type]({
-          message: n.title,
+          title: n.title,
           description: n.message,
           placement: 'bottomRight',
           duration: 5,

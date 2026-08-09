@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { ShoppingCartOutlined, ShoppingCartFilled, HeartOutlined, HeartFilled, EnvironmentOutlined } from "@ant-design/icons";
+import { ShoppingCartOutlined, HeartOutlined, HeartFilled, EnvironmentOutlined } from "@ant-design/icons";
 import type { IAdvert } from "../../types/advert/IAdvert";
 import type { RootState } from "../../store";
 import { addToCart, removeFromCart } from "../../store/cartSlice";
@@ -99,8 +99,10 @@ const AdvertListItem: React.FC<AdvertListItemProps> = ({ advert, onQuickAdd, onT
                                     e.stopPropagation();
                                     onToggleFavorite(advert);
                                 }}
-                                aria-label="Додати в обране"
-                                className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-mm-purple hover:bg-mm-lavender"
+                                aria-label={isFavorite ? "Прибрати з обраного" : "Додати в обране"}
+                                className={`w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-mm-lavender ${
+                                    isFavorite ? "text-red-500" : "text-mm-purple"
+                                }`}
                             >
                                 {isFavorite ? <HeartFilled /> : <HeartOutlined />}
                             </button>
@@ -134,7 +136,7 @@ const AdvertListItem: React.FC<AdvertListItemProps> = ({ advert, onQuickAdd, onT
                                 isInCart ? "bg-mm-purple text-white hover:bg-mm-purple-dark" : "bg-mm-navy text-white hover:bg-mm-navy/90"
                             }`}
                         >
-                            {isInCart ? <ShoppingCartFilled /> : <ShoppingCartOutlined />} {isInCart ? "У кошику" : "Купити"}
+                            <ShoppingCartOutlined /> {isInCart ? "У кошику" : "Купити"}
                         </button>
                     )}
                 </div>

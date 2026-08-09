@@ -28,11 +28,11 @@ const CategoryAvatar: React.FC<CategoryAvatarProps> = ({ category, size = 72, on
         <Link
             to={`/category/${category.id}`}
             onClick={onClick}
-            className={`flex flex-col items-center gap-2.5 shrink-0 group ${className}`}
+            className={`flex flex-col items-center gap-2.5 shrink-0 group transition-transform duration-300 hover:-translate-y-1 ${className}`}
         >
             <div
                 style={{ width: size, height: size }}
-                className="rounded-full overflow-hidden bg-mm-navy border-2 border-mm-purple/40 group-hover:border-mm-orange shadow-sm flex items-center justify-center transition-colors"
+                className="rounded-full overflow-hidden bg-mm-navy border-2 border-mm-purple/40 group-hover:border-mm-orange shadow-sm group-hover:shadow-lg flex items-center justify-center transition-all duration-300"
             >
                 <FallbackImage
                     src={localSrc}

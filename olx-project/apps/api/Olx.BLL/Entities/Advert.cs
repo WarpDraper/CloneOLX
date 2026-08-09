@@ -11,7 +11,7 @@ namespace Olx.BLL.Entities
     public class Advert : BaseEntity
     {
         public int UserId { get; set; }
-        public OlxUser User { get; set; }
+        public OlxUser User { get; set; } = null!;
         [StringLength(19)]
         public string PhoneNumber { get; set; } = string.Empty;
 
@@ -34,10 +34,10 @@ namespace Olx.BLL.Entities
         [StringLength(36)]
         [Unicode(false)]
        
-        public string SettlementRef { get; set; }
-        public Settlement Settlement { get; set; }
+        public string SettlementRef { get; set; } = null!;
+        public Settlement Settlement { get; set; } = null!;
         public int CategoryId { get; set; }
-        public Category Category { get; set; }
+        public Category Category { get; set; } = null!;
         public ICollection<FilterValue> FilterValues { get; set; }  = new HashSet<FilterValue>();
         public ICollection<AdvertImage> Images { get; set; } = new HashSet<AdvertImage>();
         public ICollection<OlxUser> FavoritedByUsers { get; set; } = new HashSet<OlxUser>();

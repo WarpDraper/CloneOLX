@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { ShoppingCartOutlined, ShoppingCartFilled } from "@ant-design/icons";
+import { ShoppingCartOutlined } from "@ant-design/icons";
 import type { IAdvert } from "../../types/advert/IAdvert";
 import type { RootState } from "../../store";
 import { addToCart, removeFromCart } from "../../store/cartSlice";
@@ -49,7 +49,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({ advert }) => {
     return (
         <Link
             to={`/advert/${advert.id}`}
-            className="bg-[#272942] border border-white/20 rounded-md p-3 flex flex-col h-full gap-2 hover:border-mm-purple/60 transition-colors group"
+            className="bg-[#272942] border border-white/20 rounded-md p-3 flex flex-col h-full gap-2 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-mm-purple/60 group"
         >
             <div className="aspect-square rounded overflow-hidden bg-white/5 shrink-0">
                 <FallbackImage
@@ -63,7 +63,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({ advert }) => {
                     }
                 />
             </div>
-            <h3 className="text-xs font-medium text-white line-clamp-2 leading-snug">{advert.title}</h3>
+            <h3 className="text-xs font-medium text-white line-clamp-2 leading-snug min-h-[2.25rem]">{advert.title}</h3>
             {/* mt-auto: price/cart row stays pinned to the bottom regardless of how many lines
                 the title above wrapped to, so cards line up across the grid row. */}
             <div className="mt-auto flex items-end justify-between gap-2">
@@ -88,7 +88,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({ advert }) => {
                             isInCart ? "bg-mm-purple text-white" : "bg-white/10 text-white hover:bg-white/20"
                         }`}
                     >
-                        {isInCart ? <ShoppingCartFilled className="text-xs" /> : <ShoppingCartOutlined className="text-xs" />}
+                        <ShoppingCartOutlined className="text-xs" />
                     </button>
                 )}
             </div>

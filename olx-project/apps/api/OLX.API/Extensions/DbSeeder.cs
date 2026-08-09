@@ -70,7 +70,13 @@ namespace OLX.API.Extensions
                                 : await imageService.SaveImageFromUrlAsync(user.PhotoUrl ?? "https://picsum.photos/800/600"),
                                 WebSite = user.WebSite,
                                 About = user.About,
-                                EmailConfirmed = true
+                                EmailConfirmed = true,
+                                // Distinct per-seed-user values (Users.json) instead of every
+                                // seeded user rendering the same uniform entity default on seller
+                                // cards. Falls back to the OlxUser defaults (5.0 / 0) when a
+                                // fixture doesn't specify them.
+                                Rating = user.Rating ?? 5.0,
+                                ReviewsCount = user.ReviewsCount ?? 0
                             };
 
                             var result = await userManager.CreateAsync(newUser, user.Password);
@@ -148,12 +154,36 @@ namespace OLX.API.Extensions
 
 
             //Advert seeder
+            const int MinSeededAdvertCount = 500;
             var filterValueRepo = scope.ServiceProvider.GetService<IRepository<FilterValue>>();
             var settlementRepo = scope.ServiceProvider.GetService<IRepository<Settlement>>();
             var advertRepo = scope.ServiceProvider.GetService<IRepository<Advert>>();
-            if (advertRepo is not null && !await advertRepo.AnyAsync())
+            var advertImageRepo = scope.ServiceProvider.GetService<IRepository<AdvertImage>>();
+            var forceReseedAdverts = app.Configuration.GetValue<bool>("Seeder:ForceReseedAdverts");
+            var currentAdvertCount = advertRepo is not null ? await advertRepo.CountAsync() : 0;
+            if (advertRepo is not null && (currentAdvertCount < MinSeededAdvertCount || forceReseedAdverts))
             {
-                Console.WriteLine("Start adverts seeder");
+                Console.WriteLine($"Start adverts seeder (current count: {currentAdvertCount}, forceReseed: {forceReseedAdverts})");
+
+                // Re-hydrate: the fixture file is an all-or-nothing snapshot of 500 demo adverts, so a
+                // partial/stale table (e.g. from an interrupted previous seed, or a manual force-reseed
+                // trigger) is wiped and reloaded from scratch rather than merged.
+                if (currentAdvertCount > 0)
+                {
+                    var existingAdverts = (await advertRepo.GetListBySpec(new AdvertSpecs.GetAll(AdvertOpt.Images))).ToList();
+                    if (advertImageRepo is not null)
+                    {
+                        var existingImages = existingAdverts.SelectMany(a => a.Images ?? Enumerable.Empty<AdvertImage>()).ToList();
+                        if (existingImages.Count > 0)
+                        {
+                            advertImageRepo.DeleteRange(existingImages);
+                            await advertImageRepo.SaveAsync();
+                        }
+                    }
+                    advertRepo.DeleteRange(existingAdverts);
+                    await advertRepo.SaveAsync();
+                    Console.WriteLine($"Cleared {existingAdverts.Count} existing adverts before re-seeding.");
+                }
                 string advertsJsonDataFile = Path.Combine(Environment.CurrentDirectory, app.Configuration["SeederJsonDir"]!, "Adverts.json");
                 if (File.Exists(advertsJsonDataFile))
                 {
@@ -164,8 +194,20 @@ namespace OLX.API.Extensions
                             ?? throw new JsonException();
                         if (advertModels.Any() && filterValueRepo is not null)
                         {
+                            // Categories are auto-increment ids assigned on insert, so a hand-copied
+                            // numeric CategoryId in Adverts.json can silently point at the wrong (or a
+                            // nonexistent) category and abort the whole seed batch via an FK violation.
+                            // Entries that specify CategoryPath resolve against the just-seeded category
+                            // tree instead — see ResolveCategoryId below.
+                            var allCategories = categoryRepo is not null
+                                ? (await categoryRepo.GetListBySpec(new CategorySpecs.GetAll())).ToList()
+                                : new List<Category>();
+
                             var advertsTasks = advertModels.Select(async (x) =>
                             {
+                                var resolvedCategoryId = (x.CategoryPath is not null && x.CategoryPath.Count > 0)
+                                    ? ResolveCategoryId(allCategories, x.CategoryPath) ?? x.CategoryId
+                                    : x.CategoryId;
                                 var filterValues = filterValueRepo.GetListBySpec(new FilterValueSpecs.GetByIds(x.FilterValueIds)).Result.ToList();
                                 var imagesTasks = x.ImagePaths.Select(async (path, index) =>
                                     new AdvertImage()
@@ -184,10 +226,11 @@ namespace OLX.API.Extensions
                                     Description = x.Description,
                                     IsContractPrice = x.IsContractPrice,
                                     Price = x.Price,
-                                    CategoryId = x.CategoryId,
+                                    CategoryId = resolvedCategoryId,
                                     FilterValues = filterValues,
                                     Images = images,
                                     Approved = true,
+                                    Completed = false,
                                     Settlement = await settlementRepo.GetByIDAsync(x.SettlementRef) ??
                                       throw new NullReferenceException("settlement not found")
                                 };
@@ -210,6 +253,30 @@ namespace OLX.API.Extensions
 
        
        
+
+        // Resolves a root-to-leaf category name path (e.g. ["Авто", "Легкові автомобілі"]) to the
+        // real DB-assigned CategoryId, walking level by level so duplicate leaf names elsewhere in
+        // the tree (e.g. "Продаж" appears under several parents) can't cause a wrong match.
+        private static int? ResolveCategoryId(List<Category> categories, IReadOnlyList<string> path)
+        {
+            if (path.Count == 0) return null;
+
+            var byParent = categories
+                .GroupBy(c => c.ParentId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            List<Category>? level = byParent.TryGetValue(null, out var roots) ? roots : null;
+            Category? match = null;
+
+            foreach (var name in path)
+            {
+                match = level?.FirstOrDefault(c => string.Equals(c.Name, name, StringComparison.OrdinalIgnoreCase));
+                if (match is null) return null;
+                level = byParent.TryGetValue(match.Id, out var childs) ? childs : null;
+            }
+
+            return match?.Id;
+        }
 
         private async static Task<IEnumerable<Category>> GetCategories(
             IEnumerable<SeederCategoryModel> models,

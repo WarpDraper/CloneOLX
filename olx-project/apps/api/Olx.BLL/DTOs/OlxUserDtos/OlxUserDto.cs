@@ -21,5 +21,9 @@
         public string? SettlementDescrption { get; set; }
         public IEnumerable<int> Adverts { get; set; } = [];
         public IEnumerable<int> FavoriteAdverts { get; set; } = [];
+        // See OlxUserShortDto.IsOnline/LastSeen — same live-presence contract, stamped
+        // post-mapping via OnlineStatusExtensions.WithOnlineStatus.
+        public bool IsOnline { get; set; }
+        public DateTime LastSeen => LastActivity;
     }
 }

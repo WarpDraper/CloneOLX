@@ -21,7 +21,7 @@ const initialState: NotificationState = {
       id: '1',
       type: 'info',
       title: 'Ласкаво просимо!',
-      message: 'Дякуємо, що приєдналися до OLX Clone.',
+      message: 'Дякуємо, що приєдналися до MultiMart.',
       read: false,
       createdAt: new Date().toISOString(),
       showPopup: false 

@@ -8,7 +8,7 @@ namespace Olx.BLL.Entities
     public class OrderItem : BaseEntity
     {
         public int OrderId { get; set; }
-        public Order Order { get; set; }
+        public Order Order { get; set; } = null!;
 
         public int? AdvertId { get; set; }
         public Advert? Advert { get; set; }

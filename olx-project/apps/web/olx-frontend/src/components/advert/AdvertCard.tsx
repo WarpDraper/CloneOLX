@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { ShoppingCartOutlined, ShoppingCartFilled, HeartOutlined, HeartFilled } from "@ant-design/icons";
+import { ShoppingCartOutlined, HeartOutlined, HeartFilled } from "@ant-design/icons";
 import type { IAdvert } from "../../types/advert/IAdvert";
 import type { RootState } from "../../store";
 import { addToCart, removeFromCart } from "../../store/cartSlice";
@@ -60,7 +60,7 @@ const AdvertCard: React.FC<AdvertCardProps> = ({ advert, onQuickAdd, onToggleFav
     return (
         <Link
             to={`/advert/${advert.id}`}
-            className="relative bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group flex flex-col h-full"
+            className="relative bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-mm-purple/30 group flex flex-col h-full"
         >
             {onToggleFavorite && (
                 <button
@@ -70,8 +70,10 @@ const AdvertCard: React.FC<AdvertCardProps> = ({ advert, onQuickAdd, onToggleFav
                         e.stopPropagation();
                         onToggleFavorite(advert);
                     }}
-                    aria-label="Додати в обране"
-                    className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center text-mm-purple hover:bg-white"
+                    aria-label={isFavorite ? "Прибрати з обраного" : "Додати в обране"}
+                    className={`absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center hover:bg-white ${
+                        isFavorite ? "text-red-500" : "text-mm-purple"
+                    }`}
                 >
                     {isFavorite ? <HeartFilled /> : <HeartOutlined />}
                 </button>
@@ -85,7 +87,7 @@ const AdvertCard: React.FC<AdvertCardProps> = ({ advert, onQuickAdd, onToggleFav
                     {condition}
                 </span>
             )}
-            <div className="aspect-[4/3] overflow-hidden bg-gray-100 shrink-0">
+            <div className="h-[180px] w-full overflow-hidden bg-gray-100 shrink-0">
                 <FallbackImage
                     src={imageUrl}
                     fallbackKeyword={advert.title}
@@ -100,7 +102,7 @@ const AdvertCard: React.FC<AdvertCardProps> = ({ advert, onQuickAdd, onToggleFav
             {/* flex-1 + mt-auto on the price row below: title/specs can wrap to 1-2 lines without
                 shifting the price/cart-button line out of alignment with sibling cards in the row. */}
             <div className="p-3 flex flex-col flex-1">
-                <h3 className="text-sm font-semibold text-mm-navy line-clamp-2 mb-1 leading-snug">{advert.title}</h3>
+                <h3 className="text-sm font-semibold text-mm-navy line-clamp-2 mb-1 leading-snug min-h-[2.5rem]">{advert.title}</h3>
                 {shortSpecs.length > 0 && (
                     <div className="flex flex-wrap gap-x-2 gap-y-0.5 mb-1.5">
                         {shortSpecs.map((spec) => (
@@ -129,7 +131,7 @@ const AdvertCard: React.FC<AdvertCardProps> = ({ advert, onQuickAdd, onToggleFav
                                 isInCart ? "bg-mm-purple text-white hover:bg-mm-purple-dark" : "bg-mm-navy text-white hover:bg-mm-navy/90"
                             }`}
                         >
-                            {isInCart ? <ShoppingCartFilled className="text-xs" /> : <ShoppingCartOutlined className="text-xs" />}
+                            <ShoppingCartOutlined className="text-xs" />
                         </button>
                     )}
                 </div>

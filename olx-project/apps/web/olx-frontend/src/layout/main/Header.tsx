@@ -7,7 +7,7 @@ import {
     UserOutlined,
     ShoppingCartOutlined,
 } from '@ant-design/icons';
-import { Badge, Popover, List, Typography, Button } from 'antd';
+import { Badge, Popover, Typography, Button } from 'antd';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../../store';
 import { markAsRead, markAllAsRead } from '../../store/notificationSlice';
@@ -32,6 +32,8 @@ const Header: React.FC = () => {
 
     const unreadCount = items.filter((n: NotificationItem) => !n.read).length;
     const cartCount = useSelector((state: RootState) => state.cart.items.reduce((n, i) => n + i.quantity, 0));
+    // Cart persists in localStorage independent of auth; never surface a leftover/hardcoded count to a logged-out user.
+    const displayCartCount = isAuth ? cartCount : 0;
 
     const notificationContent = (
         <div className="w-80 max-h-96 flex flex-col">
@@ -47,12 +49,11 @@ const Header: React.FC = () => {
                 {items.length === 0 ? (
                     <div className="text-center text-gray-400 py-8">Немає нових сповіщень</div>
                 ) : (
-                    <List
-                        size="small"
-                        dataSource={items}
-                        renderItem={(item: NotificationItem) => (
-                            <List.Item
-                                className={`cursor-pointer hover:bg-gray-50 transition-colors px-4 ${!item.read ? 'bg-purple-50/50' : ''}`}
+                    <div className="flex flex-col divide-y divide-gray-100">
+                        {items.map((item: NotificationItem) => (
+                            <div
+                                key={item.id}
+                                className={`cursor-pointer hover:bg-gray-50 transition-colors px-4 py-2.5 ${!item.read ? 'bg-purple-50/50' : ''}`}
                                 onClick={() => {
                                     if (!item.read) dispatch(markAsRead(item.id));
                                 }}
@@ -64,9 +65,9 @@ const Header: React.FC = () => {
                                     </div>
                                     <Typography.Text type="secondary" className="text-xs mt-1 leading-tight">{item.message}</Typography.Text>
                                 </div>
-                            </List.Item>
-                        )}
-                    />
+                            </div>
+                        ))}
+                    </div>
                 )}
             </div>
         </div>
@@ -79,6 +80,11 @@ const Header: React.FC = () => {
                     <img src="/images/multimart/logo.svg" alt="MultiMart" className="w-10 h-10" />
                     <span className="text-2xl font-bold text-mm-navy tracking-tight">MultiMart</span>
                 </Link>
+
+                <div className="hidden lg:flex items-center gap-4 text-sm font-medium text-gray-600">
+                    <Link to="/about" className="hover:text-mm-purple transition-colors">Про нас</Link>
+                    <Link to="/terms" className="hover:text-mm-purple transition-colors">Умови користування</Link>
+                </div>
 
                 <div className="hidden md:flex items-center rounded-full overflow-hidden border border-gray-200 text-sm font-semibold">
                     <button
@@ -111,7 +117,7 @@ const Header: React.FC = () => {
                                         </div>
                                     </Badge>
                                 ) : isCart ? (
-                                    <Badge count={cartCount} size="small" offset={[-2, 2]}>
+                                    <Badge count={displayCartCount} size="small" offset={[-2, 2]}>
                                         <div className="w-10 h-10 rounded-full bg-mm-lavender flex items-center justify-center group-hover:bg-purple-100 transition-colors">
                                             <Icon className="text-lg text-mm-purple" />
                                         </div>

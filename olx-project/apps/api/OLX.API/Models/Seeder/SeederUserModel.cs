@@ -12,5 +12,10 @@
         public string? PhotoUrl { get; init; }
         public string? WebSite { get; init; }
         public string? About { get; init; }
+        // Optional — falls back to the OlxUser entity defaults (Rating = 5.0, ReviewsCount = 0)
+        // in DBSeeder when omitted, so every seeded user no longer renders the same uniform
+        // default on seller cards.
+        public double? Rating { get; init; }
+        public int? ReviewsCount { get; init; }
     }
 }

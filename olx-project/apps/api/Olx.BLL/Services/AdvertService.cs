@@ -43,6 +43,7 @@ namespace Olx.BLL.Services
         IEmailService emailService,
         IMapper mapper,
         IHubContext<MessageHub> hubContext,
+        IConnectionTracker connectionTracker,
         IValidator<AdvertCreationModel> advertCreationModelValidator) : IAdvertService
     {
        
@@ -79,7 +80,7 @@ namespace Olx.BLL.Services
 
             await advertRepository.AddAsync(advert);
             await advertRepository.SaveAsync();
-            return mapper.Map<AdvertDto>(advert);
+            return mapper.Map<AdvertDto>(advert).WithOnlineStatus(connectionTracker);
         }
 
         public async Task DeleteAsync(int id)
@@ -108,15 +109,18 @@ namespace Olx.BLL.Services
         }
 
         public async Task<IEnumerable<AdvertDto>> GetRangeAsync(IEnumerable<int> ids) =>
-            await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().Where(x => ids.Contains(x.Id) && !x.Blocked && !x.Completed)).ToArrayAsync();
-        
+            (await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().Where(x => ids.Contains(x.Id) && !x.Blocked && !x.Completed)).ToArrayAsync())
+                .WithOnlineStatus(connectionTracker);
+
         public async Task<IEnumerable<AdvertDto>> GetAllAsync() =>
-            await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().Where(x => !x.Blocked && !x.Completed)).ToArrayAsync();
-      
+            (await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().Where(x => !x.Blocked && !x.Completed)).ToArrayAsync())
+                .WithOnlineStatus(connectionTracker);
+
         public async Task<IEnumerable<AdvertDto>> GetUserAdvertsAsync(bool locked = false,bool completed = false)
         {
             var curentUser = await userManager.UpdateUserActivityAsync(httpContext);
-            return await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().Where(x => x.UserId == curentUser.Id && x.Blocked == locked && x.Completed == completed)).ToArrayAsync();
+            var adverts = await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().Where(x => x.UserId == curentUser.Id && x.Blocked == locked && x.Completed == completed)).ToArrayAsync();
+            return adverts.WithOnlineStatus(connectionTracker);
         }
 
         public async Task<IEnumerable<AdvertDto>> GetByUserId(int userId)
@@ -124,14 +128,15 @@ namespace Olx.BLL.Services
             await userManager.UpdateUserActivityAsync(httpContext);
             var user = userManager.FindByIdAsync(userId.ToString())
                 ?? throw new HttpException(Errors.InvalidUserId,HttpStatusCode.BadRequest);
-            return await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().Where(x => x.UserId == userId && !x.Blocked && !x.Completed)).ToArrayAsync();
+            var adverts = await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().Where(x => x.UserId == userId && !x.Blocked && !x.Completed)).ToArrayAsync();
+            return adverts.WithOnlineStatus(connectionTracker);
         }
 
         public async Task<AdvertDto> GetByIdAsync(int id)
         {
             var advert = await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().Where(x => x.Id == id)).SingleOrDefaultAsync()
                 ?? throw new HttpException(Errors.InvalidAdvertId, HttpStatusCode.BadRequest);
-            return advert;
+            return advert.WithOnlineStatus(connectionTracker);
         }
 
         public async Task<IEnumerable<AdvertImageDto>> GetImagesAsync(int id) =>
@@ -147,7 +152,7 @@ namespace Olx.BLL.Services
             return new()
             {
                 Total = page.Total,
-                Items = page.Items
+                Items = page.Items.WithOnlineStatus(connectionTracker)
             };
         }
 
@@ -215,7 +220,7 @@ namespace Olx.BLL.Services
             advert.Blocked = false;
             await Task.WhenAll(tasks);
             await advertRepository.SaveAsync();
-            return mapper.Map<AdvertDto>(advert);
+            return mapper.Map<AdvertDto>(advert).WithOnlineStatus(connectionTracker);
         }
 
         public async Task ApproveAsync(int id)

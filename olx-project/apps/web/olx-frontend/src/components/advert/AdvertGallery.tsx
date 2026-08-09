@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import type { IAdvertImage } from "../../types/advert/IAdvertImage";
 import { buildImageUrl, IMAGE_SIZES } from "../../utils/buildImageUrl";
+import FallbackImage from "../common/FallbackImage";
 
 interface AdvertGalleryProps {
     images: IAdvertImage[];
@@ -32,19 +33,27 @@ const AdvertGallery: React.FC<AdvertGalleryProps> = ({ images, title }) => {
                             index === activeIndex ? "border-mm-purple" : "border-gray-200 hover:border-gray-300"
                         }`}
                     >
-                        <img
-                            src={buildImageUrl(img.name, IMAGE_SIZES.thumbnail) ?? undefined}
+                        <FallbackImage
+                            src={buildImageUrl(img.name, IMAGE_SIZES.thumbnail)}
+                            fallbackKeyword={title}
+                            uniqueSeed={img.id || `${title}-${index}`}
                             alt={`${title} ${index + 1}`}
                             className="w-full h-full object-cover"
+                            placeholder={<div className="w-full h-full bg-gray-100" />}
                         />
                     </button>
                 ))}
             </div>
             <div className="flex-1 aspect-square rounded-xl overflow-hidden bg-gray-100">
-                <img
-                    src={buildImageUrl(active.name, IMAGE_SIZES.gallery) ?? undefined}
+                <FallbackImage
+                    src={buildImageUrl(active.name, IMAGE_SIZES.gallery)}
+                    fallbackKeyword={title}
+                    uniqueSeed={active.id || `${title}-${activeIndex}`}
                     alt={title}
                     className="w-full h-full object-cover"
+                    placeholder={
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Немає фото</div>
+                    }
                 />
             </div>
         </div>

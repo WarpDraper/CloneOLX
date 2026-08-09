@@ -3,6 +3,7 @@ import { UserOutlined } from "@ant-design/icons";
 import { Badge } from "antd";
 import type { IChat } from "../../../types/chat/IChat";
 import { buildImageUrl, IMAGE_SIZES } from "../../../utils/buildImageUrl";
+import FallbackImage from "../../../components/common/FallbackImage";
 
 interface ChatThreadListProps {
     chats: IChat[];
@@ -49,11 +50,14 @@ const ChatThreadList: React.FC<ChatThreadListProps> = ({ chats, currentUserId, s
                                 }`}
                             >
                                 <div className="w-10 h-10 rounded-full bg-mm-lavender flex items-center justify-center overflow-hidden shrink-0">
-                                    {avatarUrl ? (
-                                        <img src={avatarUrl} alt={counterpart.description} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <UserOutlined className="text-mm-purple" />
-                                    )}
+                                    <FallbackImage
+                                        src={avatarUrl}
+                                        fallbackKeyword={counterpart.description}
+                                        uniqueSeed={counterpart.id}
+                                        alt={counterpart.description}
+                                        className="w-full h-full object-cover"
+                                        placeholder={<UserOutlined className="text-mm-purple" />}
+                                    />
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <p className={`text-sm truncate ${unread > 0 ? "font-bold text-mm-navy" : "font-semibold text-mm-navy"}`}>

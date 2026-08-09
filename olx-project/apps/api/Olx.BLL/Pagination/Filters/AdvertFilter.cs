@@ -47,7 +47,13 @@ namespace Olx.BLL.Pagination.Filters
             }
             if (!String.IsNullOrWhiteSpace(Search))
             {
-                query = query.Where(x => x.Title.ToLower().Contains(Search.ToLower()));
+                // Match title, description AND category name so a free-text search (header/hero
+                // search bar, /search?q=...) finds adverts by any of the three, not just the title.
+                var term = Search.ToLower();
+                query = query.Where(x =>
+                    x.Title.ToLower().Contains(term) ||
+                    x.Description.ToLower().Contains(term) ||
+                    x.CategoryName.ToLower().Contains(term));
             }
             if (!String.IsNullOrWhiteSpace(CategorySearch))
             {

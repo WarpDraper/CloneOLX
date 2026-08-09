@@ -1,4 +1,5 @@
 import { fetchBaseQuery } from "@reduxjs/toolkit/query/react"; // краще імпортувати з /react
+import type { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
 import { APP_ENV } from "../env";
 import type { RootState } from "../store";
 
@@ -43,3 +44,12 @@ export const createBaseQuery = (endpoint: string) => {
 
     return loggingBaseQuery;
 };
+
+/**
+ * True when a query failed because the backend is completely unreachable (dev API down,
+ * ERR_CONNECTION_REFUSED, CORS preflight failure) rather than a genuine 4xx/5xx response.
+ * *Service.ts callers use this (alongside an empty-result check) to decide when to fall back
+ * to local seed data hydration (see utils/seedHydration.ts) instead of showing an error state.
+ */
+export const isBackendUnreachable = (error: FetchBaseQueryError | undefined): boolean =>
+    !!error && (error.status === "FETCH_ERROR" || error.status === "TIMEOUT_ERROR");

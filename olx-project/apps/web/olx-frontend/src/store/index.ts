@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import notificationReducer from './notificationSlice';
 import cartReducer from './cartSlice';
+import presenceReducer from './presenceSlice';
 import {accountService} from "../services/accountService.ts";
 import authReducer from "../Slice/authSlice.ts";
 import {adminService} from "../services/adminService.ts";
@@ -30,6 +31,7 @@ export const store = configureStore({
 
       notifications: notificationReducer,
       cart: cartReducer,
+      presence: presenceReducer,
 
 
   },
