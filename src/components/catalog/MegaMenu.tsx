@@ -33,8 +33,24 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ categories, onClose }) => {
     return (
         <div className="absolute left-0 right-0 top-full z-40 mt-2 shadow-2xl rounded-b-xl overflow-hidden border border-black/10 bg-mm-navy">
             <div className="flex max-h-[70vh]">
-                <div className="w-[260px] shrink-0 bg-mm-navy text-white overflow-y-auto py-3">
+                <div className="w-[260px] shrink-0 bg-mm-navy text-white overflow-y-auto py-3 flex flex-col">
                     <div className="px-5 pb-2 text-sm font-bold text-white/90">Каталог</div>
+                    <Link
+                        to="/categories"
+                        onClick={onClose}
+                        className="w-full flex items-center justify-between text-left px-5 py-2 text-sm font-semibold text-mm-orange hover:bg-white/10 transition-colors border-b border-white/10"
+                    >
+                        Усі категорії
+                        <RightOutlined className="text-[10px] opacity-60" />
+                    </Link>
+                    <Link
+                        to="/search"
+                        onClick={onClose}
+                        className="w-full flex items-center justify-between text-left px-5 py-2 text-sm font-semibold text-white hover:bg-white/10 transition-colors border-b border-white/10 mb-1"
+                    >
+                        Усі товари
+                        <RightOutlined className="text-[10px] opacity-60" />
+                    </Link>
                     {categories.map((category) => (
                         <button
                             key={category.id}

@@ -12,12 +12,15 @@ import {
     ShopOutlined,
     CarOutlined,
     HomeOutlined,
+    UnorderedListOutlined,
+    EnvironmentOutlined,
 } from "@ant-design/icons";
 import type { RootState } from "../../../store";
 import { setQuantity, removeFromCart, clearCart } from "../../../store/cartSlice";
 import { useCreateOrderMutation } from "../../../services/orderService";
 import { useGetWarehousesBySettlementQuery } from "../../../services/newPostService";
 import SettlementPicker from "../../../components/location/SettlementPicker";
+import WarehouseMapPicker from "../../../components/location/WarehouseMapPicker";
 import { DeliveryType, PaymentMethod, type IOrder } from "../../../types/order/IOrder";
 
 const DELIVERY_OPTIONS: { value: DeliveryType; label: string; icon: React.ComponentType }[] = [
@@ -65,6 +68,7 @@ const CartPage: React.FC = () => {
     const [recipientPhone, setRecipientPhone] = useState(user?.phoneNumber ?? "");
     const [formError, setFormError] = useState<string | null>(null);
     const [completedOrder, setCompletedOrder] = useState<IOrder | null>(null);
+    const [warehousePickerMode, setWarehousePickerMode] = useState<"list" | "map">("list");
 
     const { data: warehouses = [], isLoading: isWarehousesLoading } = useGetWarehousesBySettlementQuery(settlementRef, {
         skip: !settlementRef || deliveryType !== DeliveryType.OlxDelivery,
@@ -208,17 +212,52 @@ const CartPage: React.FC = () => {
                                         label="Населений пункт"
                                     />
                                     <div className="flex flex-col gap-1">
-                                        <label className="text-sm font-medium text-mm-navy">Відділення</label>
-                                        <Select
-                                            showSearch
-                                            placeholder="Оберіть відділення Нової пошти / Укрпошти"
-                                            loading={isWarehousesLoading}
-                                            disabled={!settlementRef}
-                                            value={warehouseRef || undefined}
-                                            optionFilterProp="label"
-                                            onChange={(ref) => setWarehouseRef(ref)}
-                                            options={warehouses.map((w) => ({ value: w.ref, label: w.description }))}
-                                        />
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-sm font-medium text-mm-navy">Відділення</label>
+                                            <div className="flex items-center rounded-lg overflow-hidden border border-gray-200 shrink-0">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setWarehousePickerMode("list")}
+                                                    aria-pressed={warehousePickerMode === "list"}
+                                                    aria-label="Список відділень"
+                                                    className={`w-7 h-7 flex items-center justify-center text-xs transition-colors ${warehousePickerMode === "list" ? "bg-mm-purple text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
+                                                >
+                                                    <UnorderedListOutlined />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setWarehousePickerMode("map")}
+                                                    aria-pressed={warehousePickerMode === "map"}
+                                                    aria-label="Карта відділень"
+                                                    disabled={!settlementRef}
+                                                    className={`w-7 h-7 flex items-center justify-center text-xs border-l border-gray-200 transition-colors disabled:opacity-40 ${warehousePickerMode === "map" ? "bg-mm-purple text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
+                                                >
+                                                    <EnvironmentOutlined />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {warehousePickerMode === "list" ? (
+                                            <Select
+                                                showSearch
+                                                placeholder="Оберіть відділення Нової пошти / Укрпошти"
+                                                loading={isWarehousesLoading}
+                                                disabled={!settlementRef}
+                                                value={warehouseRef || undefined}
+                                                optionFilterProp="label"
+                                                onChange={(ref) => setWarehouseRef(ref)}
+                                                options={warehouses.map((w) => ({ value: w.ref, label: w.description }))}
+                                            />
+                                        ) : (
+                                            <>
+                                                <WarehouseMapPicker
+                                                    warehouses={warehouses}
+                                                    value={warehouseRef}
+                                                    onChange={setWarehouseRef}
+                                                />
+                                                <p className="text-xs text-gray-400 mt-1">Натисніть на мітку, щоб обрати відділення.</p>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             )}

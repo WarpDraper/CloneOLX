@@ -221,7 +221,10 @@ export const detectTopLevelCategoryFromSearch = (query: string): ICategory | und
     topLevel.forEach((c) => assignTopLevel(c, c.id));
 
     const matches = getSeedAdverts().filter(
-        (a) => matchesAllWords(a.title, trimmed) || matchesAllWords(a.description, trimmed)
+        (a) =>
+            matchesAllWords(a.title, trimmed) ||
+            matchesAllWords(a.description, trimmed) ||
+            matchesAllWords(a.categoryName, trimmed)
     );
     if (matches.length === 0) return undefined;
 
@@ -243,6 +246,13 @@ export const detectTopLevelCategoryFromSearch = (query: string): ICategory | und
     return bestId !== undefined ? topLevel.find((c) => c.id === bestId) : undefined;
 };
 
+
+/** Look up a seed-hydrated seller by its synthetic (negative) id — lets callers route straight
+ *  to local mock data for ids the real backend can never resolve (e.g. GET /api/User/get/-1747
+ *  returns 400 Bad Request for negative/seed-only ids; see profileService.isRealUserId). */
+export const findSeedSellerById = (id: number): ISellerShort | undefined =>
+    getSeedSellers().find((s) => s.id === id);
+
 /** Public-safe seller profiles hydrated once from users.seed.json (no password/photo blob). */
 export const getSeedSellers = (): ISellerShort[] => {
     if (cachedSellers) return cachedSellers;
@@ -253,13 +263,21 @@ export const getSeedSellers = (): ISellerShort[] => {
         phoneNumber: model.phoneNumber,
         firstName: model.firstName,
         lastName: model.lastName,
-        photo: null,
+        // Real per-seller Unsplash portrait when the fixture has one (users.seed.json), instead
+        // of always falling back to the generic UserOutlined icon on every seller card.
+        photo: model.photo ?? null,
         lastActivity: new Date().toISOString(),
         createdDate: new Date().toISOString(),
         webSite: null,
         settlementDescrption: null,
-        rating: 4.5,
-        reviewsCount: 0,
+        // Distinct, realistic per-user values from users.seed.json — previously every seed
+        // seller rendered the exact same hardcoded 4.5/(0), which looked fake on the "Популярні
+        // продавці" cards. 5.0/0 fallback only kicks in for a fixture entry with no rating at all.
+        rating: model.rating ?? 5.0,
+        reviewsCount: model.reviewsCount ?? 0,
+        // Seed-fallback data has no real SignalR connection to be online with.
+        isOnline: false,
+        lastSeen: new Date().toISOString(),
     }));
 
     return cachedSellers;

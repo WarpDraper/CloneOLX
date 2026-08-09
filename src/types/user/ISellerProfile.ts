@@ -19,4 +19,9 @@ export interface ISellerProfile {
     reviewsCount: number;
     adverts: number[];
     favoriteAdverts: number[];
+    // Live SignalR presence (see MessageHub.OnConnectedAsync/OnDisconnectedAsync +
+    // IConnectionTracker on the backend) — isOnline reflects the moment this response was
+    // built; lastSeen is only meaningful while isOnline is false.
+    isOnline: boolean;
+    lastSeen: string;
 }

@@ -1,7 +1,16 @@
-import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Select } from 'antd';
-import { SearchOutlined, EnvironmentOutlined, LeftOutlined, RightOutlined, AppstoreOutlined } from '@ant-design/icons';
+import {
+  SearchOutlined,
+  EnvironmentOutlined,
+  LeftOutlined,
+  RightOutlined,
+  AppstoreOutlined,
+  QrcodeOutlined,
+  AppleOutlined,
+  AndroidOutlined,
+} from '@ant-design/icons';
 import { QUICK_SEARCH_TAGS, HERO_SLIDES } from '../../../data/homePageData';
 import { UA_CITIES } from '../../../data/ukrainianCities';
 import { useGetCategoriesQuery } from '../../../services/categoryService';
@@ -11,6 +20,20 @@ import MegaMenu from '../../../components/catalog/MegaMenu';
 import CategoryAvatar from '../../../components/catalog/CategoryAvatar';
 import SellerWidget from '../../../components/advert/SellerWidget';
 import { getSeedAdverts, getSeedSellers, getSeedTopLevelCategories } from '../../../utils/seedHydration';
+import CubeLoader from '../../../components/common/CubeLoader';
+import { useMinLoadingTime } from '../../../hooks/useMinLoadingTime';
+
+// "Рекомендації для вас" always renders exactly 12 cards, laid out as a uniform 2x6 grid on
+// desktop (see grid-cols below) — no expandable "Показати більше" anymore.
+const RECOMMENDATIONS_COUNT = 12;
+// Categories rail: at most this many real category tiles, then "Усі категорії" + "Усі товари"
+// are appended and pinned last (7-10 tiles total across breakpoints).
+const CATEGORY_RAIL_MAX = 8;
+// Hero carousel auto-scroll interval.
+const HERO_AUTOPLAY_MS = 7000;
+// Popular sellers toggle: 3 cards collapsed, 6 expanded.
+const SELLERS_COLLAPSED_COUNT = 3;
+const SELLERS_EXPANDED_COUNT = 6;
 
 const UserHomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,7 +41,19 @@ const UserHomePage: React.FC = () => {
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [city, setCity] = useState<string | undefined>(undefined);
+  const [sellersExpanded, setSellersExpanded] = useState(false);
   const slide = HERO_SLIDES[activeSlide];
+
+  // Auto-scroll the hero carousel every 7s; pauses/resets cleanly on unmount or slide-count
+  // change. Uses a functional update so the interval doesn't need to be recreated every time
+  // activeSlide changes (which would reset the 7s timer on every manual click too).
+  useEffect(() => {
+    if (HERO_SLIDES.length <= 1) return;
+    const id = window.setInterval(() => {
+      setActiveSlide((prev) => (prev === HERO_SLIDES.length - 1 ? 0 : prev + 1));
+    }, HERO_AUTOPLAY_MS);
+    return () => window.clearInterval(id);
+  }, []);
 
   const goToSearch = (query: string) => {
     const trimmed = query.trim();
@@ -31,28 +66,37 @@ const UserHomePage: React.FC = () => {
 
   // Категорії верхнього рівня — GET /api/Category/get (публічний).
   const { data: categories, isLoading: isCategoriesLoading } = useGetCategoriesQuery();
+  // Keeps each CubeLoader overlay visible for at least 500ms so it never flashes on/off.
+  const showCategoriesLoading = useMinLoadingTime(isCategoriesLoading, 500);
   const apiTopLevelCategories = (categories ?? []).filter((c) => c.parentId === null);
   // Фолбек на локальні seed-дані (Categories.json), якщо бекенд ще не засіяний/недоступний.
   const topLevelCategories = !isCategoriesLoading && apiTopLevelCategories.length === 0
     ? getSeedTopLevelCategories()
     : apiTopLevelCategories;
+  // Rail always ends with the two pinned tiles ("Усі категорії" / "Усі товари"), so real
+  // category tiles are capped to leave room for them within the 7-10 total tile target.
+  const categoryRailTiles = topLevelCategories.slice(0, CATEGORY_RAIL_MAX);
 
-  // Рекомендації для головної — POST /api/Advert/get/page (публічний), останні підтверджені оголошення.
+  // Рекомендації для головної — POST /api/Advert/get/page (публічний), останні підтверджені
+  // оголошення з усіх категорій. Завжди рівно 12 карток (2x6 на десктопі).
   const { data: advertsPage, isLoading: isAdvertsLoading } = useGetAdvertsPageQuery({
-    size: 12,
+    size: RECOMMENDATIONS_COUNT,
     page: 1,
     sortKey: 'date',
     isDescending: true,
     approved: true,
   });
   // Фолбек на локальні seed-дані (Adverts.json), якщо бекенд не повернув оголошень.
-  const recommendations = !isAdvertsLoading && (advertsPage?.items?.length ?? 0) === 0
-    ? getSeedAdverts()
-    : advertsPage?.items ?? [];
+  const usingSeedRecommendations = !isAdvertsLoading && (advertsPage?.items?.length ?? 0) === 0;
+  const recommendations = (usingSeedRecommendations ? getSeedAdverts() : advertsPage?.items ?? []).slice(0, RECOMMENDATIONS_COUNT);
+  const showAdvertsLoading = useMinLoadingTime(isAdvertsLoading, 500);
 
   // Продавці для стрічки "Популярні продавці" — публічного списку продавців ще немає,
-  // тож секція завжди живиться з seed-даних (Users.json).
-  const featuredSellers = useMemo(() => getSeedSellers(), []);
+  // тож секція завжди живиться з seed-даних (Users.json). Toggle "Показати ще"/"Згорнути"
+  // switches the visible count between 3 and 6.
+  const allFeaturedSellers = useMemo(() => getSeedSellers(), []);
+  const featuredSellers = allFeaturedSellers.slice(0, sellersExpanded ? SELLERS_EXPANDED_COUNT : SELLERS_COLLAPSED_COUNT);
+  const canToggleSellers = allFeaturedSellers.length > SELLERS_COLLAPSED_COUNT;
 
   return (
     <div className="bg-white">
@@ -126,11 +170,28 @@ const UserHomePage: React.FC = () => {
       </section>
 
       <section className="max-w-[1280px] mx-auto px-4 md:px-6 py-6">
-        <div className="relative bg-mm-lavender rounded-2xl overflow-hidden min-h-[220px] md:min-h-[260px]">
+        <div
+          className={`relative rounded-2xl overflow-hidden min-h-[220px] md:min-h-[260px] transition-colors duration-500 ${
+            slide.theme === 'purple'
+              ? 'bg-gradient-to-br from-mm-navy to-mm-purple-dark'
+              : slide.theme === 'orange'
+                ? 'bg-gradient-to-br from-mm-footer via-mm-navy to-mm-footer'
+                : 'bg-gradient-to-br from-mm-navy to-mm-footer'
+          }`}
+        >
+          {/* Minimalist dark decorative glow, colored per slide theme. */}
+          <div className="absolute inset-0 opacity-20 pointer-events-none">
+            <div
+              className={`absolute -top-10 -right-10 w-56 h-56 rounded-full blur-3xl ${
+                slide.theme === 'orange' ? 'bg-mm-orange' : 'bg-mm-purple'
+              }`}
+            />
+          </div>
+
           <button
             type="button"
             aria-label="Попередній слайд"
-            className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/80 hover:bg-white shadow flex items-center justify-center text-mm-purple transition-colors"
+            className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 shadow flex items-center justify-center text-white transition-all duration-300 hover:scale-105"
             onClick={() => setActiveSlide((prev) => (prev === 0 ? HERO_SLIDES.length - 1 : prev - 1))}
           >
             <LeftOutlined />
@@ -138,33 +199,43 @@ const UserHomePage: React.FC = () => {
           <button
             type="button"
             aria-label="Наступний слайд"
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/80 hover:bg-white shadow flex items-center justify-center text-mm-purple transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 shadow flex items-center justify-center text-white transition-all duration-300 hover:scale-105"
             onClick={() => setActiveSlide((prev) => (prev === HERO_SLIDES.length - 1 ? 0 : prev + 1))}
           >
             <RightOutlined />
           </button>
 
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-8 md:px-12 py-8 md:py-10">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-8 md:px-12 py-8 md:py-10 relative">
             <div className="flex-1 z-[1]">
-              <h1 className="text-2xl md:text-3xl font-bold text-mm-navy mb-3 leading-tight">
+              <h1 className="text-2xl md:text-3xl font-bold text-white mb-3 leading-tight">
                 {slide.title}
               </h1>
-              <p className="text-gray-600 text-sm md:text-base mb-6 max-w-md leading-relaxed">
+              <p className="text-white/70 text-sm md:text-base mb-6 max-w-md leading-relaxed">
                 {slide.subtitle}
               </p>
               <button
                 type="button"
-                className="bg-mm-orange hover:bg-orange-500 text-white font-bold text-sm px-6 py-2.5 rounded-lg transition-colors shadow-sm"
+                className="bg-mm-orange hover:bg-orange-500 text-white font-bold text-sm px-6 py-2.5 rounded-lg transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-xl"
               >
                 {slide.cta}
               </button>
             </div>
             <div className="flex-1 flex justify-center md:justify-end z-[1]">
-              <img
-                src={slide.image}
-                alt="MultiMart"
-                className="max-h-[180px] md:max-h-[220px] w-auto object-contain rounded-lg shadow-lg"
-              />
+              {/* Local, static decorative mark — no remote imagery (matches the no-online-image
+                  policy in buildImageUrl.ts). */}
+              <div className="w-40 h-40 md:w-48 md:h-48 rounded-3xl bg-white/10 border border-white/20 shadow-lg flex items-center justify-center">
+                <svg viewBox="0 0 100 100" className="w-24 h-24 md:w-28 md:h-28" aria-hidden="true">
+                  <rect x="10" y="10" width="16" height="16" rx="3" fill="#ffffff" opacity="0.9" />
+                  <rect x="34" y="10" width="16" height="16" rx="3" fill="#FF8B2D" />
+                  <rect x="58" y="10" width="16" height="16" rx="3" fill="#ffffff" opacity="0.5" />
+                  <rect x="10" y="34" width="16" height="16" rx="3" fill="#ffffff" opacity="0.5" />
+                  <rect x="34" y="34" width="16" height="16" rx="3" fill="#ffffff" opacity="0.9" />
+                  <rect x="58" y="34" width="16" height="16" rx="3" fill="#ffffff" opacity="0.9" />
+                  <rect x="10" y="58" width="16" height="16" rx="3" fill="#FF8B2D" />
+                  <rect x="34" y="58" width="16" height="16" rx="3" fill="#ffffff" opacity="0.5" />
+                  <rect x="58" y="58" width="16" height="16" rx="3" fill="#ffffff" opacity="0.9" />
+                </svg>
+              </div>
             </div>
           </div>
 
@@ -175,7 +246,7 @@ const UserHomePage: React.FC = () => {
                 type="button"
                 aria-label={`Слайд ${index + 1}`}
                 onClick={() => setActiveSlide(index)}
-                className={`w-2 h-2 rounded-full transition-colors ${index === activeSlide ? 'bg-mm-purple' : 'bg-mm-purple/30'}`}
+                className={`h-2 rounded-full transition-all duration-300 ${index === activeSlide ? 'bg-mm-orange w-6' : 'bg-white/30 w-2 hover:bg-white/50'}`}
               />
             ))}
           </div>
@@ -185,69 +256,102 @@ const UserHomePage: React.FC = () => {
       <section className="max-w-[1280px] mx-auto px-4 md:px-6 pb-8">
         <h2 className="text-xl font-bold text-mm-navy mb-5">Категорії</h2>
         <div className="flex gap-4 md:gap-6 overflow-x-auto pb-2 scrollbar-hide">
-          {isCategoriesLoading && (
-            <p className="text-sm text-gray-400">Завантаження категорій...</p>
+          {showCategoriesLoading && (
+            <div className="flex justify-center items-center w-full py-4">
+              <CubeLoader />
+            </div>
           )}
-          {topLevelCategories.map((category) => (
+          {categoryRailTiles.map((category) => (
             <CategoryAvatar key={category.id} category={category} className="min-w-[80px]" />
           ))}
+          {/* Pinned last, in this exact order, regardless of breakpoint or category count. */}
+          <Link
+            to="/categories"
+            className="flex flex-col items-center gap-2.5 shrink-0 group min-w-[80px] transition-transform duration-300 hover:-translate-y-1"
+          >
+            <div className="w-[72px] h-[72px] rounded-full overflow-hidden bg-mm-navy border-2 border-mm-purple/40 group-hover:border-mm-orange shadow-sm group-hover:shadow-lg flex items-center justify-center transition-all duration-300">
+              <AppstoreOutlined className="text-2xl text-white/80" />
+            </div>
+            <span className="text-xs font-medium text-gray-700 text-center leading-tight group-hover:text-mm-purple transition-colors max-w-[90px]">
+              Усі категорії
+            </span>
+          </Link>
+          <Link
+            to="/search"
+            className="flex flex-col items-center gap-2.5 shrink-0 group min-w-[80px] transition-transform duration-300 hover:-translate-y-1"
+          >
+            <div className="w-[72px] h-[72px] rounded-full overflow-hidden bg-mm-orange border-2 border-mm-orange group-hover:bg-orange-500 shadow-sm group-hover:shadow-lg flex items-center justify-center transition-all duration-300">
+              <AppstoreOutlined className="text-2xl text-white" />
+            </div>
+            <span className="text-xs font-medium text-gray-700 text-center leading-tight group-hover:text-mm-purple transition-colors max-w-[90px]">
+              Усі товари
+            </span>
+          </Link>
         </div>
       </section>
 
-      <section className="max-w-[1280px] mx-auto px-4 md:px-6 pb-12">
+      <section className="max-w-[1280px] mx-auto px-4 md:px-6 pb-8">
         <div className="bg-mm-navy rounded-2xl p-5 md:p-6">
           <h2 className="text-lg font-bold text-white mb-4">Рекомендації для вас</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {isAdvertsLoading && (
-              <p className="text-sm text-white/50 col-span-full">Завантаження оголошень...</p>
+          {/* Exactly 12 cards, 2x6 on desktop (lg:grid-cols-6). `items-stretch` (grid default)
+              plus each RecommendationCard's `h-full flex flex-col` keeps every card the same
+              height per row regardless of title line-wrap. */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-stretch">
+            {showAdvertsLoading && (
+              <div className="col-span-full flex justify-center items-center py-8">
+                <CubeLoader color="#ffffff" />
+              </div>
             )}
             {recommendations.map((advert) => (
               <RecommendationCard key={advert.id} advert={advert} />
             ))}
-
-            <div className="bg-mm-lavender-light rounded-xl border border-purple-100 p-4 flex flex-col items-center justify-center text-center min-h-[280px]">
-              <h3 className="text-sm font-bold text-mm-navy mb-1">Додаток MultiMart</h3>
-              <p className="text-xs text-gray-500 mb-4">Купуйте та продавайте зручно зі смартфона</p>
-              <div className="w-24 h-24 bg-white rounded-lg border border-gray-200 mb-4 flex items-center justify-center p-2">
-                <svg viewBox="0 0 100 100" className="w-full h-full" aria-hidden="true">
-                  <rect x="10" y="10" width="12" height="12" fill="#1B1B2F" />
-                  <rect x="26" y="10" width="12" height="12" fill="#1B1B2F" />
-                  <rect x="42" y="10" width="12" height="12" fill="#1B1B2F" />
-                  <rect x="10" y="26" width="12" height="12" fill="#1B1B2F" />
-                  <rect x="42" y="26" width="12" height="12" fill="#1B1B2F" />
-                  <rect x="58" y="26" width="12" height="12" fill="#1B1B2F" />
-                  <rect x="74" y="26" width="12" height="12" fill="#1B1B2F" />
-                  <rect x="10" y="42" width="12" height="12" fill="#1B1B2F" />
-                  <rect x="42" y="42" width="12" height="12" fill="#1B1B2F" />
-                  <rect x="58" y="42" width="12" height="12" fill="#1B1B2F" />
-                  <rect x="10" y="58" width="12" height="12" fill="#1B1B2F" />
-                  <rect x="26" y="58" width="12" height="12" fill="#1B1B2F" />
-                  <rect x="42" y="58" width="12" height="12" fill="#1B1B2F" />
-                  <rect x="58" y="58" width="12" height="12" fill="#1B1B2F" />
-                  <rect x="74" y="58" width="12" height="12" fill="#1B1B2F" />
-                  <rect x="42" y="74" width="12" height="12" fill="#1B1B2F" />
-                  <rect x="58" y="74" width="12" height="12" fill="#1B1B2F" />
-                  <rect x="74" y="74" width="12" height="12" fill="#1B1B2F" />
-                </svg>
-              </div>
-              <div className="flex flex-col gap-2 w-full mb-3">
-                <div className="bg-mm-navy text-white text-xs font-bold py-2 px-3 rounded-md">
-                  App Store
-                </div>
-                <div className="bg-mm-navy text-white text-xs font-bold py-2 px-3 rounded-md">
-                  Google Play
-                </div>
-              </div>
-              <a href="/" className="text-xs font-bold text-mm-purple hover:underline">Детальніше</a>
-            </div>
           </div>
         </div>
       </section>
 
-      {featuredSellers.length > 0 && (
+      {/* Standalone app banner — moved out of the recommendations grid into its own horizontal
+          section directly beneath it. "Детальніше" routes to the dedicated /app-coming-soon page. */}
+      <section className="max-w-[1280px] mx-auto px-4 md:px-6 pb-12">
+        <div className="bg-mm-lavender-light border border-purple-100 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-5 md:p-6 flex flex-col md:flex-row items-center gap-6">
+          <div className="w-20 h-20 bg-white rounded-lg border border-gray-200 shrink-0 flex items-center justify-center p-2">
+            <QrcodeOutlined className="text-5xl text-mm-navy" />
+          </div>
+          <div className="flex-1 text-center md:text-left">
+            <h3 className="text-base font-bold text-mm-navy mb-1">Додаток MultiMart</h3>
+            <p className="text-xs md:text-sm text-gray-500">Купуйте та продавайте зручно зі смартфона — застосунок вже в розробці.</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 bg-mm-navy text-white text-xs font-bold py-2 px-3 rounded-md">
+              <AppleOutlined /> App Store
+            </div>
+            <div className="flex items-center gap-1.5 bg-mm-navy text-white text-xs font-bold py-2 px-3 rounded-md">
+              <AndroidOutlined /> Google Play
+            </div>
+          </div>
+          <Link
+            to="/app-coming-soon"
+            className="shrink-0 bg-mm-orange hover:bg-orange-500 text-white font-bold text-sm px-6 py-2.5 rounded-lg transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-xl"
+          >
+            Детальніше
+          </Link>
+        </div>
+      </section>
+
+      {allFeaturedSellers.length > 0 && (
         <section className="max-w-[1280px] mx-auto px-4 md:px-6 pb-12">
-          <h2 className="text-xl font-bold text-mm-navy mb-5">Популярні продавці</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-xl font-bold text-mm-navy">Популярні продавці</h2>
+            {canToggleSellers && (
+              <button
+                type="button"
+                onClick={() => setSellersExpanded((prev) => !prev)}
+                className="text-sm font-semibold text-mm-purple hover:underline"
+              >
+                {sellersExpanded ? 'Згорнути' : 'Показати ще'}
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {featuredSellers.map((seller) => (
               <SellerWidget key={seller.id} seller={seller} />
             ))}

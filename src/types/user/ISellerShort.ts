@@ -12,4 +12,7 @@ export interface ISellerShort {
     settlementDescrption: string | null;
     rating: number;
     reviewsCount: number;
+    // Live SignalR presence — see ISellerProfile for details.
+    isOnline: boolean;
+    lastSeen: string;
 }

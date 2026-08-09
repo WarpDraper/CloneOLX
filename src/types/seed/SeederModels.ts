@@ -39,6 +39,11 @@ export interface SeederUserModel {
     lastName: string;
     role: string;
     phoneNumber: string;
+    // Optional — mirrors the backend's Users.json photoUrl/rating/reviewsCount. Falls back to
+    // sensible defaults in getSeedAdverts()/getSeedSellers() when omitted (e.g. older fixtures).
+    photo?: string;
+    rating?: number;
+    reviewsCount?: number;
 }
 
 export interface SeederFilterModel {

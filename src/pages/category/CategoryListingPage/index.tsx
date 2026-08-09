@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Pagination, Slider } from "antd";
-import { AppstoreOutlined, CloseOutlined, UnorderedListOutlined } from "@ant-design/icons";
+import { Pagination, Slider, Spin } from "antd";
+import { AppstoreOutlined, CloseOutlined, SearchOutlined, UnorderedListOutlined } from "@ant-design/icons";
 import { useGetCategoryTreeByIdQuery } from "../../../services/categoryService";
 import { useGetAdvertsPageQuery } from "../../../services/advertService";
 import { useGetFiltersByRangeMutation } from "../../../services/filterService";
@@ -10,6 +10,8 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import AdvertCard from "../../../components/advert/AdvertCard";
 import AdvertListItem from "../../../components/advert/AdvertListItem";
+import FallbackImage from "../../../components/common/FallbackImage";
+import CubeLoader from "../../../components/common/CubeLoader";
 import { buildImageUrl, IMAGE_SIZES } from "../../../utils/buildImageUrl";
 import type { IAdvert } from "../../../types/advert/IAdvert";
 import type { IFilter } from "../../../types/filter/IFilter";
@@ -23,8 +25,15 @@ import {
     matchesTitle,
 } from "../../../utils/seedHydration";
 import { UA_CITIES } from "../../../data/ukrainianCities";
+import { useDebouncedValue } from "../../../hooks/useDebouncedValue";
+import { useMinLoadingTime } from "../../../hooks/useMinLoadingTime";
 
-const PAGE_SIZE = 16;
+// Bumped up from 16 — a small page size meant categories with fewer/older listings (e.g.
+// Авто, Нерухомість) needed extra clicks through pagination to ever appear in the general
+// "Всі оголошення" feed. Pagination itself (below) already computes total pages correctly
+// off `total`/PAGE_SIZE — this only changes how many adverts load per page.
+const PAGE_SIZE = 24;
+const SEARCH_DEBOUNCE_MS = 400;
 
 type SortOption = "newest" | "cheap" | "expensive";
 type ViewMode = "grid" | "list";
@@ -70,6 +79,30 @@ const CategoryListingPage: React.FC = () => {
     const [appliedPriceFrom, setAppliedPriceFrom] = useState<number | undefined>(undefined);
     const [appliedPriceTo, setAppliedPriceTo] = useState<number | undefined>(undefined);
     const [selectedFacets, setSelectedFacets] = useState<Record<number, number[]>>({});
+
+    // Локальний чернетковий текст пошуку в цій категорії/видачі — дебаунситься перед тим, як
+    // потрапити в URL (?q=), щоб не смикати запит/клієнтську фільтрацію на кожне натискання
+    // клавіші. Синхронізується з URL і в зворотному напрямку (напр. коли пошук очищено чипом
+    // hasActiveFilters, або коли перехід сюди стався з іншим ?q= ззовні).
+    const [searchDraft, setSearchDraft] = useState(searchText ?? "");
+    useEffect(() => {
+        setSearchDraft(searchText ?? "");
+    }, [searchText]);
+    const debouncedSearchDraft = useDebouncedValue(searchDraft, SEARCH_DEBOUNCE_MS);
+    useEffect(() => {
+        const trimmed = debouncedSearchDraft.trim();
+        if (trimmed === (searchText ?? "")) return;
+        const next = new URLSearchParams(searchParams);
+        if (trimmed) next.set("q", trimmed);
+        else next.delete("q");
+        next.delete("query");
+        next.set("page", "1");
+        setSearchParams(next);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [debouncedSearchDraft]);
+    // Дебаунс "в польоті" (текст змінився, але ще не застосувався) — використовується лише для
+    // маленького індикатора Spin біля поля пошуку, не впливає на фактичну фільтрацію/запит.
+    const isSearchPending = searchDraft.trim() !== (searchText ?? "");
 
     // Повне піддерево (з усіма вкладеними підкатегоріями), а не лише один рівень — потрібно
     // для строгої фільтрації "категорія + всі її підкатегорії" нижче.
@@ -139,7 +172,7 @@ const CategoryListingPage: React.FC = () => {
         return effectiveCategory ? collectCategoryIds(effectiveCategory) : [categoryId];
     }, [categoryId, effectiveCategory]);
 
-    const { data: page1Response, isLoading } = useGetAdvertsPageQuery({
+    const { data: page1Response, isLoading: isAdvertsPageLoading } = useGetAdvertsPageQuery({
         size: PAGE_SIZE,
         page,
         search: searchText,
@@ -156,7 +189,10 @@ const CategoryListingPage: React.FC = () => {
     // Фолбек на локальні seed-дані (Adverts.json), якщо бекенд не повернув оголошень
     // (offline dev / щойно піднята БД). Не застосовується, поки триває реальний запит.
     const apiAdverts = page1Response?.items ?? [];
-    const usingSeedFallback = !isLoading && apiAdverts.length === 0;
+    const usingSeedFallback = !isAdvertsPageLoading && apiAdverts.length === 0;
+    // Keeps the CubeLoader overlay visible for at least 500ms so it never flashes on/off
+    // for fast responses/cached seed-data fallbacks.
+    const isLoading = useMinLoadingTime(isAdvertsPageLoading, 500);
 
     // Строга клієнтська фільтрація/сортування seed-даних — дзеркалить те, що реальний API
     // робить на бекенді (категорія + підкатегорії, ціна, обрані фасети), без фолбеку на
@@ -177,11 +213,16 @@ const CategoryListingPage: React.FC = () => {
             );
         }
         if (searchText) {
-            // Standalone-word match over title + description — "авто" matches "Авто продам"
-            // but not "автономне опалення"/"автоматична коробка". Never falls back to the
-            // unfiltered list, so an unmatched query correctly shows "Нічого не знайдено"
-            // instead of the whole catalog.
-            list = list.filter((a) => matchesAllWords(a.title, searchText) || matchesAllWords(a.description, searchText));
+            // Standalone-word match over title + description + category name — "авто" matches
+            // "Авто продам" or a "Авто" category, but not "автономне опалення"/"автоматична
+            // коробка". Never falls back to the unfiltered list, so an unmatched query correctly
+            // shows "Нічого не знайдено" instead of the whole catalog.
+            list = list.filter(
+                (a) =>
+                    matchesAllWords(a.title, searchText) ||
+                    matchesAllWords(a.description, searchText) ||
+                    matchesAllWords(a.categoryName, searchText)
+            );
         }
         if (city) {
             list = list.filter((a) => a.settlementName === city);
@@ -246,6 +287,7 @@ const CategoryListingPage: React.FC = () => {
         next.delete("q");
         next.delete("query");
         setSearchParams(next);
+        setSearchDraft("");
     };
 
     const setCity = (value: string | undefined) => {
@@ -297,11 +339,14 @@ const CategoryListingPage: React.FC = () => {
                             className="flex flex-col items-center gap-2 shrink-0 w-[90px] group"
                         >
                             <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 border-2 border-transparent group-hover:border-mm-purple transition-colors">
-                                {child.image ? (
-                                    <img src={buildImageUrl(child.image, IMAGE_SIZES.thumbnail) ?? undefined} alt={child.name} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center"><AppstoreOutlined className="text-mm-purple" /></div>
-                                )}
+                                <FallbackImage
+                                    src={buildImageUrl(child.image, IMAGE_SIZES.thumbnail)}
+                                    fallbackKeyword={child.name}
+                                    uniqueSeed={child.id}
+                                    alt={child.name}
+                                    className="w-full h-full object-cover"
+                                    placeholder={<div className="w-full h-full flex items-center justify-center"><AppstoreOutlined className="text-mm-purple" /></div>}
+                                />
                             </div>
                             <span className="text-xs text-center text-gray-600 group-hover:text-mm-purple leading-tight">{child.name}</span>
                         </Link>
@@ -311,6 +356,23 @@ const CategoryListingPage: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 <aside className="lg:col-span-1 flex flex-col gap-6">
+                    <div>
+                        <h3 className="text-sm font-bold text-mm-navy mb-3">Пошук</h3>
+                        <div className="relative">
+                            <SearchOutlined className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none" />
+                            <input
+                                type="text"
+                                placeholder="Назва, опис, категорія..."
+                                value={searchDraft}
+                                onChange={(e) => setSearchDraft(e.target.value)}
+                                className="w-full border border-gray-200 rounded-md pl-8 pr-7 py-1.5 text-sm outline-none focus:border-mm-purple"
+                            />
+                            {isSearchPending && (
+                                <Spin size="small" className="absolute right-2.5 top-1/2 -translate-y-1/2" />
+                            )}
+                        </div>
+                    </div>
+
                     <div>
                         <h3 className="text-sm font-bold text-mm-navy mb-3">Ціна, ₴</h3>
                         <div className="flex items-center gap-2">
@@ -503,11 +565,13 @@ const CategoryListingPage: React.FC = () => {
                     )}
 
                     {isLoading ? (
-                        <p className="text-center text-gray-400 py-16">Завантаження оголошень...</p>
+                        <div className="flex justify-center items-center py-24">
+                            <CubeLoader />
+                        </div>
                     ) : adverts.length === 0 ? (
                         <p className="text-center text-gray-400 py-16">Нічого не знайдено.</p>
                     ) : viewMode === "grid" ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 items-start">
                             {adverts.map((advert) => (
                                 <AdvertCard
                                     key={advert.id}
