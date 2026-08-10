@@ -120,6 +120,14 @@ export const getSeedAdverts = (): IAdvert[] => {
             settlementRef: model.SettlementRef,
             regionRef: "",
             areaRef: "",
+            // Mirrors the backend's deterministic `Id % 5 == 0` placement (AdvertProfile) using
+            // the synthetic (negative, decreasing) id assigned above — same ~1-in-5 spread in
+            // offline/seed-fallback mode as against the real API.
+            isTop: Math.abs(advertId) % 5 === 0,
+            // No real favorites in offline mode — a stable per-advert pseudo-score (from the
+            // synthetic id) still gives the "За популярності" seed-fallback sort something
+            // meaningful and consistent to order by, instead of every item tying at 0.
+            favoritesCount: Math.abs(advertId) % 47,
             filterValues,
             images: model.ImagePaths.map((path, imgIndex) => ({
                 id: nextId(),
@@ -131,6 +139,45 @@ export const getSeedAdverts = (): IAdvert[] => {
     });
 
     return cachedAdverts;
+};
+
+/**
+ * Category-balanced random sample of `count` adverts from getSeedAdverts() — mirrors the
+ * backend's GetBalancedRandomPageAsync (sortKey: 'random') round-robin-across-categories logic,
+ * so the offline/seed-fallback recommendation rail doesn't just show the first N entries in
+ * adverts.seed.json (which are grouped by category, e.g. 12 cars in a row) when the API is
+ * unreachable. Re-shuffled on every call — no caching — so a page refresh varies the mix.
+ */
+export const getSeedRecommendedAdverts = (count: number): IAdvert[] => {
+    const shuffle = <T,>(arr: T[]): T[] => {
+        const copy = [...arr];
+        for (let i = copy.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+    };
+
+    const byCategory = new Map<number, IAdvert[]>();
+    shuffle(getSeedAdverts()).forEach((advert) => {
+        const bucket = byCategory.get(advert.categoryId);
+        if (bucket) bucket.push(advert);
+        else byCategory.set(advert.categoryId, [advert]);
+    });
+    const queues = shuffle([...byCategory.values()]);
+
+    const result: IAdvert[] = [];
+    let remaining = queues.some((q) => q.length > 0);
+    while (result.length < count && remaining) {
+        remaining = false;
+        for (const queue of queues) {
+            if (queue.length === 0) continue;
+            result.push(queue.shift()!);
+            if (queue.length > 0) remaining = true;
+            if (result.length >= count) break;
+        }
+    }
+    return result;
 };
 
 /**

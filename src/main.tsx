@@ -9,7 +9,10 @@ import './index.css';
 import App from './App.tsx';
 import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 
-const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+// Falls back to a dummy key in dev when VITE_RECAPTCHA_SITE_KEY isn't set, instead of handing
+// GoogleReCaptchaProvider an empty string — an empty reCaptchaKey makes the underlying script
+// warn on every page load even though ReCAPTCHA itself is never actually exercised locally.
+const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6Ld_dummy_dev_key';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

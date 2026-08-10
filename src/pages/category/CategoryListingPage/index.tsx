@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Pagination, Slider, Spin } from "antd";
+import { Pagination, Slider } from "antd";
 import { AppstoreOutlined, CloseOutlined, SearchOutlined, UnorderedListOutlined } from "@ant-design/icons";
 import { useGetCategoryTreeByIdQuery } from "../../../services/categoryService";
 import { useGetAdvertsPageQuery } from "../../../services/advertService";
 import { useGetFiltersByRangeMutation } from "../../../services/filterService";
 import { useAddToFavoritesMutation, useGetFavoritesQuery, useRemoveFromFavoritesMutation } from "../../../services/accountService";
+import { useGetAreasQuery, useGetRegionsByAreaQuery } from "../../../services/newPostService";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import AdvertCard from "../../../components/advert/AdvertCard";
@@ -20,12 +21,13 @@ import {
     findSeedCategoryById,
     getSeedAdverts,
     getSeedFiltersByNames,
+    getSeedRecommendedAdverts,
     detectTopLevelCategoryFromSearch,
     matchesAllWords,
     matchesTitle,
 } from "../../../utils/seedHydration";
+import { arrangeFeedWithTopAds } from "../../../utils/arrangeFeedWithTopAds";
 import { UA_CITIES } from "../../../data/ukrainianCities";
-import { useDebouncedValue } from "../../../hooks/useDebouncedValue";
 import { useMinLoadingTime } from "../../../hooks/useMinLoadingTime";
 
 // Bumped up from 16 — a small page size meant categories with fewer/older listings (e.g.
@@ -33,9 +35,16 @@ import { useMinLoadingTime } from "../../../hooks/useMinLoadingTime";
 // "Всі оголошення" feed. Pagination itself (below) already computes total pages correctly
 // off `total`/PAGE_SIZE — this only changes how many adverts load per page.
 const PAGE_SIZE = 24;
-const SEARCH_DEBOUNCE_MS = 400;
+// How many "Схожі товари" fallback cards to show under the divider when the real search/filter
+// yields zero matches (or the current page runs out of results).
+const FALLBACK_RECOMMENDATIONS_COUNT = 12;
+// Radius slider threshold: below this, the narrower Nova Poshta Region (raion) is used for the
+// location filter; at/above it, the broader Area (oblast) is used. See applyLocationFilter below
+// for why this is a two-tier approximation rather than a true geographic radius.
+const RADIUS_REGION_THRESHOLD_KM = 50;
+const MAX_RADIUS_KM = 100;
 
-type SortOption = "newest" | "cheap" | "expensive";
+type SortOption = "newest" | "cheap" | "expensive" | "popularity";
 type ViewMode = "grid" | "list";
 
 // Category itself + every descendant subcategory, recursively — so selecting a parent
@@ -80,17 +89,17 @@ const CategoryListingPage: React.FC = () => {
     const [appliedPriceTo, setAppliedPriceTo] = useState<number | undefined>(undefined);
     const [selectedFacets, setSelectedFacets] = useState<Record<number, number[]>>({});
 
-    // Локальний чернетковий текст пошуку в цій категорії/видачі — дебаунситься перед тим, як
-    // потрапити в URL (?q=), щоб не смикати запит/клієнтську фільтрацію на кожне натискання
-    // клавіші. Синхронізується з URL і в зворотному напрямку (напр. коли пошук очищено чипом
-    // hasActiveFilters, або коли перехід сюди стався з іншим ?q= ззовні).
+    // Локальний чернетковий текст пошуку в цій категорії/видачі — НЕ фільтрує на кожне
+    // натискання клавіші. Застосовується в URL (?q=) лише по Enter або кліку на кнопку пошуку
+    // (applySearch нижче), як того вимагає спека "search only on Enter/button click". Синхронізується
+    // з URL в зворотному напрямку (напр. коли пошук очищено чипом hasActiveFilters, або коли
+    // перехід сюди стався з іншим ?q= ззовні).
     const [searchDraft, setSearchDraft] = useState(searchText ?? "");
     useEffect(() => {
         setSearchDraft(searchText ?? "");
     }, [searchText]);
-    const debouncedSearchDraft = useDebouncedValue(searchDraft, SEARCH_DEBOUNCE_MS);
-    useEffect(() => {
-        const trimmed = debouncedSearchDraft.trim();
+    const applySearch = () => {
+        const trimmed = searchDraft.trim();
         if (trimmed === (searchText ?? "")) return;
         const next = new URLSearchParams(searchParams);
         if (trimmed) next.set("q", trimmed);
@@ -98,11 +107,21 @@ const CategoryListingPage: React.FC = () => {
         next.delete("query");
         next.set("page", "1");
         setSearchParams(next);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [debouncedSearchDraft]);
-    // Дебаунс "в польоті" (текст змінився, але ще не застосувався) — використовується лише для
-    // маленького індикатора Spin біля поля пошуку, не впливає на фактичну фільтрацію/запит.
-    const isSearchPending = searchDraft.trim() !== (searchText ?? "");
+    };
+
+    // Область/район (Nova Poshta) + радіус — див. коментар біля RADIUS_REGION_THRESHOLD_KM.
+    const [areaRef, setAreaRefState] = useState<string | undefined>(undefined);
+    const [regionRef, setRegionRefState] = useState<string | undefined>(undefined);
+    const [radiusKm, setRadiusKm] = useState<number>(MAX_RADIUS_KM);
+    const { data: npAreas = [] } = useGetAreasQuery();
+    const { data: npRegions = [] } = useGetRegionsByAreaQuery(areaRef ?? "", { skip: !areaRef });
+    // Two-tier approximation of a "0-100km radius" filter: Nova Poshta's settlement data (as
+    // exposed by this app's NewPost integration) has no lat/lng, so a literal geographic radius
+    // isn't computable. Instead: below the threshold, narrow to the selected Region (raion,
+    // roughly city-sized); at/above it, widen to the selected Area (oblast) — a coarse but honest
+    // stand-in for "nearby" vs "anywhere in range" given the data actually available.
+    const effectiveRegionRef = areaRef && regionRef && radiusKm < RADIUS_REGION_THRESHOLD_KM ? regionRef : undefined;
+    const effectiveAreaRef = areaRef && !effectiveRegionRef ? areaRef : undefined;
 
     // Повне піддерево (з усіма вкладеними підкатегоріями), а не лише один рівень — потрібно
     // для строгої фільтрації "категорія + всі її підкатегорії" нижче.
@@ -172,6 +191,9 @@ const CategoryListingPage: React.FC = () => {
         return effectiveCategory ? collectCategoryIds(effectiveCategory) : [categoryId];
     }, [categoryId, effectiveCategory]);
 
+    const sortKey = sort === "newest" ? "date" : sort === "popularity" ? "popularity" : "price";
+    const isDescending = sort === "newest" || sort === "expensive" || sort === "popularity";
+
     const { data: page1Response, isLoading: isAdvertsPageLoading } = useGetAdvertsPageQuery({
         size: PAGE_SIZE,
         page,
@@ -181,8 +203,10 @@ const CategoryListingPage: React.FC = () => {
         priceTo: appliedPriceTo,
         filters: filterGroups.length > 0 ? filterGroups : undefined,
         settlementSearch: city,
-        sortKey: sort === "newest" ? "date" : "price",
-        isDescending: sort === "newest" ? true : sort === "expensive",
+        regionRef: effectiveRegionRef,
+        areaRef: effectiveAreaRef,
+        sortKey,
+        isDescending,
         approved: true,
     });
 
@@ -227,10 +251,14 @@ const CategoryListingPage: React.FC = () => {
         if (city) {
             list = list.filter((a) => a.settlementName === city);
         }
+        // Note: seed-fallback adverts don't carry real Nova Poshta regionRef/areaRef (offline
+        // fixture data has no such hierarchy attached), so the Area/Region radius filter below is
+        // only enforced against the real API — it's a no-op in seed-fallback mode.
 
         const sorted = [...list].sort((a, b) => {
             if (sort === "cheap") return a.price - b.price;
             if (sort === "expensive") return b.price - a.price;
+            if (sort === "popularity") return b.favoritesCount - a.favoritesCount;
             return new Date(b.date).getTime() - new Date(a.date).getTime();
         });
 
@@ -246,8 +274,27 @@ const CategoryListingPage: React.FC = () => {
         [filteredSeedAdverts, page]
     );
 
-    const adverts = usingSeedFallback ? pagedSeedAdverts : apiAdverts;
+    const rawAdverts = usingSeedFallback ? pagedSeedAdverts : apiAdverts;
     const total = usingSeedFallback ? filteredSeedAdverts.length : page1Response?.total ?? 0;
+    // Reorder so a premium ("ТОП") card lands after every 4-5 regular ones.
+    const adverts = useMemo(() => arrangeFeedWithTopAds(rawAdverts), [rawAdverts]);
+
+    // "Схожі товари" fallback: when the current search/filter combination has zero matches,
+    // fetch (real API) or sample (seed-fallback) an unfiltered set so the page never dead-ends on
+    // "Нічого не знайдено" with no way forward — matches the "continuous fallback / seamless
+    // scrolling" spec. Only fetched once the primary result is confirmed empty.
+    const needsFallbackRecommendations = !isLoading && total === 0;
+    const { data: fallbackPageResponse } = useGetAdvertsPageQuery(
+        { size: FALLBACK_RECOMMENDATIONS_COUNT, page: 1, sortKey: "random", isDescending: true, approved: true },
+        { skip: !needsFallbackRecommendations || usingSeedFallback }
+    );
+    const fallbackRecommendations = useMemo(() => {
+        if (!needsFallbackRecommendations) return [];
+        const source = usingSeedFallback
+            ? getSeedRecommendedAdverts(FALLBACK_RECOMMENDATIONS_COUNT)
+            : fallbackPageResponse?.items ?? [];
+        return arrangeFeedWithTopAds(source);
+    }, [needsFallbackRecommendations, usingSeedFallback, fallbackPageResponse]);
 
     const setPage = (newPage: number) => {
         const next = new URLSearchParams(searchParams);
@@ -298,9 +345,26 @@ const CategoryListingPage: React.FC = () => {
         setSearchParams(next);
     };
 
+    const setArea = (value: string | undefined) => {
+        setAreaRefState(value);
+        setRegionRefState(undefined);
+        setPage(1);
+    };
+    const setRegion = (value: string | undefined) => {
+        setRegionRefState(value);
+        setPage(1);
+    };
+    const clearLocationFilter = () => {
+        setAreaRefState(undefined);
+        setRegionRefState(undefined);
+        setRadiusKm(MAX_RADIUS_KM);
+        setPage(1);
+    };
+
     const facetNameById = new Map((category?.filters ?? []).map((fid, i) => [fid, category?.filterNames[i]]));
 
-    const hasActiveFilters = !!searchText || !!city || appliedPriceFrom !== undefined || appliedPriceTo !== undefined || filterGroups.length > 0;
+    const hasActiveFilters =
+        !!searchText || !!city || appliedPriceFrom !== undefined || appliedPriceTo !== undefined || filterGroups.length > 0 || !!areaRef;
 
     return (
         <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-6">
@@ -358,18 +422,25 @@ const CategoryListingPage: React.FC = () => {
                 <aside className="lg:col-span-1 flex flex-col gap-6">
                     <div>
                         <h3 className="text-sm font-bold text-mm-navy mb-3">Пошук</h3>
+                        {/* Filtering only happens on Enter or a click on the search icon button —
+                            no per-keystroke query/filtering. */}
                         <div className="relative">
-                            <SearchOutlined className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none" />
+                            <button
+                                type="button"
+                                onClick={applySearch}
+                                aria-label="Пошук"
+                                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-mm-purple text-sm"
+                            >
+                                <SearchOutlined />
+                            </button>
                             <input
                                 type="text"
                                 placeholder="Назва, опис, категорія..."
                                 value={searchDraft}
                                 onChange={(e) => setSearchDraft(e.target.value)}
-                                className="w-full border border-gray-200 rounded-md pl-8 pr-7 py-1.5 text-sm outline-none focus:border-mm-purple"
+                                onKeyDown={(e) => e.key === "Enter" && applySearch()}
+                                className="w-full border border-gray-200 rounded-md pl-8 pr-2 py-1.5 text-sm outline-none focus:border-mm-purple"
                             />
-                            {isSearchPending && (
-                                <Spin size="small" className="absolute right-2.5 top-1/2 -translate-y-1/2" />
-                            )}
                         </div>
                     </div>
 
@@ -413,6 +484,57 @@ const CategoryListingPage: React.FC = () => {
                                 <option key={c} value={c}>{c}</option>
                             ))}
                         </select>
+                    </div>
+
+                    <div>
+                        <h3 className="text-sm font-bold text-mm-navy mb-3">Область і радіус, км</h3>
+                        <div className="flex flex-col gap-2">
+                            <select
+                                value={areaRef ?? ""}
+                                onChange={(e) => setArea(e.target.value || undefined)}
+                                className="w-full border border-gray-200 rounded-md px-2 py-1.5 text-sm outline-none focus:border-mm-purple bg-white"
+                            >
+                                <option value="">Будь-яка область</option>
+                                {npAreas.map((a) => (
+                                    <option key={a.ref} value={a.ref}>{a.description}</option>
+                                ))}
+                            </select>
+                            <select
+                                value={regionRef ?? ""}
+                                onChange={(e) => setRegion(e.target.value || undefined)}
+                                disabled={!areaRef}
+                                className="w-full border border-gray-200 rounded-md px-2 py-1.5 text-sm outline-none focus:border-mm-purple bg-white disabled:bg-gray-50 disabled:text-gray-400"
+                            >
+                                <option value="">Будь-який район</option>
+                                {npRegions.map((r) => (
+                                    <option key={r.ref} value={r.ref}>{r.description}</option>
+                                ))}
+                            </select>
+                            <div className={!areaRef ? "opacity-50 pointer-events-none" : undefined}>
+                                <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                                    <span>Радіус пошуку</span>
+                                    <span className="font-semibold text-mm-navy">{radiusKm} км</span>
+                                </div>
+                                <Slider
+                                    min={0}
+                                    max={MAX_RADIUS_KM}
+                                    step={5}
+                                    value={radiusKm}
+                                    disabled={!areaRef}
+                                    onChange={(v) => setRadiusKm(v as number)}
+                                    onChangeComplete={() => setPage(1)}
+                                />
+                            </div>
+                            {areaRef && (
+                                <button
+                                    type="button"
+                                    onClick={clearLocationFilter}
+                                    className="text-xs text-gray-400 hover:text-mm-purple self-start"
+                                >
+                                    Скинути область
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     {facets.map((facet) => {
@@ -473,21 +595,28 @@ const CategoryListingPage: React.FC = () => {
                                 onClick={() => { setSort("newest"); setPage(1); }}
                                 className={`px-4 py-1.5 transition-colors ${sort === "newest" ? "bg-mm-purple text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
                             >
-                                За новизною
+                                Найновіші
                             </button>
                             <button
                                 type="button"
                                 onClick={() => { setSort("cheap"); setPage(1); }}
                                 className={`px-4 py-1.5 transition-colors border-l border-gray-200 ${sort === "cheap" ? "bg-mm-purple text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
                             >
-                                Дешевші
+                                Від дешевших до дорогих
                             </button>
                             <button
                                 type="button"
                                 onClick={() => { setSort("expensive"); setPage(1); }}
                                 className={`px-4 py-1.5 transition-colors border-l border-gray-200 ${sort === "expensive" ? "bg-mm-purple text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
                             >
-                                Дорожчі
+                                Від дорогих до дешевших
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setSort("popularity"); setPage(1); }}
+                                className={`px-4 py-1.5 transition-colors border-l border-gray-200 ${sort === "popularity" ? "bg-mm-purple text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+                            >
+                                За популярністю
                             </button>
                         </div>
                         <div className="flex items-center gap-3">
@@ -542,6 +671,19 @@ const CategoryListingPage: React.FC = () => {
                                     className="flex items-center gap-1.5 bg-mm-lavender text-mm-purple text-xs font-medium px-3 py-1.5 rounded-full hover:bg-purple-100"
                                 >
                                     {city} <CloseOutlined className="text-[10px]" />
+                                </button>
+                            )}
+                            {areaRef && (
+                                <button
+                                    type="button"
+                                    onClick={clearLocationFilter}
+                                    className="flex items-center gap-1.5 bg-mm-lavender text-mm-purple text-xs font-medium px-3 py-1.5 rounded-full hover:bg-purple-100"
+                                >
+                                    {npAreas.find((a) => a.ref === areaRef)?.description ?? "Область"}
+                                    {regionRef && radiusKm < RADIUS_REGION_THRESHOLD_KM
+                                        ? ` · ${npRegions.find((r) => r.ref === regionRef)?.description ?? ""}`
+                                        : ""}
+                                    {" "}({radiusKm} км) <CloseOutlined className="text-[10px]" />
                                 </button>
                             )}
                             {Object.entries(selectedFacets).flatMap(([filterId, valueIds]) =>
@@ -599,6 +741,29 @@ const CategoryListingPage: React.FC = () => {
                     {total > PAGE_SIZE && (
                         <div className="flex justify-center mt-8">
                             <Pagination current={page} pageSize={PAGE_SIZE} total={total} onChange={setPage} showSizeChanger={false} />
+                        </div>
+                    )}
+
+                    {/* "Схожі товари" fallback — search/filters matched nothing, so instead of a
+                        dead end we show an unfiltered sample below a divider, letting the user
+                        keep scrolling/browsing rather than hitting a wall. */}
+                    {!isLoading && fallbackRecommendations.length > 0 && (
+                        <div className="mt-10">
+                            <div className="flex items-center gap-3 mb-5">
+                                <div className="h-px flex-1 bg-gray-200" />
+                                <span className="text-sm font-semibold text-gray-400 shrink-0">Схожі товари</span>
+                                <div className="h-px flex-1 bg-gray-200" />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 items-start">
+                                {fallbackRecommendations.map((advert) => (
+                                    <AdvertCard
+                                        key={advert.id}
+                                        advert={advert}
+                                        onToggleFavorite={handleToggleFavorite}
+                                        isFavorite={favorites?.some((f) => f.id === advert.id) ?? false}
+                                    />
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
