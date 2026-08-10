@@ -1,10 +1,7 @@
 import { APP_ENV } from "../env";
 
-// Бекенд віддає статику з /images/{size}_{name}, розміри визначені в appsettings.json -> ImageSizes.
-// Bumped up across the board — stop requesting low-res backend variants ("100_"/"200_")
-// and force high-quality images ("800_"/"1200_") everywhere. All values must stay in the
-// backend's ImageSizes list (appsettings.json) since ImageService only generates files at
-// those exact sizes.
+// Бекенд віддає оригінальні файли напряму з /images/{name}.
+// ImageService більше не створює WebP-копії та варіанти різних розмірів.
 export const IMAGE_SIZES = {
     avatarSmall: 400,
     avatarLarge: 800,
@@ -120,8 +117,7 @@ export const buildImageUrl = (name: string | null | undefined, size: number = IM
     // (FallbackImage) go straight to the keyword-based Unsplash fallback instead of round-tripping
     // a request that can never succeed.
     if (!/\.[a-z0-9]+$/i.test(name)) return null;
-    // Circuit tripped (enough recent {size}_{name}.webp 404s) — skip building the URL at
-    // all rather than handing FallbackImage another doomed request to discover on its own.
+    // Circuit tripped after repeated backend failures — skip another doomed request.
     if (isBackendImagesCircuitOpen()) return null;
-    return `${APP_ENV.API_BASE_URL}/images/${size}_${name}`;
+    return `${APP_ENV.API_BASE_URL}/images/${name}`;
 };
