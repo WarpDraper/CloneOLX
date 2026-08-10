@@ -1,13 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Olx.BLL.Interfaces;
-using Olx.BLL.Resources;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Webp;
-using SixLabors.ImageSharp.Processing;
 
 namespace Olx.BLL.Services
 {
+    /// <summary>
+    /// Stores the uploaded image as-is. No resizing, WebP conversion, or size variants are created.
+    /// </summary>
     public class ImageService(IConfiguration config) : IImageService
     {
         private readonly string _imgPath = Path.Combine(config["ImagesDir"]!);
@@ -16,111 +15,60 @@ namespace Olx.BLL.Services
         {
             using MemoryStream ms = new();
             await image.CopyToAsync(ms);
-            return await SaveImageAsync(ms.ToArray());
+            var extension = Path.GetExtension(image.FileName);
+            return await SaveImageAsync(ms.ToArray(), extension);
         }
 
-        public async Task<List<string>> SaveImagesAsync(IEnumerable<IFormFile> images)
-        {
-            var resultTasks = images.AsParallel().Select(x => SaveImageAsync(x));
-            return [.. (await Task.WhenAll(resultTasks.ToArray()))];
-        }
+        public async Task<List<string>> SaveImagesAsync(IEnumerable<IFormFile> images) =>
+            [.. await Task.WhenAll(images.Select(SaveImageAsync))];
 
         public async Task<string> SaveImageAsync(string base64)
         {
-            if (base64.Contains(','))
-            {
-                base64 = base64.Split(',')[1];
-            }
-            var bytes = Convert.FromBase64String(base64);
-            return await SaveImageAsync(bytes);
+            if (base64.Contains(',')) base64 = base64.Split(',')[1];
+            return await SaveImageAsync(Convert.FromBase64String(base64));
         }
 
-        public async Task<string> SaveImageAsync(byte[] bytes)
+        public Task<string> SaveImageAsync(byte[] bytes) => SaveImageAsync(bytes, ".jpg");
+
+        private async Task<string> SaveImageAsync(byte[] bytes, string? extension)
         {
-            string imageName = $"{Path.GetRandomFileName()}.webp";
-
-            var tasks = Sizes
-                .AsParallel()
-                .Select(s => SaveImageAsync(bytes, imageName, s))
-                .ToArray();
-
-            await Task.WhenAll(tasks);
+            Directory.CreateDirectory(_imgPath);
+            extension = string.IsNullOrWhiteSpace(extension) ? ".jpg" : extension.ToLowerInvariant();
+            if (!extension.StartsWith('.')) extension = "." + extension;
+            var imageName = $"{Path.GetRandomFileName()}{extension}";
+            await File.WriteAllBytesAsync(Path.Combine(_imgPath, imageName), bytes);
             return imageName;
         }
 
-        private async Task SaveImageAsync(byte[] bytes, string name, int size)
-        {
-            string imagePath = Path.Combine(_imgPath, $"{size}_{name}");
+        public async Task<List<string>> SaveImagesAsync(IEnumerable<byte[]> bytesArrays) =>
+            [.. await Task.WhenAll(bytesArrays.Select(SaveImageAsync))];
 
-            using var image = Image.Load(bytes);
-            try
-            {
-                image.Mutate(imageProcessingContext =>
-                {
-                    imageProcessingContext.Resize(new ResizeOptions
-                    {
-                        Size = new Size(Math.Min(image.Width, size), Math.Min(image.Height, size)),
-                        Mode = ResizeMode.Max
-                    });
-                });
-                await image.SaveAsync(imagePath, new WebpEncoder());
-            }
-            catch (Exception e)
-            {
-                DeleteImageIfExists(imagePath);
-                throw new Exception(e.Message);
-            }
+        public Task<byte[]> LoadBytesAsync(string name) =>
+            File.ReadAllBytesAsync(Path.Combine(_imgPath, name));
+
+        public void DeleteImage(string name) =>
+            File.Delete(Path.Combine(_imgPath, name));
+
+        public void DeleteImages(IEnumerable<string> images)
+        {
+            foreach (var image in images) DeleteImage(image);
         }
 
-        public async Task<List<string>> SaveImagesAsync(IEnumerable<byte[]> bytesArrays)
+        public void DeleteImageIfExists(string name)
         {
-            var resultTasks = bytesArrays.AsParallel().Select(x => SaveImageAsync(x));
-            return [.. (await Task.WhenAll(resultTasks.ToArray()))];
-        }
-
-        public async Task<byte[]> LoadBytesAsync(string name) => await File.ReadAllBytesAsync(Path.Combine(_imgPath, name));
-        
-        public void DeleteImage(string nameWithFormat) => Sizes.AsParallel()
-            .ForAll(x => File.Delete(Path.Combine(_imgPath, $"{x}_{nameWithFormat}")));
-
-        public void DeleteImages(IEnumerable<string> images) => images.AsParallel().ForAll(x => DeleteImage(x));
-
-        public void DeleteImageIfExists(string nameWithFormat)
-        {
-            Sizes.AsParallel().ForAll(x =>
-            {
-                var path = Path.Combine(_imgPath, $"{x}_{nameWithFormat}");
-                if (File.Exists(path))
-                {
-                    File.Delete(path);
-                }
-            });
+            var path = Path.Combine(_imgPath, name);
+            if (File.Exists(path)) File.Delete(path);
         }
 
         public void DeleteImagesIfExists(IEnumerable<string> images)
         {
-            images.AsParallel().ForAll(x => DeleteImageIfExists(x));
+            foreach (var image in images) DeleteImageIfExists(image);
         }
 
         public async Task<string> SaveImageFromUrlAsync(string imageUrl)
         {
             using var httpClient = new HttpClient();
-            var imageBytes = await httpClient.GetByteArrayAsync(imageUrl);
-            return await SaveImageAsync(imageBytes);
-        }
-
-        private List<int> Sizes
-        {
-            get
-            {
-                List<int> sizes = config.GetRequiredSection("ImageSizes").Get<List<int>>()
-                   ?? throw new Exception(Errors.ImageSizesReadError);
-                if (sizes.Count == 0)
-                {
-                    throw new Exception(Errors.ImageSizesInitError);
-                }
-                 return sizes;
-            }
+            return await SaveImageAsync(await httpClient.GetByteArrayAsync(imageUrl));
         }
     }
 }
