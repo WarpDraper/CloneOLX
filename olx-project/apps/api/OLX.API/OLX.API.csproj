@@ -46,6 +46,15 @@
     <Content Update="Helpers\JsonData\Users.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Update="Helpers\JsonData\Adverts.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <!-- Local advert seed images (replaces the old loremflickr.com URLs) — read directly off
+         disk by DBSeeder for any Adverts.json ImagePaths entry that isn't a real http(s) URL,
+         so seeding never depends on a third-party image host. -->
+    <Content Include="Helpers\JsonData\SeedImages\**">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

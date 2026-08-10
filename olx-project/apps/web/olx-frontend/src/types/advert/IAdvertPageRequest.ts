@@ -18,4 +18,6 @@ export interface IAdvertPageRequest extends IPageRequest {
     archived?: boolean;
     categoryIds?: number[];
     filters?: number[][];
+    // Fetches only this seller's listings — used by AdvertDetailsPage's "Товари продавця" carousel.
+    userId?: number;
 }

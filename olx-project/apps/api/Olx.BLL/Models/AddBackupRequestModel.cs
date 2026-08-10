@@ -4,6 +4,6 @@ namespace Olx.BLL.Models
 {
     public class AddBackupRequestModel
     {
-        public IFormFile BackupFile { get; set; }
+        public IFormFile BackupFile { get; set; } = null!;
     }
 }

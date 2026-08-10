@@ -24,6 +24,12 @@ export interface IAdvert {
     settlementRef: string;
     regionRef: string;
     areaRef: string;
+    // Premium/"ТОП" placement flag — golden crown badge + guaranteed feed placement (see
+    // utils/arrangeFeedWithTopAds.ts). Computed on the backend (Id % 5 == 0, AdvertProfile), not
+    // a real persisted column.
+    isTop: boolean;
+    // Favorited-by count — backs the "За популярністю" sort option.
+    favoritesCount: number;
     filterValues: IFilterValue[];
     images: IAdvertImage[];
 }

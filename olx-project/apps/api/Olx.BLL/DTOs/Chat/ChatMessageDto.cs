@@ -6,7 +6,7 @@ namespace Olx.BLL.DTOs.Chat
     {
         public int Id { get; set; }
         public string Content { get; set; } = string.Empty;
-        public ChatOlxUserDto Sender { get; set; }
+        public ChatOlxUserDto Sender { get; set; } = null!;
         public int ChatId { get; set; }
         public bool Readed { get; set; }
         public DateTime CreatedAt { get; set; }

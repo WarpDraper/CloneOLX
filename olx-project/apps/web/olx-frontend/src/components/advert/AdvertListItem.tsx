@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { ShoppingCartOutlined, HeartOutlined, HeartFilled, EnvironmentOutlined } from "@ant-design/icons";
+import { ShoppingCartOutlined, HeartOutlined, HeartFilled, EnvironmentOutlined, CrownFilled } from "@ant-design/icons";
 import type { IAdvert } from "../../types/advert/IAdvert";
 import type { RootState } from "../../store";
 import { addToCart, removeFromCart } from "../../store/cartSlice";
@@ -30,6 +30,7 @@ const AdvertListItem: React.FC<AdvertListItemProps> = ({ advert, onQuickAdd, onT
     const location = useLocation();
     const { isAuth } = useSelector((state: RootState) => state.auth);
     const isInCart = useSelector((state: RootState) => state.cart.items.some((i) => i.advertId === advert.id));
+    const [heartPulsing, setHeartPulsing] = useState(false);
 
     const cover = [...advert.images].sort((a, b) => a.priority - b.priority)[0];
     const imageUrl = buildImageUrl(cover?.name, IMAGE_SIZES.card);
@@ -63,11 +64,9 @@ const AdvertListItem: React.FC<AdvertListItemProps> = ({ advert, onQuickAdd, onT
         >
             <div className="relative shrink-0 w-40 sm:w-48 aspect-[4/3] rounded-lg overflow-hidden bg-gray-100">
                 {condition && (
-                    <span
-                        className={`absolute top-2 left-2 z-10 text-[10px] font-semibold px-2 py-1 rounded-full ${
-                            condition === "Новий" ? "bg-green-600 text-white" : "bg-white/90 text-mm-navy"
-                        }`}
-                    >
+                    // Only ever rendered for condition === "Нове" — getConditionLabel returns
+                    // undefined for used items, so no "Б/У" badge is ever shown (per spec).
+                    <span className="absolute top-2 left-2 z-10 text-[10px] font-semibold px-2 py-1 rounded-full bg-green-600 text-white">
                         {condition}
                     </span>
                 )}
@@ -81,6 +80,11 @@ const AdvertListItem: React.FC<AdvertListItemProps> = ({ advert, onQuickAdd, onT
                         <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Немає фото</div>
                     }
                 />
+                {advert.isTop && (
+                    <span className="absolute bottom-2 left-2 z-10 flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 text-mm-navy shadow">
+                        <CrownFilled /> ТОП
+                    </span>
+                )}
             </div>
 
             <div className="flex-1 min-w-0 flex flex-col">
@@ -98,13 +102,17 @@ const AdvertListItem: React.FC<AdvertListItemProps> = ({ advert, onQuickAdd, onT
                                     e.preventDefault();
                                     e.stopPropagation();
                                     onToggleFavorite(advert);
+                                    setHeartPulsing(true);
+                                    window.setTimeout(() => setHeartPulsing(false), 200);
                                 }}
                                 aria-label={isFavorite ? "Прибрати з обраного" : "Додати в обране"}
                                 className={`w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-mm-lavender ${
                                     isFavorite ? "text-red-500" : "text-mm-purple"
                                 }`}
                             >
-                                {isFavorite ? <HeartFilled /> : <HeartOutlined />}
+                                <span className={`inline-flex transition-transform duration-200 ${heartPulsing ? "scale-125" : "scale-100"}`}>
+                                    {isFavorite ? <HeartFilled /> : <HeartOutlined />}
+                                </span>
                             </button>
                         )}
                     </div>

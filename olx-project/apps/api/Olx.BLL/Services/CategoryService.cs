@@ -30,7 +30,7 @@ namespace Olx.BLL.Services
         IHttpContextAccessor httpContext) : ICategoryService
     {
 
-        public async Task<IEnumerable<CategoryDto>> Get() => await mapper.ProjectTo<CategoryDto>(categoryRepository.GetQuery()).ToArrayAsync();
+        public async Task<IEnumerable<CategoryDto>> Get() => await mapper.ProjectTo<CategoryDto>(categoryRepository.GetQuery().AsNoTracking()).ToArrayAsync();
      
         public async Task<CategoryDto> CreateAsync(CategoryCreationModel creationModel)
         {
@@ -80,7 +80,7 @@ namespace Olx.BLL.Services
             {
                 categoryRepository.DeleteRange(categoriesToDelete);
                 await categoryRepository.SaveAsync();
-                var images = categoriesToDelete.Where(x => !String.IsNullOrEmpty(x.Image)).Select(z => z.Image);
+                var images = categoriesToDelete.Where(x => !String.IsNullOrEmpty(x.Image)).Select(z => z.Image!);
                 imageService.DeleteImagesIfExists(images);
             }
         }
@@ -124,7 +124,7 @@ namespace Olx.BLL.Services
         }
 
         public async Task<CategoryDto> GetById(int id) =>
-            await mapper.ProjectTo<CategoryDto>(categoryRepository.GetQuery().Where(x => x.Id == id)).SingleOrDefaultAsync()
+            await mapper.ProjectTo<CategoryDto>(categoryRepository.GetQuery().AsNoTracking().Where(x => x.Id == id)).SingleOrDefaultAsync()
             ?? throw new HttpException(Errors.InvalidCategoryId,HttpStatusCode.BadRequest);
        
 

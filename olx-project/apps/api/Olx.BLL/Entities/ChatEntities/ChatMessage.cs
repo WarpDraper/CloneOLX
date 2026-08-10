@@ -9,9 +9,9 @@ namespace Olx.BLL.Entities.ChatEntities
     {
         [StringLength(2000)]
         public string Content { get; set; } = string.Empty;
-        public OlxUser Sender { get; set; }
+        public OlxUser Sender { get; set; } = null!;
         public int SenderId { get; set; }
-        public Chat Chat { get; set; }
+        public Chat Chat { get; set; } = null!;
         public int ChatId { get; set; }
         public bool Readed { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

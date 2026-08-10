@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { ShoppingCartOutlined } from "@ant-design/icons";
+import { ShoppingCartOutlined, CrownFilled } from "@ant-design/icons";
 import type { IAdvert } from "../../types/advert/IAdvert";
 import type { RootState } from "../../store";
 import { addToCart, removeFromCart } from "../../store/cartSlice";
@@ -51,7 +51,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({ advert }) => {
             to={`/advert/${advert.id}`}
             className="bg-[#272942] border border-white/20 rounded-md p-3 flex flex-col h-full gap-2 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-mm-purple/60 group"
         >
-            <div className="aspect-square rounded overflow-hidden bg-white/5 shrink-0">
+            <div className="relative aspect-square rounded overflow-hidden bg-white/5 shrink-0">
                 <FallbackImage
                     src={imageUrl}
                     fallbackKeyword={advert.title}
@@ -62,6 +62,11 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({ advert }) => {
                         <div className="w-full h-full flex items-center justify-center text-white/30 text-xs">Немає фото</div>
                     }
                 />
+                {advert.isTop && (
+                    <span className="absolute bottom-1.5 left-1.5 z-10 flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 text-mm-navy shadow">
+                        <CrownFilled /> ТОП
+                    </span>
+                )}
             </div>
             <h3 className="text-xs font-medium text-white line-clamp-2 leading-snug min-h-[2.25rem]">{advert.title}</h3>
             {/* mt-auto: price/cart row stays pinned to the bottom regardless of how many lines

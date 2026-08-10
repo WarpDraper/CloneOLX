@@ -12,11 +12,23 @@ interface FallbackImageProps {
     uniqueSeed?: string | number;
     alt: string;
     className?: string;
-    /** Rendered whenever no local/backend image is available — the sole fallback now that the
-     *  Unsplash/online-swap path has been removed. Should be a static, local placeholder
-     *  (icon, SVG, etc.), never something that triggers a network request. */
-    placeholder: React.ReactNode;
+    /** Rendered whenever no local/backend image is available (missing `src`, or the backend
+     *  URL 404s / the connection is refused, e.g. ERR_CONNECTION_REFUSED when :5005 is down).
+     *  Optional — defaults to DEFAULT_IMAGE_PLACEHOLDER (a zero-network inline SVG) below, so
+     *  callers that don't need a custom look never render a broken-image icon. */
+    placeholder?: React.ReactNode;
 }
+
+// Zero-network default placeholder: a plain inline SVG data URI. Used whenever a caller
+// doesn't pass its own `placeholder` — guarantees callers never fall through to the browser's
+// broken-image icon, without depending on an external host (which could itself be unreachable,
+// e.g. offline dev) the way https://placehold.co/600x400?text=No+Photo would.
+const DEFAULT_IMAGE_PLACEHOLDER_SVG =
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400'%3E%3Crect width='600' height='400' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='28' fill='%23999'%3ENo Photo%3C/text%3E%3C/svg%3E";
+
+export const DefaultImagePlaceholder: React.FC<{ className?: string; alt?: string }> = ({ className, alt }) => (
+    <img src={DEFAULT_IMAGE_PLACEHOLDER_SVG} alt={alt ?? "No photo"} className={className} />
+);
 
 // Memory of image URLs that already failed to load once — e.g. backend seed fixtures
 // referencing {size}_{name}.webp files (http://localhost:5005/images/200_*.webp,
@@ -76,7 +88,9 @@ const FallbackImage: React.FC<FallbackImageProps> = ({ src, alt, className, plac
         setBroken(!!src && !usableSrc);
     }
 
-    if (!resolvedSrc || broken) return <>{placeholder}</>;
+    if (!resolvedSrc || broken) {
+        return <>{placeholder ?? <DefaultImagePlaceholder className={className} alt={alt} />}</>;
+    }
 
     return (
         <img

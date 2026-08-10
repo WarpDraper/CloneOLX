@@ -151,19 +151,18 @@ namespace Olx.BLL.Services
                 var areas = await areaRepository.GetListBySpec(new NewPostDataSpecs.GetAreas(true));
                 if (areas.Any())
                 {
-                    var areasTasks = areasData.Select(async (areaData) =>
+                    foreach (var areaData in areasData)
                     {
                         var area = areas.FirstOrDefault(x => x.Ref == areaData.Ref);
                         if (area is not null)
                         {
-                            mapper.Map(areaData,area);
+                            mapper.Map(areaData, area);
                         }
                         else
                         {
                             await areaRepository.AddAsync(areaData);
                         }
-                    });
-                    await Task.WhenAll(areasTasks);
+                    }
                 }
                 else
                 {

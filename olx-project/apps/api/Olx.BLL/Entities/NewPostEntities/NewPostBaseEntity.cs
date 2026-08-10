@@ -8,9 +8,9 @@ namespace Olx.BLL.Entities.NewPost
         [Key]
         [StringLength(36)]
         [Unicode(false)]
-        public string Ref { get; set; }
+        public string Ref { get; set; } = string.Empty;
 
         [StringLength(128)]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
     }
 }

@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { ShoppingCartOutlined, HeartOutlined, HeartFilled } from "@ant-design/icons";
+import { ShoppingCartOutlined, HeartOutlined, HeartFilled, CrownFilled } from "@ant-design/icons";
 import type { IAdvert } from "../../types/advert/IAdvert";
 import type { RootState } from "../../store";
 import { addToCart, removeFromCart } from "../../store/cartSlice";
@@ -29,6 +29,9 @@ const AdvertCard: React.FC<AdvertCardProps> = ({ advert, onQuickAdd, onToggleFav
     const location = useLocation();
     const { isAuth } = useSelector((state: RootState) => state.auth);
     const isInCart = useSelector((state: RootState) => state.cart.items.some((i) => i.advertId === advert.id));
+    // Brief scale-up pulse on the heart icon itself whenever favorite status toggles — purely
+    // visual feedback, cleared after the transition duration so it can re-trigger on every click.
+    const [heartPulsing, setHeartPulsing] = useState(false);
 
     const cover = [...advert.images].sort((a, b) => a.priority - b.priority)[0];
     const imageUrl = buildImageUrl(cover?.name, IMAGE_SIZES.card);
@@ -69,25 +72,27 @@ const AdvertCard: React.FC<AdvertCardProps> = ({ advert, onQuickAdd, onToggleFav
                         e.preventDefault();
                         e.stopPropagation();
                         onToggleFavorite(advert);
+                        setHeartPulsing(true);
+                        window.setTimeout(() => setHeartPulsing(false), 200);
                     }}
                     aria-label={isFavorite ? "Прибрати з обраного" : "Додати в обране"}
                     className={`absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center hover:bg-white ${
                         isFavorite ? "text-red-500" : "text-mm-purple"
                     }`}
                 >
-                    {isFavorite ? <HeartFilled /> : <HeartOutlined />}
+                    <span className={`inline-flex transition-transform duration-200 ${heartPulsing ? "scale-125" : "scale-100"}`}>
+                        {isFavorite ? <HeartFilled /> : <HeartOutlined />}
+                    </span>
                 </button>
             )}
             {condition && (
-                <span
-                    className={`absolute top-2 left-2 z-10 text-[10px] font-semibold px-2 py-1 rounded-full ${
-                        condition === "Новий" ? "bg-green-600 text-white" : "bg-white/90 text-mm-navy"
-                    }`}
-                >
+                // Only ever rendered for condition === "Нове" — getConditionLabel returns
+                // undefined for used items, so no "Б/У" badge is ever shown (per spec).
+                <span className="absolute top-2 left-2 z-10 text-[10px] font-semibold px-2 py-1 rounded-full bg-green-600 text-white">
                     {condition}
                 </span>
             )}
-            <div className="h-[180px] w-full overflow-hidden bg-gray-100 shrink-0">
+            <div className="h-[180px] w-full overflow-hidden bg-gray-100 shrink-0 relative">
                 <FallbackImage
                     src={imageUrl}
                     fallbackKeyword={advert.title}
@@ -98,6 +103,11 @@ const AdvertCard: React.FC<AdvertCardProps> = ({ advert, onQuickAdd, onToggleFav
                         <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Немає фото</div>
                     }
                 />
+                {advert.isTop && (
+                    <span className="absolute bottom-2 left-2 z-10 flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 text-mm-navy shadow">
+                        <CrownFilled /> ТОП
+                    </span>
+                )}
             </div>
             {/* flex-1 + mt-auto on the price row below: title/specs can wrap to 1-2 lines without
                 shifting the price/cart-button line out of alignment with sibling cards in the row. */}

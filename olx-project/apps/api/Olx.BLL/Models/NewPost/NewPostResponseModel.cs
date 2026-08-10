@@ -4,6 +4,6 @@ namespace Olx.BLL.Models.NewPost
 {
     public class NewPostResponseModel<T> 
     {
-        public T[] Data { get; set; }
+        public T[] Data { get; set; } = Array.Empty<T>();
     }
 }

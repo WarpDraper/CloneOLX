@@ -9,7 +9,7 @@ namespace Olx.BLL.Entities.FilterEntities
         [StringLength(100)]
         public string Value { get; set; } = string.Empty;
         public int FilterId { get; set; }
-        public Filter Filter { get; set; }
+        public Filter Filter { get; set; } = null!;
         public ICollection<Advert> Adverts { get; set; } = new HashSet<Advert>();
     }
 }

@@ -58,5 +58,16 @@ app.SetMaxRequestBodySize();
 app.MapHub<MessageHub>("/hub");
 app.MapControllers();
 app.DataBaseMigrate();
-await app.SeedDataAsync();
+
+// Seeding failures must never take down the host — log and continue so the API stays
+// reachable (e.g. with a partially/un-seeded DB) instead of the whole process crashing on boot.
+try
+{
+    await app.SeedDataAsync();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"[DbSeeder] Seeding failed, continuing startup without complete seed data: {ex}");
+}
+
 await app.RunAsync();

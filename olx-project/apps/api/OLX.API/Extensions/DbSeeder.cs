@@ -16,30 +16,57 @@ namespace OLX.API.Extensions
     {
         public static async Task SeedDataAsync(this WebApplication app)
         {
+            // Top-level guard: any unhandled failure below (roles, NewPost, users, filters,
+            // categories, adverts) is caught and logged here instead of propagating up to
+            // Program.cs and crashing the whole ASP.NET Core host on startup.
+            try
+            {
+                await SeedDataInternalAsync(app);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DbSeeder] Seeding failed: {ex.Message}\n{ex}");
+            }
+        }
 
-           
+        private static async Task SeedDataInternalAsync(WebApplication app)
+        {
+
+
             //Roles seeder
             using var scope = app.Services.CreateScope();
             var serviceProvider = scope.ServiceProvider;
-            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
-            var roles = Roles.Get();
-            if (roleManager.Roles.Count() < roles.Count())
+            try
             {
-                foreach (var role in roles) {
-                    if (! await roleManager.RoleExistsAsync(role))
-                       await roleManager.CreateAsync(new IdentityRole<int>{ Name = role });
+                var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
+                var roles = Roles.Get();
+                if (roleManager.Roles.Count() < roles.Count())
+                {
+                    foreach (var role in roles) {
+                        if (! await roleManager.RoleExistsAsync(role))
+                           await roleManager.CreateAsync(new IdentityRole<int>{ Name = role });
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DbSeeder] Roles seed failed: {ex.Message}\n{ex}");
             }
 
 
             //NewPost seeder
-            using (var newPostService = scope.ServiceProvider.GetRequiredService<INewPostService>())
+            try
             {
+                using var newPostService = scope.ServiceProvider.GetRequiredService<INewPostService>();
                 var areaRepo = scope.ServiceProvider.GetRequiredService<IRepository<Area>>();
                 if (!await areaRepo.AnyAsync())
                 {
                     await newPostService.UpdateNewPostData();
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DbSeeder] NewPost seed failed: {ex.Message}\n{ex}");
             }
 
             //Users seeder
@@ -56,8 +83,20 @@ namespace OLX.API.Extensions
                     {
                         var usersData = JsonConvert.DeserializeObject<IEnumerable<SeederUserModel>>(userJson)
                             ?? throw new JsonException();
-                        foreach (var user in usersData)
+                        // Dedup guard: collapse accidental duplicate fixture rows by email before
+                        // insert, and skip any email that (for whatever reason, e.g. a previous
+                        // partial seed run) already exists in the DB — Identity's CreateAsync would
+                        // otherwise fail loudly per-duplicate instead of just skipping it.
+                        var distinctUsers = usersData
+                            .GroupBy(u => u.Email, StringComparer.OrdinalIgnoreCase)
+                            .Select(g => g.First());
+                        foreach (var user in distinctUsers)
                         {
+                            if (await userManager.FindByEmailAsync(user.Email) is not null)
+                            {
+                                Console.WriteLine($"Skip duplicate user \"{user.Email}\"");
+                                continue;
+                            }
                             var newUser = new OlxUser
                             {
                                 UserName = user.Email,
@@ -86,9 +125,9 @@ namespace OLX.API.Extensions
                                 Console.WriteLine($"Error create user \"{user.Email}\"");
                         }
                     }
-                    catch (JsonException)
+                    catch (Exception ex)
                     {
-                        Console.WriteLine("Error deserialize users json file");
+                        Console.WriteLine($"[DbSeeder] Users seed failed: {ex.Message}\n{ex}");
                     }
                 }
                 else Console.WriteLine("File \"JsonData/Users.json\" not found");  
@@ -117,9 +156,9 @@ namespace OLX.API.Extensions
                             await filterRepo.SaveAsync();
                         }
                     }
-                    catch (JsonException)
+                    catch (Exception ex)
                     {
-                        Console.WriteLine("Error deserialize filters json file");
+                        Console.WriteLine($"[DbSeeder] Filters seed failed: {ex.Message}\n{ex}");
                     }
                 }
                 else Console.WriteLine("File \"JsonData/Filter.json\" not found");
@@ -144,9 +183,9 @@ namespace OLX.API.Extensions
                             await categoryRepo.SaveAsync();
                         }
                     }
-                    catch (JsonException)
+                    catch (Exception ex)
                     {
-                        Console.WriteLine("Error deserialize categories json file");
+                        Console.WriteLine($"[DbSeeder] Categories seed failed: {ex.Message}\n{ex}");
                     }
                 }
                 else Console.WriteLine("File \"JsonData/Categories.json\" not found");
@@ -154,20 +193,25 @@ namespace OLX.API.Extensions
 
 
             //Advert seeder
-            const int MinSeededAdvertCount = 500;
+            // Fixture is an all-or-nothing 80-item demo snapshot (see Adverts.json) — reseed
+            // whenever the DB doesn't already hold exactly that many (covers a fresh DB, a stale
+            // DB left over from a previous larger fixture, and manual force-reseed), instead of a
+            // "< minimum" threshold that would silently never shrink an over-sized table back down.
+            const int TargetAdvertCount = 80;
             var filterValueRepo = scope.ServiceProvider.GetService<IRepository<FilterValue>>();
             var settlementRepo = scope.ServiceProvider.GetService<IRepository<Settlement>>();
             var advertRepo = scope.ServiceProvider.GetService<IRepository<Advert>>();
             var advertImageRepo = scope.ServiceProvider.GetService<IRepository<AdvertImage>>();
             var forceReseedAdverts = app.Configuration.GetValue<bool>("Seeder:ForceReseedAdverts");
             var currentAdvertCount = advertRepo is not null ? await advertRepo.CountAsync() : 0;
-            if (advertRepo is not null && (currentAdvertCount < MinSeededAdvertCount || forceReseedAdverts))
+            if (advertRepo is not null && (currentAdvertCount != TargetAdvertCount || forceReseedAdverts))
             {
                 Console.WriteLine($"Start adverts seeder (current count: {currentAdvertCount}, forceReseed: {forceReseedAdverts})");
 
-                // Re-hydrate: the fixture file is an all-or-nothing snapshot of 500 demo adverts, so a
-                // partial/stale table (e.g. from an interrupted previous seed, or a manual force-reseed
-                // trigger) is wiped and reloaded from scratch rather than merged.
+                // Re-hydrate: the fixture file is an all-or-nothing snapshot of demo adverts, so a
+                // partial/stale table (e.g. from an interrupted previous seed, a leftover larger
+                // fixture, or a manual force-reseed trigger) is wiped and reloaded from scratch
+                // rather than merged.
                 if (currentAdvertCount > 0)
                 {
                     var existingAdverts = (await advertRepo.GetListBySpec(new AdvertSpecs.GetAll(AdvertOpt.Images))).ToList();
@@ -190,8 +234,19 @@ namespace OLX.API.Extensions
                     var advertsJson = File.ReadAllText(advertsJsonDataFile, Encoding.UTF8);
                     try
                     {
-                        var advertModels = JsonConvert.DeserializeObject<IEnumerable<SeederAdvertModel>>(advertsJson)
+                        var parsedAdvertModels = JsonConvert.DeserializeObject<IEnumerable<SeederAdvertModel>>(advertsJson)
                             ?? throw new JsonException();
+                        // Dedup guard: collapse accidental duplicate fixture rows (same title from
+                        // the same seller) before insert, so a hand-edited/regenerated Adverts.json
+                        // can never silently produce duplicate listings in the DB.
+                        var advertModels = parsedAdvertModels
+                            .GroupBy(x => (x.Title, x.UserId))
+                            .Select(g => g.First())
+                            .ToList();
+                        if (advertModels.Count != parsedAdvertModels.Count())
+                        {
+                            Console.WriteLine($"Skipped {parsedAdvertModels.Count() - advertModels.Count} duplicate advert fixture rows.");
+                        }
                         if (advertModels.Any() && filterValueRepo is not null)
                         {
                             // Categories are auto-increment ids assigned on insert, so a hand-copied
@@ -202,21 +257,50 @@ namespace OLX.API.Extensions
                             var allCategories = categoryRepo is not null
                                 ? (await categoryRepo.GetListBySpec(new CategorySpecs.GetAll())).ToList()
                                 : new List<Category>();
+                            // Narrowed to a non-null local before the closure below — the nullable
+                            // flow analysis for `filterValueRepo is not null` above doesn't carry
+                            // into a captured variable inside a lambda, which otherwise triggers
+                            // CS8602 on the dereference a few lines down.
+                            var filterValueRepoNonNull = filterValueRepo;
 
-                            var advertsTasks = advertModels.Select(async (x) =>
+                            // Built sequentially (not via Task.WhenAll over the projection) because each
+                            // iteration awaits calls against the shared DbContext (filterValueRepo,
+                            // settlementRepo) — running those concurrently throws "A second operation
+                            // was started on this context instance before a previous operation completed".
+                            var adverts = new List<Advert>();
+                            foreach (var x in advertModels)
                             {
                                 var resolvedCategoryId = (x.CategoryPath is not null && x.CategoryPath.Count > 0)
                                     ? ResolveCategoryId(allCategories, x.CategoryPath) ?? x.CategoryId
                                     : x.CategoryId;
-                                var filterValues = filterValueRepo.GetListBySpec(new FilterValueSpecs.GetByIds(x.FilterValueIds)).Result.ToList();
+                                var filterValues = (await filterValueRepoNonNull.GetListBySpec(new FilterValueSpecs.GetByIds(x.FilterValueIds))).ToList();
+                                // Fixture images are either a real remote URL (downloaded over HTTP,
+                                // as before) or a path relative to SeederJsonDir pointing at a fixture
+                                // shipped in the repo (Helpers/JsonData/SeedImages/*.jpg) — read straight
+                                // off disk instead. The local branch has zero network dependency, so
+                                // seeding can never fail on an unreachable/rate-limited/erroring
+                                // third-party image host (this replaced loremflickr.com, which was
+                                // intermittently returning 500s).
+                                // imagesTasks only touch the (DbContext-free) imageService, so it's safe
+                                // to keep this inner batch parallel.
                                 var imagesTasks = x.ImagePaths.Select(async (path, index) =>
-                                    new AdvertImage()
+                                {
+                                    var isRemoteUrl = path.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                                        || path.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
+                                    var savedName = isRemoteUrl
+                                        ? await imageService.SaveImageFromUrlAsync(path)
+                                        : await imageService.SaveImageAsync(await File.ReadAllBytesAsync(
+                                            Path.Combine(Environment.CurrentDirectory, app.Configuration["SeederJsonDir"]!, path)));
+                                    return new AdvertImage()
                                     {
                                         Priority = index,
-                                        Name = await imageService.SaveImageFromUrlAsync(path)
-                                    });
+                                        Name = savedName
+                                    };
+                                });
                                 var images = await Task.WhenAll(imagesTasks);
-                                return new Advert()
+                                var settlement = await settlementRepo.GetByIDAsync(x.SettlementRef) ??
+                                    throw new NullReferenceException("settlement not found");
+                                adverts.Add(new Advert()
                                 {
                                     UserId = x.UserId,
                                     PhoneNumber = x.PhoneNumber,
@@ -231,20 +315,18 @@ namespace OLX.API.Extensions
                                     Images = images,
                                     Approved = true,
                                     Completed = false,
-                                    Settlement = await settlementRepo.GetByIDAsync(x.SettlementRef) ??
-                                      throw new NullReferenceException("settlement not found")
-                                };
-                            });
-                            var adverts = await Task.WhenAll(advertsTasks);
-                            Console.WriteLine($"Adding {adverts.Length} adverts to the database.");
+                                    Settlement = settlement
+                                });
+                            }
+                            Console.WriteLine($"Adding {adverts.Count} adverts to the database.");
                             await advertRepo.AddRangeAsync(adverts);
                             await advertRepo.SaveAsync();
                             Console.WriteLine("Adverts added to the database.");
                         }
                     }
-                    catch (JsonException)
+                    catch (Exception ex)
                     {
-                        Console.WriteLine("Error deserialize adverts json file");
+                        Console.WriteLine($"[DbSeeder] Adverts seed failed: {ex.Message}\n{ex}");
                     }
                 }
                 else Console.WriteLine("File \"Adverts.json\" not found");
@@ -261,11 +343,15 @@ namespace OLX.API.Extensions
         {
             if (path.Count == 0) return null;
 
+            // Dictionary<TKey,...> requires a non-null key (CS8714), but Category.ParentId is
+            // `int?` (null for root categories) — group on a 0 sentinel instead (category ids
+            // are DB auto-increment and start at 1, so 0 can never collide with a real id).
+            const int RootSentinel = 0;
             var byParent = categories
-                .GroupBy(c => c.ParentId)
+                .GroupBy(c => c.ParentId ?? RootSentinel)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
-            List<Category>? level = byParent.TryGetValue(null, out var roots) ? roots : null;
+            List<Category>? level = byParent.TryGetValue(RootSentinel, out var roots) ? roots : null;
             Category? match = null;
 
             foreach (var name in path)

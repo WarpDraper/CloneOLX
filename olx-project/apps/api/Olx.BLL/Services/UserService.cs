@@ -39,6 +39,7 @@ namespace Olx.BLL.Services
         {
             var adminsIds = await _getAdminsIds();
             var users = await mapper.ProjectTo<OlxUserDto>(userRepo.GetQuery()
+                .AsNoTracking()
                 .Where(x => isAdmin == adminsIds.Contains(x.Id)))
                 .ToListAsync();
             return users.WithOnlineStatus(connectionTracker);
@@ -46,7 +47,7 @@ namespace Olx.BLL.Services
 
         public async Task<OlxUserDto> Get(int id, bool isAdmin = false) 
         {
-            var userDto = await mapper.ProjectTo<OlxUserDto>(userRepo.GetQuery().Where(x => x.Id == id)).SingleOrDefaultAsync();
+            var userDto = await mapper.ProjectTo<OlxUserDto>(userRepo.GetQuery().AsNoTracking().Where(x => x.Id == id)).SingleOrDefaultAsync();
             if (userDto is not null)
             {
                 var user = await userRepo.GetByIDAsync(id);
@@ -77,7 +78,7 @@ namespace Olx.BLL.Services
         }
 
         public async Task<IEnumerable<OlxUserDto>> GetLocked() =>
-            (await mapper.ProjectTo<OlxUserDto>(userRepo.GetQuery().Where(x => x.LockoutEnd != null && x.LockoutEnd > DateTime.Now)).ToArrayAsync())
+            (await mapper.ProjectTo<OlxUserDto>(userRepo.GetQuery().AsNoTracking().Where(x => x.LockoutEnd != null && x.LockoutEnd > DateTime.Now)).ToArrayAsync())
                 .WithOnlineStatus(connectionTracker);
     }
 }

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { useDispatch } from "react-redux";
 // 1. Імпортуємо хук для роботи з reCAPTCHA v3
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
@@ -12,6 +12,7 @@ import { consumeReturnUrl } from "../../utils/returnUrl.ts";
 
 const LoginForm: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const dispatch = useDispatch();
     const [login, { isLoading }] = useLoginMutation();
 
@@ -62,7 +63,12 @@ const LoginForm: React.FC = () => {
                 token: userData.accessToken,
             }));
 
-            navigate(consumeReturnUrl());
+            // Prefer the explicit `state: { from }` a caller may have passed to /login (e.g.
+            // ReleaseSubscriptionWidget's guest gate) over the generic returnUrl sessionStorage
+            // flow (cart/favorites gates) — both land the user back where they started, but
+            // `state.from` is checked first since it's the more specific, just-set intent.
+            const from = (location.state as { from?: string } | null)?.from;
+            navigate(from ?? consumeReturnUrl());
         } catch (err: any) {
             if (err?.data?.errors) {
                 const { fieldErrors } = parseServerValidationErrors(err.data.errors);

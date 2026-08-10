@@ -54,11 +54,15 @@ const resolveFilterName = (filterId: number, filterNameById?: Map<number, string
     return getSeedFilters().find((f) => f.id === filterId)?.name;
 };
 
-/** "Новий" / "Вживане" condition badge label for an advert, or undefined if unknown. */
+/**
+ * "Нове" condition badge label for a new-condition advert, or undefined otherwise — used-condition
+ * adverts intentionally get no label at all (no "Б/У" badge is ever rendered, per spec) rather
+ * than a second, less prominent badge value.
+ */
 export const getConditionLabel = (advert: IAdvert, filterNameById?: Map<number, string>): string | undefined => {
     const fv = advert.filterValues.find((v) => resolveFilterName(v.filterId, filterNameById) === CONDITION_FILTER_NAME);
-    if (!fv) return undefined;
-    return NEW_CONDITION_VALUES.has(fv.value) ? "Новий" : "Вживане";
+    if (!fv || !NEW_CONDITION_VALUES.has(fv.value)) return undefined;
+    return "Нове";
 };
 
 /** Up to MAX_SHORT_SPECS concise, icon-labeled specs for a card (condition excluded — see getConditionLabel). */

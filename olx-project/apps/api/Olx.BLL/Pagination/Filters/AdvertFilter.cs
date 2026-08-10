@@ -21,8 +21,14 @@ namespace Olx.BLL.Pagination.Filters
         public string? AreaRef { get; init; }
         public IEnumerable<int>? CategoryIds { get; init; }
         public IEnumerable<IEnumerable<int>>? Filters { get; init; }
+        public int? UserId { get; init; }
         public IQueryable<AdvertDto> FilterQuery(IQueryable<AdvertDto> query)
         {
+            if (UserId.HasValue)
+            {
+                query = query.Where(x => x.UserId == UserId.Value);
+            }
+
             if (CategoryIds is not null && CategoryIds.Any())
             {
                 query = query.Where(x => CategoryIds.Any(z => z == x.CategoryId));

@@ -24,7 +24,7 @@ import { addNotification } from "../../../store/notificationSlice";
 import AdvertGallery from "../../../components/advert/AdvertGallery";
 import SellerWidget from "../../../components/advert/SellerWidget";
 import RatingStars from "../../../components/common/RatingStars";
-import AdvertCard from "../../../components/advert/AdvertCard";
+import AdvertCarousel from "../../../components/advert/AdvertCarousel";
 import { buildImageUrl, IMAGE_SIZES } from "../../../utils/buildImageUrl";
 import { getSeedAdverts, getSeedFilters } from "../../../utils/seedHydration";
 
@@ -65,7 +65,8 @@ const AdvertDetailsPage: React.FC = () => {
     const [getFiltersByRange, { data: filters }] = useGetFiltersByRangeMutation();
 
     // Схожі оголошення з тієї ж категорії — POST /api/Advert/get/page (публічний),
-    // або з seed-даних, якщо саме оголошення теж прийшло з фолбека.
+    // або з seed-даних, якщо саме оголошення теж прийшло з фолбека. 8 items = 2 pages of the
+    // 4-item "Також Вас можуть зацікавити" carousel below.
     const { data: relatedPage } = useGetAdvertsPageQuery(
         { size: 8, page: 1, categoryIds: advert ? [advert.categoryId] : undefined, approved: true },
         { skip: !advert || usingSeedFallback }
@@ -78,6 +79,24 @@ const AdvertDetailsPage: React.FC = () => {
         [usingSeedFallback, advert]
     );
     const relatedAdverts = (usingSeedFallback ? seedRelatedAdverts : relatedPage?.items ?? [])
+        .filter((a) => a.id !== advertId)
+        .slice(0, 8);
+
+    // Інші активні оголошення того ж продавця — окремий 4-item carousel ("Товари продавця")
+    // одразу під схожими товарами. Same public /get/page endpoint, filtered by userId
+    // (AdvertFilter.UserId) and excluding the advert currently open.
+    const { data: sellerPage } = useGetAdvertsPageQuery(
+        { size: 8, page: 1, userId: advert?.userId, approved: true },
+        { skip: !advert || usingSeedFallback }
+    );
+    const seedSellerAdverts = useMemo(
+        () =>
+            usingSeedFallback && advert
+                ? getSeedAdverts().filter((a) => a.userId === advert.userId && a.id !== advert.id)
+                : [],
+        [usingSeedFallback, advert]
+    );
+    const sellerAdverts = (usingSeedFallback ? seedSellerAdverts : sellerPage?.items ?? [])
         .filter((a) => a.id !== advertId)
         .slice(0, 8);
 
@@ -322,16 +341,10 @@ const AdvertDetailsPage: React.FC = () => {
                 </div>
             </div>
 
-            {relatedAdverts.length > 0 && (
-                <section className="mt-12">
-                    <h2 className="text-xl font-bold text-mm-navy mb-5">Також Вас можуть зацікавити</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {relatedAdverts.map((related) => (
-                            <AdvertCard key={related.id} advert={related} />
-                        ))}
-                    </div>
-                </section>
-            )}
+            {/* key={advert.id} resets each carousel's internal page back to 0 when navigating
+                between different adverts, instead of e.g. staying on page 2 of a 1-page list. */}
+            <AdvertCarousel key={`related-${advert.id}`} title="Також Вас можуть зацікавити" adverts={relatedAdverts} itemsPerPage={4} />
+            <AdvertCarousel key={`seller-${advert.id}`} title="Товари продавця" adverts={sellerAdverts} itemsPerPage={4} />
         </div>
     );
 };

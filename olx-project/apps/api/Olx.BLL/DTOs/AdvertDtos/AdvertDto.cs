@@ -25,6 +25,13 @@ namespace Olx.BLL.DTOs.AdvertDtos
         public string SettlementRef { get; set; } = string.Empty;
         public string RegionRef { get; set; } = string.Empty;
         public string AreaRef { get; set; } = string.Empty;
+        // Premium/"ТОП" placement flag. Computed (Id % 5 == 0, see AdvertProfile) rather than a
+        // persisted column — a deterministic ~1-in-5 spread across every advert, with no schema
+        // migration required, that the feed-composition logic (frontend) uses to place a
+        // premium-badged card after every 4-5 regular ones.
+        public bool IsTop { get; set; }
+        // Popularity signal (favorited-by count) used by the "За популярністю" sort option.
+        public int FavoritesCount { get; set; }
         public ICollection<FilterValueDto> FilterValues { get; set; } = new HashSet<FilterValueDto>();
         public ICollection<AdvertImageDto> Images { get; set; } = new HashSet<AdvertImageDto>();
     }

@@ -19,8 +19,10 @@ import RecommendationCard from '../../../components/advert/RecommendationCard';
 import MegaMenu from '../../../components/catalog/MegaMenu';
 import CategoryAvatar from '../../../components/catalog/CategoryAvatar';
 import SellerWidget from '../../../components/advert/SellerWidget';
-import { getSeedAdverts, getSeedSellers, getSeedTopLevelCategories } from '../../../utils/seedHydration';
+import { getSeedRecommendedAdverts, getSeedSellers, getSeedTopLevelCategories } from '../../../utils/seedHydration';
+import { arrangeFeedWithTopAds } from '../../../utils/arrangeFeedWithTopAds';
 import CubeLoader from '../../../components/common/CubeLoader';
+import ReleaseSubscriptionWidget from '../../../components/common/ReleaseSubscriptionWidget';
 import { useMinLoadingTime } from '../../../hooks/useMinLoadingTime';
 
 // "Рекомендації для вас" always renders exactly 12 cards, laid out as a uniform 2x6 grid on
@@ -77,18 +79,31 @@ const UserHomePage: React.FC = () => {
   // category tiles are capped to leave room for them within the 7-10 total tile target.
   const categoryRailTiles = topLevelCategories.slice(0, CATEGORY_RAIL_MAX);
 
-  // Рекомендації для головної — POST /api/Advert/get/page (публічний), останні підтверджені
-  // оголошення з усіх категорій. Завжди рівно 12 карток (2x6 на десктопі).
+  // Рекомендації для головної — POST /api/Advert/get/page (публічний). sortKey: 'random' —
+  // бекенд (AdvertService.GetBalancedRandomPageAsync) віддає рівномірно перемішану підбірку
+  // з різних категорій (не тільки авто), а не просто останні за датою. Завжди рівно 12 карток
+  // (2x6 на десктопі).
   const { data: advertsPage, isLoading: isAdvertsLoading } = useGetAdvertsPageQuery({
     size: RECOMMENDATIONS_COUNT,
     page: 1,
-    sortKey: 'date',
+    sortKey: 'random',
     isDescending: true,
     approved: true,
   });
-  // Фолбек на локальні seed-дані (Adverts.json), якщо бекенд не повернув оголошень.
+  // Фолбек на локальні seed-дані (Adverts.json), якщо бекенд не повернув оголошень. Category-
+  // balanced random sample (not just the first N, which are grouped by category in the
+  // fixture) — memoized so it stays stable across re-renders within the same mount, but
+  // re-shuffles on a fresh page load.
   const usingSeedRecommendations = !isAdvertsLoading && (advertsPage?.items?.length ?? 0) === 0;
-  const recommendations = (usingSeedRecommendations ? getSeedAdverts() : advertsPage?.items ?? []).slice(0, RECOMMENDATIONS_COUNT);
+  const seedRecommendations = useMemo(
+    () => (usingSeedRecommendations ? getSeedRecommendedAdverts(RECOMMENDATIONS_COUNT) : []),
+    [usingSeedRecommendations]
+  );
+  // Reorder so a premium ("ТОП") card lands after every 4-5 regular ones instead of wherever
+  // the API's random/balanced order happened to place them.
+  const recommendations = arrangeFeedWithTopAds(
+    usingSeedRecommendations ? seedRecommendations : (advertsPage?.items ?? []).slice(0, RECOMMENDATIONS_COUNT)
+  );
   const showAdvertsLoading = useMinLoadingTime(isAdvertsLoading, 500);
 
   // Продавці для стрічки "Популярні продавці" — публічного списку продавців ще немає,
@@ -205,7 +220,9 @@ const UserHomePage: React.FC = () => {
             <RightOutlined />
           </button>
 
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-8 md:px-12 py-8 md:py-10 relative">
+          {/* px-12/px-16 (was px-8/px-12) — clears the absolutely-positioned left-3/right-3
+              nav arrows (~48px reach) so title/description/CTA never sit flush against them. */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-12 md:px-16 py-8 md:py-10 relative">
             <div className="flex-1 z-[1]">
               <h1 className="text-2xl md:text-3xl font-bold text-white mb-3 leading-tight">
                 {slide.title}
@@ -255,7 +272,17 @@ const UserHomePage: React.FC = () => {
 
       <section className="max-w-[1280px] mx-auto px-4 md:px-6 pb-8">
         <h2 className="text-xl font-bold text-mm-navy mb-5">Категорії</h2>
-        <div className="flex gap-4 md:gap-6 overflow-x-auto pb-2 scrollbar-hide">
+        {/* pt-3 + overflow-y-visible: the CategoryAvatar/pinned-tile hover lift
+            (hover:-translate-y-1) needs breathing room above the row and an unconstrained
+            vertical axis, or the card tops get clipped at the container's top edge — setting
+            only overflow-x forces overflow-y to 'auto' per the CSS overflow computed-value
+            rule, which was clipping the lift.
+            Centering: flex-nowrap + horizontal scroll on narrow screens (where the tiles
+            overflow the viewport), but wraps and centers (flex-wrap + justify-center) from
+            md up so on wide screens the row sits centered under "Категорії" instead of hugging
+            the left edge with empty space on the right. mx-auto/w-full keep the row itself
+            centered within the section regardless of how many tiles it holds. */}
+        <div className="flex flex-nowrap md:flex-wrap justify-start md:justify-center gap-4 md:gap-6 overflow-x-auto md:overflow-visible overflow-y-visible pt-3 pb-2 scrollbar-hide mx-auto w-full">
           {showCategoriesLoading && (
             <div className="flex justify-center items-center w-full py-4">
               <CubeLoader />
@@ -358,6 +385,8 @@ const UserHomePage: React.FC = () => {
           </div>
         </section>
       )}
+
+      <ReleaseSubscriptionWidget />
     </div>
   );
 };

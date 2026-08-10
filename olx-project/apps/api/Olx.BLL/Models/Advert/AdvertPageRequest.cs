@@ -20,5 +20,8 @@ namespace Olx.BLL.Models.Advert
         public bool? Archived { get; init; }
         public IEnumerable<int>? CategoryIds { get; init; }
         public IEnumerable<IEnumerable<int>>? Filters { get; init; }
+        // Used by AdvertDetailsPage's "Товари продавця" carousel to fetch the same seller's
+        // other active listings via the existing public /get/page endpoint.
+        public int? UserId { get; init; }
     }
 }

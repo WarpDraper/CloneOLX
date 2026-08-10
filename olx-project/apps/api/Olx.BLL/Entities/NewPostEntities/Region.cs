@@ -9,16 +9,16 @@ namespace Olx.BLL.Entities.NewPost
     public class Region :NewPostBaseEntity
     {
         [StringLength(50)]
-        public string RegionType { get; set; }
+        public string RegionType { get; set; } = string.Empty;
 
         [StringLength(36)]
         [Unicode(false)]
-        public string AreaRef { get; set; }
+        public string AreaRef { get; set; } = string.Empty;
 
-        public string? AreasCenter { get; set; } 
+        public string? AreasCenter { get; set; }
 
         [JsonIgnore]
-        public Area Area { get; set; }
+        public Area Area { get; set; } = null!;
 
         public ICollection<Settlement> Settlements  = new HashSet<Settlement>();
     }

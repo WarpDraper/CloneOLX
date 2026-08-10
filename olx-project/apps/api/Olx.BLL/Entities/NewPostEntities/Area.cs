@@ -7,7 +7,7 @@ namespace Olx.BLL.Entities.NewPost
     public class Area : NewPostBaseEntity
     {
         [StringLength(50)]
-        public string RegionType { get; set; }
+        public string RegionType { get; set; } = string.Empty;
         public ICollection<Region> Regions { get; set; } = new HashSet<Region>();
     }
 }

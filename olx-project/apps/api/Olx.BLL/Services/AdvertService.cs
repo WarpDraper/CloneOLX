@@ -101,7 +101,7 @@ namespace Olx.BLL.Services
                 };
                 await adminMessageService.SendToUser(message);
                 var accountBlockedTemplate = EmailTemplates.GetAdvertRemovedTemplate($"{message.Subject} {message.Content}");
-                await emailService.SendAsync(advert.User.Email, Messages.AdvertDeleted, accountBlockedTemplate, true);
+                await emailService.SendAsync(advert.User.Email ?? string.Empty, Messages.AdvertDeleted, accountBlockedTemplate, true);
                 await hubContext.Clients.Users(advert.UserId.ToString())
                   .SendAsync(HubMethods.AdminDeleteAdvert);
                 return;
@@ -109,50 +109,96 @@ namespace Olx.BLL.Services
         }
 
         public async Task<IEnumerable<AdvertDto>> GetRangeAsync(IEnumerable<int> ids) =>
-            (await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().Where(x => ids.Contains(x.Id) && !x.Blocked && !x.Completed)).ToArrayAsync())
+            (await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().AsNoTracking().Where(x => ids.Contains(x.Id) && !x.Blocked && !x.Completed)).ToArrayAsync())
                 .WithOnlineStatus(connectionTracker);
 
         public async Task<IEnumerable<AdvertDto>> GetAllAsync() =>
-            (await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().Where(x => !x.Blocked && !x.Completed)).ToArrayAsync())
+            (await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().AsNoTracking().Where(x => !x.Blocked && !x.Completed)).ToArrayAsync())
                 .WithOnlineStatus(connectionTracker);
 
         public async Task<IEnumerable<AdvertDto>> GetUserAdvertsAsync(bool locked = false,bool completed = false)
         {
             var curentUser = await userManager.UpdateUserActivityAsync(httpContext);
-            var adverts = await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().Where(x => x.UserId == curentUser.Id && x.Blocked == locked && x.Completed == completed)).ToArrayAsync();
+            var adverts = await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().AsNoTracking().Where(x => x.UserId == curentUser.Id && x.Blocked == locked && x.Completed == completed)).ToArrayAsync();
             return adverts.WithOnlineStatus(connectionTracker);
         }
 
         public async Task<IEnumerable<AdvertDto>> GetByUserId(int userId)
         {
             await userManager.UpdateUserActivityAsync(httpContext);
-            var user = userManager.FindByIdAsync(userId.ToString())
+            _ = await userManager.FindByIdAsync(userId.ToString())
                 ?? throw new HttpException(Errors.InvalidUserId,HttpStatusCode.BadRequest);
-            var adverts = await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().Where(x => x.UserId == userId && !x.Blocked && !x.Completed)).ToArrayAsync();
+            var adverts = await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().AsNoTracking().Where(x => x.UserId == userId && !x.Blocked && !x.Completed)).ToArrayAsync();
             return adverts.WithOnlineStatus(connectionTracker);
         }
 
         public async Task<AdvertDto> GetByIdAsync(int id)
         {
-            var advert = await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().Where(x => x.Id == id)).SingleOrDefaultAsync()
+            var advert = await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().AsNoTracking().Where(x => x.Id == id)).SingleOrDefaultAsync()
                 ?? throw new HttpException(Errors.InvalidAdvertId, HttpStatusCode.BadRequest);
             return advert.WithOnlineStatus(connectionTracker);
         }
 
         public async Task<IEnumerable<AdvertImageDto>> GetImagesAsync(int id) =>
-            await mapper.ProjectTo<AdvertImageDto>(imageRepository.GetQuery().Where(x => x.AdvertId == id)).ToArrayAsync();
+            await mapper.ProjectTo<AdvertImageDto>(imageRepository.GetQuery().AsNoTracking().Where(x => x.AdvertId == id)).ToArrayAsync();
        
         public async Task<PageResponse<AdvertDto>> GetPageAsync(AdvertPageRequest pageRequest)
         {
-            var query = mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().Where(x => !x.Completed));
-            var paginationBuilder = new PaginationBuilder<AdvertDto>(query);
+            var query = mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().AsNoTracking().Where(x => !x.Completed));
             var filter = mapper.Map<AdvertFilter>(pageRequest);
+
+            // "random" sortKey (used by the homepage recommendation rail) intentionally bypasses
+            // plain SQL-level ordering: a straight OrderBy(Guid.NewGuid()) would still statistically
+            // skew toward whichever category has the most listings (e.g. Авто), since it's just a
+            // random permutation of the same skewed set. Instead pull a bounded random-ordered
+            // candidate pool from the DB, then round-robin across distinct categories in-memory so
+            // the page mixes categories instead of one dominating it.
+            if (string.Equals(pageRequest.SortKey, "random", StringComparison.OrdinalIgnoreCase))
+            {
+                return await GetBalancedRandomPageAsync(query, filter, pageRequest.Size, connectionTracker);
+            }
+
+            var paginationBuilder = new PaginationBuilder<AdvertDto>(query);
             var sortData = new AdvertSortData(pageRequest.IsDescending, pageRequest.SortKey);
             var page = await paginationBuilder.GetPageAsync(pageRequest.Page, pageRequest.Size, filter, sortData);
             return new()
             {
                 Total = page.Total,
                 Items = page.Items.WithOnlineStatus(connectionTracker)
+            };
+        }
+
+        private static async Task<PageResponse<AdvertDto>> GetBalancedRandomPageAsync(IQueryable<AdvertDto> query, AdvertFilter filter, int size, IConnectionTracker connectionTracker)
+        {
+            var filtered = filter.FilterQuery(query);
+            var total = await filtered.CountAsync();
+
+            // Random order pushed down to the DB (Guid.NewGuid() per row), capped to a candidate
+            // pool big enough to give every category a fair shot without loading the whole table.
+            var poolSize = Math.Max(size * 12, 200);
+            var candidates = await filtered.OrderBy(x => Guid.NewGuid()).Take(poolSize).ToListAsync();
+
+            var byCategory = candidates
+                .GroupBy(x => x.CategoryId)
+                .Select(g => new Queue<AdvertDto>(g))
+                .OrderBy(_ => Guid.NewGuid())
+                .ToList();
+
+            var balanced = new List<AdvertDto>(size);
+            while (balanced.Count < size && byCategory.Any(q => q.Count > 0))
+            {
+                foreach (var group in byCategory)
+                {
+                    if (group.Count == 0) continue;
+                    balanced.Add(group.Dequeue());
+                    if (balanced.Count >= size) break;
+                }
+            }
+
+            return new()
+            {
+                Total = total,
+                Items = balanced.WithOnlineStatus(connectionTracker)
             };
         }
 
@@ -182,14 +228,13 @@ namespace Olx.BLL.Services
             {
                 image.Advert = null;
             }
-            List<Task> tasks = [];
             if (advertModel.ImageFiles.Count != 0)
             {
                 var priorityFiles = advertModel.ImageFiles.Select((x, index) => new { file = x, index });
-                
+
                 foreach (var file in priorityFiles)
                 {
-                   
+
                     if (file.file.ContentType == "image/existing")
                     {
                         var oldImage = advert.Images.FirstOrDefault(x => x.Name == file.file.FileName)!;
@@ -197,17 +242,14 @@ namespace Olx.BLL.Services
                     }
                     else
                     {
-                        tasks.Add(Task.Run(async () =>
+                        var imageName = await imageService.SaveImageAsync(file.file);
+                        advert.Images.Add(new AdvertImage
                         {
-                            var imageName = await imageService.SaveImageAsync(file.file);
-                            advert.Images.Add(new AdvertImage
-                            {
-                                Name = imageName,
-                                Priority = file.index
-                            });
-                        }));
+                            Name = imageName,
+                            Priority = file.index
+                        });
                     }
-                   
+
                 }
              }
             if (advertModel.FilterValueIds.Count != 0)
@@ -218,7 +260,6 @@ namespace Olx.BLL.Services
             advert.Approved = false;
             advert.Completed = false;
             advert.Blocked = false;
-            await Task.WhenAll(tasks);
             await advertRepository.SaveAsync();
             return mapper.Map<AdvertDto>(advert).WithOnlineStatus(connectionTracker);
         }
@@ -254,7 +295,7 @@ namespace Olx.BLL.Services
                 await adminMessageService.SendToUser(message);
                
                 var accountBlockedTemplate = EmailTemplates.GetAdvertLockedTemplate($"{message.Subject} {message.Content}");
-                await emailService.SendAsync(advert.User.Email, Messages.AdvertLocked, accountBlockedTemplate, true);
+                await emailService.SendAsync(advert.User.Email ?? string.Empty, Messages.AdvertLocked, accountBlockedTemplate, true);
                 await hubContext.Clients.Users(advert.UserId.ToString())
                  .SendAsync(HubMethods.AdminLockAdvert);
             }
@@ -305,7 +346,7 @@ namespace Olx.BLL.Services
             };
             await adminMessageService.SendToUser(message);
             var accountBlockedTemplate = EmailTemplates.GetAdvertBoughtTemplate(content);
-            await emailService.SendAsync(advert.User.Email, Messages.AdvertLocked, accountBlockedTemplate, true);
+            await emailService.SendAsync(advert.User.Email ?? string.Empty, Messages.AdvertLocked, accountBlockedTemplate, true);
         }
     }
 }

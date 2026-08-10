@@ -174,7 +174,11 @@ namespace OLX.API.Extensions
              {
                  appBuilder.Use((context, next) =>
                  {
-                     context.Features.Get<IHttpMaxRequestBodySizeFeature>().MaxRequestBodySize = 200 * 1024 * 1024;
+                     var bodySizeFeature = context.Features.Get<IHttpMaxRequestBodySizeFeature>();
+                     if (bodySizeFeature is not null)
+                     {
+                         bodySizeFeature.MaxRequestBodySize = 200 * 1024 * 1024;
+                     }
                      return next();
                  });
              });

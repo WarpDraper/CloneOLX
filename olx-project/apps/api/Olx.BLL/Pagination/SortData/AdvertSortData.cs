@@ -14,6 +14,7 @@ namespace Olx.BLL.Pagination.SortData
                     "id" => x => x.Id,
                     "price" => x => x.Price,
                     "date" => x => x.Date,
+                    "popularity" => x => x.FavoritesCount,
                     "categoryName" => x => x.CategoryName,
                     "phoneNumber" => x => x.PhoneNumber,
                     "contactEmail" => x => x.ContactEmail,
