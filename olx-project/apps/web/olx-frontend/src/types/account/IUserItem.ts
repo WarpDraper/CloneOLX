@@ -6,4 +6,5 @@ export interface IUserItem {
     location: any;
     phoneNumber: any;
     role: any;
+    accountType?: "Individual" | "Business";
 }

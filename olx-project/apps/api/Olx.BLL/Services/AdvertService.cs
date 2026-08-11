@@ -26,6 +26,7 @@ using Microsoft.AspNetCore.SignalR;
 using Olx.BLL.Hubs;
 using SixLabors.ImageSharp;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 
 namespace Olx.BLL.Services
@@ -44,7 +45,8 @@ namespace Olx.BLL.Services
         IMapper mapper,
         IHubContext<MessageHub> hubContext,
         IConnectionTracker connectionTracker,
-        IValidator<AdvertCreationModel> advertCreationModelValidator) : IAdvertService
+        IValidator<AdvertCreationModel> advertCreationModelValidator,
+        ILogger<AdvertService> logger) : IAdvertService
     {
        
         public async Task<AdvertDto> CreateAsync(AdvertCreationModel advertModel)
@@ -112,9 +114,22 @@ namespace Olx.BLL.Services
             (await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().AsNoTracking().Where(x => ids.Contains(x.Id) && !x.Blocked && !x.Completed)).ToArrayAsync())
                 .WithOnlineStatus(connectionTracker);
 
-        public async Task<IEnumerable<AdvertDto>> GetAllAsync() =>
-            (await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().AsNoTracking().Where(x => !x.Blocked && !x.Completed)).ToArrayAsync())
-                .WithOnlineStatus(connectionTracker);
+        // Falls back to an empty list instead of letting a DB outage bubble up as a raw 500 on
+        // the public Advert/get endpoint — the storefront can still render (just without
+        // listings) rather than hard-failing.
+        public async Task<IEnumerable<AdvertDto>> GetAllAsync()
+        {
+            try
+            {
+                return (await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().AsNoTracking().Where(x => !x.Blocked && !x.Completed)).ToArrayAsync())
+                    .WithOnlineStatus(connectionTracker);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to load adverts from the database; returning an empty list.");
+                return [];
+            }
+        }
 
         public async Task<IEnumerable<AdvertDto>> GetUserAdvertsAsync(bool locked = false,bool completed = false)
         {
@@ -144,28 +159,36 @@ namespace Olx.BLL.Services
        
         public async Task<PageResponse<AdvertDto>> GetPageAsync(AdvertPageRequest pageRequest)
         {
-            var query = mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().AsNoTracking().Where(x => !x.Completed));
-            var filter = mapper.Map<AdvertFilter>(pageRequest);
-
-            // "random" sortKey (used by the homepage recommendation rail) intentionally bypasses
-            // plain SQL-level ordering: a straight OrderBy(Guid.NewGuid()) would still statistically
-            // skew toward whichever category has the most listings (e.g. Авто), since it's just a
-            // random permutation of the same skewed set. Instead pull a bounded random-ordered
-            // candidate pool from the DB, then round-robin across distinct categories in-memory so
-            // the page mixes categories instead of one dominating it.
-            if (string.Equals(pageRequest.SortKey, "random", StringComparison.OrdinalIgnoreCase))
+            try
             {
-                return await GetBalancedRandomPageAsync(query, filter, pageRequest.Size, connectionTracker);
+                var query = mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().AsNoTracking().Where(x => !x.Completed));
+                var filter = mapper.Map<AdvertFilter>(pageRequest);
+
+                // "random" sortKey (used by the homepage recommendation rail) intentionally bypasses
+                // plain SQL-level ordering: a straight OrderBy(Guid.NewGuid()) would still statistically
+                // skew toward whichever category has the most listings (e.g. Авто), since it's just a
+                // random permutation of the same skewed set. Instead pull a bounded random-ordered
+                // candidate pool from the DB, then round-robin across distinct categories in-memory so
+                // the page mixes categories instead of one dominating it.
+                if (string.Equals(pageRequest.SortKey, "random", StringComparison.OrdinalIgnoreCase))
+                {
+                    return await GetBalancedRandomPageAsync(query, filter, pageRequest.Size, connectionTracker);
+                }
+
+                var paginationBuilder = new PaginationBuilder<AdvertDto>(query);
+                var sortData = new AdvertSortData(pageRequest.IsDescending, pageRequest.SortKey);
+                var page = await paginationBuilder.GetPageAsync(pageRequest.Page, pageRequest.Size, filter, sortData);
+                return new()
+                {
+                    Total = page.Total,
+                    Items = page.Items.WithOnlineStatus(connectionTracker)
+                };
             }
-
-            var paginationBuilder = new PaginationBuilder<AdvertDto>(query);
-            var sortData = new AdvertSortData(pageRequest.IsDescending, pageRequest.SortKey);
-            var page = await paginationBuilder.GetPageAsync(pageRequest.Page, pageRequest.Size, filter, sortData);
-            return new()
+            catch (Exception ex)
             {
-                Total = page.Total,
-                Items = page.Items.WithOnlineStatus(connectionTracker)
-            };
+                logger.LogError(ex, "Failed to load advert page from the database; returning an empty page.");
+                return new() { Total = 0, Items = [] };
+            }
         }
 
         private static async Task<PageResponse<AdvertDto>> GetBalancedRandomPageAsync(IQueryable<AdvertDto> query, AdvertFilter filter, int size, IConnectionTracker connectionTracker)

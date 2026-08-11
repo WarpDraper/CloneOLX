@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { isBackendImageUrl, reportBackendImageFailure, reportBackendImageSuccess } from "../../utils/buildImageUrl";
 
 interface FallbackImageProps {
@@ -26,9 +27,10 @@ interface FallbackImageProps {
 const DEFAULT_IMAGE_PLACEHOLDER_SVG =
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400'%3E%3Crect width='600' height='400' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='28' fill='%23999'%3ENo Photo%3C/text%3E%3C/svg%3E";
 
-export const DefaultImagePlaceholder: React.FC<{ className?: string; alt?: string }> = ({ className, alt }) => (
-    <img src={DEFAULT_IMAGE_PLACEHOLDER_SVG} alt={alt ?? "No photo"} className={className} />
-);
+export const DefaultImagePlaceholder: React.FC<{ className?: string; alt?: string }> = ({ className, alt }) => {
+    const { t } = useTranslation();
+    return <img src={DEFAULT_IMAGE_PLACEHOLDER_SVG} alt={alt ?? t('common.noPhoto')} className={className} />;
+};
 
 // Memory of image URLs that already failed to load once — e.g. backend seed fixtures
 // referencing {size}_{name}.webp files (http://localhost:5005/images/200_*.webp,

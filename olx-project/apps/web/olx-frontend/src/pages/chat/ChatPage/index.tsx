@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import type { RootState } from "../../../store";
 import { useGetChatsQuery, useGetChatMessagesQuery, useSendMessageMutation, useCreateChatMutation, useSetReadedMutation } from "../../../services/chatService";
 import { useGetAdvertByIdQuery, useGetAdvertsByRangeMutation } from "../../../services/advertService";
@@ -8,14 +9,15 @@ import { useGetSellerProfileQuery, isRealUserId } from "../../../services/profil
 import { useChatHub } from "../../../hooks/useChatHub";
 import { buildImageUrl, IMAGE_SIZES } from "../../../utils/buildImageUrl";
 import FallbackImage from "../../../components/common/FallbackImage";
-import SellerWidget from "../../../components/advert/SellerWidget";
 import ChatThreadList from "./ChatThreadList";
 import ChatWindow, { type ChatWindowAdvert } from "./ChatWindow";
+import ChatSidebar from "./ChatSidebar";
 
 // Frame 249: сторінка чату в реальному часі. Три колонки — треди, активна переписка, картка продавця.
 // Підтримує ?advertId=... (розпочати чат щодо конкретного оголошення) та ?sellerId=... (написати продавцю,
 // із вибором одного з його активних оголошень, якщо чат ще не існує — POST /api/chat/create вимагає AdvertId).
 const ChatPage: React.FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const { isAuth, user } = useSelector((state: RootState) => state.auth);
@@ -28,6 +30,9 @@ const ChatPage: React.FC = () => {
     const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
     const [pendingAdvertId, setPendingAdvertId] = useState<number | null>(null);
     const [pendingSellerId, setPendingSellerId] = useState<number | null>(null);
+    // Right column ("user details") visibility — toggled via ChatWindow's "Показати інформацію"
+    // button. Visible by default to match the always-3-column desktop layout (Screenshot 4).
+    const [infoOpen, setInfoOpen] = useState(true);
 
     const { data: chats = [], isLoading: isChatsLoading } = useGetChatsQuery(undefined, { skip: !isAuth });
 
@@ -163,7 +168,11 @@ const ChatPage: React.FC = () => {
 
     return (
         <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-6">
-            <div className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm grid grid-cols-1 md:grid-cols-[280px_1fr_300px] h-[calc(100vh-160px)] min-h-[560px]">
+            <div
+                className={`bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm grid grid-cols-1 h-[calc(100vh-160px)] min-h-[560px] ${
+                    infoOpen ? "md:grid-cols-[280px_1fr_300px]" : "md:grid-cols-[280px_1fr]"
+                }`}
+            >
                 <div className="border-r border-gray-100 hidden md:flex flex-col overflow-hidden">
                     <ChatThreadList
                         chats={chats}
@@ -178,12 +187,16 @@ const ChatPage: React.FC = () => {
                     {pendingSellerId && !windowAdvert ? (
                         <div className="flex-1 overflow-y-auto p-4">
                             <h3 className="text-sm font-bold text-mm-navy mb-3">
-                                Виберіть оголошення, щоб написати {sellerPickerProfile ? [sellerPickerProfile.firstName, sellerPickerProfile.lastName].filter(Boolean).join(" ") || "продавцю" : "продавцю"}
+                                {t('chat.page.pickAdvertPrompt', {
+                                    name: sellerPickerProfile
+                                        ? [sellerPickerProfile.firstName, sellerPickerProfile.lastName].filter(Boolean).join(" ") || t('chat.page.defaultSellerName')
+                                        : t('chat.page.defaultSellerName'),
+                                })}
                             </h3>
                             {isSellerAdvertsLoading ? (
-                                <p className="text-sm text-gray-400">Завантаження оголошень...</p>
+                                <p className="text-sm text-gray-400">{t('chat.page.loadingAdverts')}</p>
                             ) : activeSellerAdverts.length === 0 ? (
-                                <p className="text-sm text-gray-400">У продавця немає активних оголошень.</p>
+                                <p className="text-sm text-gray-400">{t('chat.page.noActiveAdverts')}</p>
                             ) : (
                                 <div className="flex flex-col gap-2">
                                     {activeSellerAdverts.map((advert) => {
@@ -208,7 +221,7 @@ const ChatPage: React.FC = () => {
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="text-sm font-semibold text-mm-navy truncate">{advert.title}</p>
-                                                    <p className="text-xs text-gray-500">{advert.isContractPrice ? "Договірна" : `${advert.price.toLocaleString("uk-UA")} грн.`}</p>
+                                                    <p className="text-xs text-gray-500">{advert.isContractPrice ? t('chat.common.negotiablePrice') : t('chat.common.priceValue', { price: advert.price.toLocaleString("uk-UA") })}</p>
                                                 </div>
                                             </button>
                                         );
@@ -219,23 +232,24 @@ const ChatPage: React.FC = () => {
                     ) : (
                         <ChatWindow
                             advert={windowAdvert}
+                            counterpart={counterpartId ? { id: counterpartId, isOnline: counterpartSeller?.isOnline, lastSeen: counterpartSeller?.lastSeen } : null}
                             messages={selectedChat ? messages : []}
                             currentUserId={currentUserId}
                             onSend={handleSend}
                             isSending={isSending || isCreating}
                             isPending={!selectedChat && !!pendingAdvertId}
                             isLoading={!!selectedChat && isMessagesLoading}
+                            infoOpen={infoOpen}
+                            onToggleInfo={() => setInfoOpen((prev) => !prev)}
                         />
                     )}
                 </div>
 
-                <div className="border-l border-gray-100 hidden lg:block p-4 overflow-y-auto">
-                    {counterpartSeller ? (
-                        <SellerWidget seller={counterpartSeller} />
-                    ) : (
-                        <p className="text-sm text-gray-400 text-center mt-8">Дані продавця з'являться після вибору чату</p>
-                    )}
-                </div>
+                {infoOpen && (
+                    <div className="border-l border-gray-100 hidden lg:flex flex-col overflow-hidden">
+                        <ChatSidebar seller={counterpartSeller} advert={windowAdvert} />
+                    </div>
+                )}
             </div>
         </div>
     );

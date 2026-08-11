@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { ShoppingCartOutlined, HeartOutlined, HeartFilled, CrownFilled } from "@ant-design/icons";
 import type { IAdvert } from "../../types/advert/IAdvert";
 import type { RootState } from "../../store";
@@ -24,6 +25,7 @@ interface AdvertCardProps {
 }
 
 const AdvertCard: React.FC<AdvertCardProps> = ({ advert, onQuickAdd, onToggleFavorite, isFavorite, filterNameById }) => {
+    const { t } = useTranslation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
@@ -56,7 +58,7 @@ const AdvertCard: React.FC<AdvertCardProps> = ({ advert, onQuickAdd, onToggleFav
         }
 
         dispatch(addToCart({ advertId: advert.id, title: advert.title, price: advert.price, image: imageUrl }));
-        dispatch(addNotification({ type: "success", title: "Додано в кошик", message: advert.title }));
+        dispatch(addNotification({ type: "success", title: t("cart.addedTitle"), message: advert.title }));
         onQuickAdd?.(advert);
     };
 
@@ -75,7 +77,7 @@ const AdvertCard: React.FC<AdvertCardProps> = ({ advert, onQuickAdd, onToggleFav
                         setHeartPulsing(true);
                         window.setTimeout(() => setHeartPulsing(false), 200);
                     }}
-                    aria-label={isFavorite ? "Прибрати з обраного" : "Додати в обране"}
+                    aria-label={isFavorite ? t("favorites.remove") : t("favorites.add")}
                     className={`absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center hover:bg-white ${
                         isFavorite ? "text-red-500" : "text-mm-purple"
                     }`}
@@ -100,12 +102,12 @@ const AdvertCard: React.FC<AdvertCardProps> = ({ advert, onQuickAdd, onToggleFav
                     alt={advert.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     placeholder={
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Немає фото</div>
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">{t("advertCard.noPhoto")}</div>
                     }
                 />
                 {advert.isTop && (
                     <span className="absolute bottom-2 left-2 z-10 flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 text-mm-navy shadow">
-                        <CrownFilled /> ТОП
+                        <CrownFilled /> {t("advertCard.top")}
                     </span>
                 )}
             </div>
@@ -126,8 +128,8 @@ const AdvertCard: React.FC<AdvertCardProps> = ({ advert, onQuickAdd, onToggleFav
                 <div className="flex items-end justify-between gap-2 mt-auto pt-1.5">
                     <div className="min-w-0">
                         <p className="text-sm font-bold text-mm-navy mb-1">
-                            {advert.price.toLocaleString("uk-UA")} грн.
-                            {advert.isContractPrice && <span className="ml-1.5 text-xs font-semibold text-mm-purple">Договірна</span>}
+                            {advert.price.toLocaleString("uk-UA")} {t("common.currency")}
+                            {advert.isContractPrice && <span className="ml-1.5 text-xs font-semibold text-mm-purple">{t("common.negotiable")}</span>}
                         </p>
                         <p className="text-xs text-gray-500 leading-tight truncate">{advert.settlementName}</p>
                     </div>
@@ -135,7 +137,7 @@ const AdvertCard: React.FC<AdvertCardProps> = ({ advert, onQuickAdd, onToggleFav
                         <button
                             type="button"
                             onClick={handleCartClick}
-                            aria-label={isInCart ? "Прибрати з кошика" : "Додати в кошик"}
+                            aria-label={isInCart ? t("cart.removeFromCart") : t("cart.addToCart")}
                             aria-pressed={isInCart}
                             className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                                 isInCart ? "bg-mm-purple text-white hover:bg-mm-purple-dark" : "bg-mm-navy text-white hover:bg-mm-navy/90"

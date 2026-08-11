@@ -3,6 +3,7 @@ import { Table, Button, Tag, Space, Modal, Form, Input, message } from 'antd';
 import { LockOutlined, UnlockOutlined, MailOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { addNotification } from '../../../store/notificationSlice';
 import { useGetUsersQuery, useToggleUserBlockMutation } from '../../../services/adminService.ts';
 
@@ -15,6 +16,7 @@ interface UserData {
 }
 
 const UsersPage: React.FC = () => {
+  const { t } = useTranslation();
   const { data: users = [], isLoading } = useGetUsersQuery();
   const [toggleBlock] = useToggleUserBlockMutation();
   const [isMessageModalVisible, setIsMessageModalVisible] = useState(false);
@@ -26,9 +28,12 @@ const UsersPage: React.FC = () => {
     try {
       await toggleBlock(id).unwrap();
       const newStatus = currentStatus === 'active' ? 'blocked' : 'active';
-      message.success(`Користувача ${name} успішно ${newStatus === 'blocked' ? 'заблоковано' : 'розблоковано'}`);
+      message.success(t('admin.users.messages.statusChanged', {
+        name,
+        action: newStatus === 'blocked' ? t('admin.users.actionVerb.blocked') : t('admin.users.actionVerb.unblocked'),
+      }));
     } catch (e) {
-      message.error('Помилка при зміні статусу. Перевірте підключення до API.');
+      message.error(t('admin.users.messages.statusError'));
     }
   };
 
@@ -41,30 +46,30 @@ const UsersPage: React.FC = () => {
     // We can also trigger a notification for the system to "simulate" that the admin sent a message.
     dispatch(addNotification({
       type: 'info',
-      title: `Повідомлення від модератора`,
+      title: t('admin.users.notifications.title'),
       message: `${values.subject} - ${values.message}`,
     }));
-    message.success(`Повідомлення успішно відправлено користувачу ${selectedUser?.name}`);
+    message.success(t('admin.users.messages.sendSuccess', { name: selectedUser?.name }));
     setIsMessageModalVisible(false);
     form.resetFields();
   };
 
   const columns: ColumnsType<UserData> = [
-    { title: 'ID', dataIndex: 'id', key: 'id', width: 60 },
-    { title: 'Ім\'я', dataIndex: 'name', key: 'name' },
-    { title: 'Email', dataIndex: 'email', key: 'email' },
-    { title: 'Дата реєстрації', dataIndex: 'registerDate', key: 'registerDate' },
+    { title: t('admin.users.table.id'), dataIndex: 'id', key: 'id', width: 60 },
+    { title: t('admin.users.table.name'), dataIndex: 'name', key: 'name' },
+    { title: t('admin.users.table.email'), dataIndex: 'email', key: 'email' },
+    { title: t('admin.users.table.registerDate'), dataIndex: 'registerDate', key: 'registerDate' },
     {
-      title: 'Статус',
+      title: t('admin.users.table.status'),
       key: 'status',
       render: (_, record) => (
         <Tag color={record.status === 'active' ? 'green' : 'red'}>
-          {record.status === 'active' ? 'Активний' : 'Заблокований'}
+          {record.status === 'active' ? t('admin.users.status.active') : t('admin.users.status.blocked')}
         </Tag>
       )
     },
     {
-      title: 'Дії',
+      title: t('admin.users.table.actions'),
       key: 'actions',
       render: (_, record) => (
         <Space size="middle">
@@ -75,7 +80,7 @@ const UsersPage: React.FC = () => {
             size="small"
             onClick={() => toggleUserStatus(record.id, record.status, record.name)}
           >
-             {record.status === 'active' ? 'Заблокувати' : 'Розблокувати'}
+             {record.status === 'active' ? t('admin.users.actions.block') : t('admin.users.actions.unblock')}
           </Button>
           <Button
             type="primary"
@@ -84,7 +89,7 @@ const UsersPage: React.FC = () => {
             className="bg-[#002f34]"
             onClick={() => openMessageModal(record)}
           >
-            Повідомлення
+            {t('admin.users.actions.message')}
           </Button>
         </Space>
       ),
@@ -94,7 +99,7 @@ const UsersPage: React.FC = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#002f34]">Управління користувачами</h1>
+        <h1 className="text-2xl font-bold text-[#002f34]">{t('admin.users.title')}</h1>
       </div>
 
       <Table
@@ -106,7 +111,7 @@ const UsersPage: React.FC = () => {
       />
 
       <Modal
-        title={`Відправити повідомлення: ${selectedUser?.name}`}
+        title={t('admin.users.modal.title', { name: selectedUser?.name })}
         open={isMessageModalVisible}
         onCancel={() => {
           setIsMessageModalVisible(false);
@@ -117,21 +122,21 @@ const UsersPage: React.FC = () => {
         <Form form={form} layout="vertical" onFinish={sendMessage} className="mt-4">
           <Form.Item
             name="subject"
-            label="Тема"
-            rules={[{ required: true, message: 'Будь ласка, введіть тему' }]}
+            label={t('admin.users.modal.subjectLabel')}
+            rules={[{ required: true, message: t('admin.users.modal.subjectRequired') }]}
           >
-            <Input placeholder="Наприклад: Попередження про порушення правил" />
+            <Input placeholder={t('admin.users.modal.subjectPlaceholder')} />
           </Form.Item>
           <Form.Item
             name="message"
-            label="Текст повідомлення"
-            rules={[{ required: true, message: 'Будь ласка, введіть текст повідомлення' }]}
+            label={t('admin.users.modal.messageLabel')}
+            rules={[{ required: true, message: t('admin.users.modal.messageRequired') }]}
           >
-            <Input.TextArea rows={4} placeholder="Введіть текст..." />
+            <Input.TextArea rows={4} placeholder={t('admin.users.modal.messagePlaceholder')} />
           </Form.Item>
           <Form.Item className="mb-0 text-right">
-            <Button onClick={() => setIsMessageModalVisible(false)} className="mr-2">Скасувати</Button>
-            <Button type="primary" htmlType="submit" className="bg-[#002f34]">Відправити</Button>
+            <Button onClick={() => setIsMessageModalVisible(false)} className="mr-2">{t('common.cancel')}</Button>
+            <Button type="primary" htmlType="submit" className="bg-[#002f34]">{t('admin.users.modal.send')}</Button>
           </Form.Item>
         </Form>
       </Modal>

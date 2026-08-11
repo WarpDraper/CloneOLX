@@ -97,6 +97,20 @@ namespace OLX.API.Extensions
                                 Console.WriteLine($"Skip duplicate user \"{user.Email}\"");
                                 continue;
                             }
+                            // Image seeding disabled: no physical files are downloaded, generated, or
+                            // written to wwwroot/images at seed time (imageService.SaveImageAsync is
+                            // never called here). PhotoBase64 fixture data is dropped entirely — there's
+                            // no file to reference without writing one. A local PhotoUrl fixture path is
+                            // kept as-is as a plain string reference on the record; a PhotoUrl pointing
+                            // at a remote http(s) URL is treated as "no photo".
+                            string? seededPhoto = null;
+                            if (user.PhotoUrl is not null
+                                && !user.PhotoUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                                && !user.PhotoUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                            {
+                                seededPhoto = user.PhotoUrl;
+                            }
+
                             var newUser = new OlxUser
                             {
                                 UserName = user.Email,
@@ -104,9 +118,7 @@ namespace OLX.API.Extensions
                                 PhoneNumber = user.PhoneNumber,
                                 FirstName = user.FirstName,
                                 LastName = user.LastName,
-                                Photo = user.PhotoBase64 is not null
-                                ? await imageService.SaveImageAsync(user.PhotoBase64)
-                                : await imageService.SaveImageFromUrlAsync(user.PhotoUrl ?? "https://picsum.photos/800/600"),
+                                Photo = seededPhoto,
                                 WebSite = user.WebSite,
                                 About = user.About,
                                 EmailConfirmed = true,
@@ -179,7 +191,8 @@ namespace OLX.API.Extensions
                         if (categoryModels.Any() && filterRepo is not null)
                         {
                             var filters = await filterRepo.GetListBySpec(new FilterSpecs.GetAll());
-                            await categoryRepo.AddRangeAsync(await GetCategories(categoryModels, filters,imageService));
+                            var seederJsonDir = Path.Combine(Environment.CurrentDirectory, app.Configuration["SeederJsonDir"]!);
+                            await categoryRepo.AddRangeAsync(await GetCategories(categoryModels, filters, imageService, seederJsonDir));
                             await categoryRepo.SaveAsync();
                         }
                     }
@@ -274,30 +287,27 @@ namespace OLX.API.Extensions
                                     ? ResolveCategoryId(allCategories, x.CategoryPath) ?? x.CategoryId
                                     : x.CategoryId;
                                 var filterValues = (await filterValueRepoNonNull.GetListBySpec(new FilterValueSpecs.GetByIds(x.FilterValueIds))).ToList();
-                                // Fixture images are either a real remote URL (downloaded over HTTP,
-                                // as before) or a path relative to SeederJsonDir pointing at a fixture
-                                // shipped in the repo (Helpers/JsonData/SeedImages/*.jpg) — read straight
-                                // off disk instead. The local branch has zero network dependency, so
-                                // seeding can never fail on an unreachable/rate-limited/erroring
-                                // third-party image host (this replaced loremflickr.com, which was
-                                // intermittently returning 500s).
-                                // imagesTasks only touch the (DbContext-free) imageService, so it's safe
-                                // to keep this inner batch parallel.
-                                var imagesTasks = x.ImagePaths.Select(async (path, index) =>
-                                {
-                                    var isRemoteUrl = path.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
-                                        || path.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
-                                    var savedName = isRemoteUrl
-                                        ? await imageService.SaveImageFromUrlAsync(path)
-                                        : await imageService.SaveImageAsync(await File.ReadAllBytesAsync(
-                                            Path.Combine(Environment.CurrentDirectory, app.Configuration["SeederJsonDir"]!, path)));
-                                    return new AdvertImage()
+                                // Image seeding disabled: advert images are never downloaded, generated,
+                                // or written to wwwroot/images (imageService.SaveImageAsync is never
+                                // called here). Local fixture paths are kept as plain string references
+                                // on the AdvertImage records instead — no file read, no file write.
+                                var images = x.ImagePaths
+                                    .Where(path =>
+                                    {
+                                        var isRemoteUrl = path.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                                            || path.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
+                                        if (isRemoteUrl)
+                                        {
+                                            Console.WriteLine($"[DbSeeder] Skipping remote image URL (network fetch disabled): {path}");
+                                        }
+                                        return !isRemoteUrl;
+                                    })
+                                    .Select((path, index) => new AdvertImage()
                                     {
                                         Priority = index,
-                                        Name = savedName
-                                    };
-                                });
-                                var images = await Task.WhenAll(imagesTasks);
+                                        Name = path
+                                    })
+                                    .ToArray();
                                 var settlement = await settlementRepo.GetByIDAsync(x.SettlementRef) ??
                                     throw new NullReferenceException("settlement not found");
                                 adverts.Add(new Advert()
@@ -367,15 +377,31 @@ namespace OLX.API.Extensions
         private async static Task<IEnumerable<Category>> GetCategories(
             IEnumerable<SeederCategoryModel> models,
             IEnumerable<Filter> filters,
-            IImageService imageService)
+            IImageService imageService,
+            string seederJsonDir)
         {
-            var categoryTasks =  models.Select(async (x) => 
+            var categoryTasks =  models.Select(async (x) =>
             {
                 var advertFilters = x.Filters?.Any() ?? false ? filters.Where(z => x.Filters.Contains(z.Name)) : null;
-                var childs = x.Childs?.Any() ?? false ? await GetCategories(x.Childs, filters, imageService) : null;
-                var image = !String.IsNullOrEmpty(x.Image)
-                    ? await imageService.SaveImageFromUrlAsync(x.Image)
-                    : null;
+                var childs = x.Childs?.Any() ?? false ? await GetCategories(x.Childs, filters, imageService, seederJsonDir) : null;
+                // Image seeding disabled: category images are never downloaded, generated, or
+                // written to wwwroot/images (imageService.SaveImageAsync is never called here).
+                // A local fixture path is kept as-is as a plain string reference; a fixture entry
+                // that specifies a remote http(s) URL is skipped (logged) instead of downloaded.
+                string? image = null;
+                if (!String.IsNullOrEmpty(x.Image))
+                {
+                    var isRemoteUrl = x.Image.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                        || x.Image.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
+                    if (isRemoteUrl)
+                    {
+                        Console.WriteLine($"[DbSeeder] Skipping remote category image URL (network fetch disabled): {x.Image}");
+                    }
+                    else
+                    {
+                        image = x.Image;
+                    }
+                }
                 return new Category()
                 {
                     Name = x.Name,

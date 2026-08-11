@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
     CarOutlined,
     ShopOutlined,
@@ -17,75 +18,76 @@ interface MethodCard {
     text: string;
 }
 
-const DELIVERY_METHODS: MethodCard[] = [
-    {
-        icon: CarOutlined,
-        title: "OLX Доставка (Нова пошта)",
-        text: "Продавець відправляє посилку на обране вами відділення чи поштомат Нової пошти. Відстежити статус можна за номером ЕН у чаті замовлення.",
-    },
-    {
-        icon: ShopOutlined,
-        title: "Самовивіз",
-        text: "Забираєте товар безпосередньо у продавця. Адресу й час узгоджуєте в чаті після оформлення замовлення.",
-    },
-    {
-        icon: HomeOutlined,
-        title: "Кур'єрська доставка",
-        text: "Кур'єр привозить замовлення за вказаною адресою. Доступність залежить від населеного пункту продавця й покупця.",
-    },
-];
-
-const PAYMENT_METHODS: MethodCard[] = [
-    {
-        icon: CreditCardOutlined,
-        title: "Оплата карткою онлайн",
-        text: "Кошти списуються одразу при оформленні замовлення й утримуються до підтвердження отримання товару.",
-    },
-    {
-        icon: FileTextOutlined,
-        title: "Накладений платіж",
-        text: "Оплата при отриманні на відділенні Нової пошти. Комісію накладеного платежу сплачує отримувач згідно з тарифами перевізника.",
-    },
-];
-
-const PACKAGING_RULES: string[] = [
-    "Товар має бути упакований відповідно до його ваги, розмірів та крихкості — коробка або пакування, що витримує транспортування.",
-    "Крихкі та електронні товари додатково обгортаються амортизуючим матеріалом (бульбашкова плівка, пінопласт).",
-    "На посилці вказується коректний номер ЕН (експрес-накладної) та контактні дані отримувача.",
-    "Рідини, речовини під тиском та товари з обмеженнями перевізника пакуються згідно з правилами Нової пошти.",
-];
-
-const PROHIBITED_ITEMS: string[] = [
-    "Зброя, боєприпаси та вибухові речовини",
-    "Наркотичні й психотропні речовини",
-    "Готівкові кошти, банківські картки, цінні папери",
-    "Швидкопсувні продукти без спеціального пакування",
-    "Товари, заборонені до пересилання законодавством України",
-];
-
-const TIMEFRAMES = [
-    { label: "У межах одного міста", value: "1 робочий день" },
-    { label: "Між обласними центрами", value: "1–2 робочих дні" },
-    { label: "У віддалені населені пункти", value: "2–4 робочих дні" },
-];
-
 const DeliveryRulesPage: React.FC = () => {
+    const { t } = useTranslation();
+
+    const DELIVERY_METHODS: MethodCard[] = [
+        {
+            icon: CarOutlined,
+            title: t("deliveryRules.methods.novaPoshta.title"),
+            text: t("deliveryRules.methods.novaPoshta.text"),
+        },
+        {
+            icon: ShopOutlined,
+            title: t("deliveryRules.methods.selfPickup.title"),
+            text: t("deliveryRules.methods.selfPickup.text"),
+        },
+        {
+            icon: HomeOutlined,
+            title: t("deliveryRules.methods.courier.title"),
+            text: t("deliveryRules.methods.courier.text"),
+        },
+    ];
+
+    const PAYMENT_METHODS: MethodCard[] = [
+        {
+            icon: CreditCardOutlined,
+            title: t("deliveryRules.payment.cardOnline.title"),
+            text: t("deliveryRules.payment.cardOnline.text"),
+        },
+        {
+            icon: FileTextOutlined,
+            title: t("deliveryRules.payment.cashOnDelivery.title"),
+            text: t("deliveryRules.payment.cashOnDelivery.text"),
+        },
+    ];
+
+    const PACKAGING_RULES: string[] = [
+        t("deliveryRules.packagingRules.0"),
+        t("deliveryRules.packagingRules.1"),
+        t("deliveryRules.packagingRules.2"),
+        t("deliveryRules.packagingRules.3"),
+    ];
+
+    const PROHIBITED_ITEMS: string[] = [
+        t("deliveryRules.prohibitedItems.0"),
+        t("deliveryRules.prohibitedItems.1"),
+        t("deliveryRules.prohibitedItems.2"),
+        t("deliveryRules.prohibitedItems.3"),
+        t("deliveryRules.prohibitedItems.4"),
+    ];
+
+    const TIMEFRAMES = [
+        { label: t("deliveryRules.timeframes.sameCity"), value: t("deliveryRules.timeframes.sameCityValue") },
+        { label: t("deliveryRules.timeframes.betweenCities"), value: t("deliveryRules.timeframes.betweenCitiesValue") },
+        { label: t("deliveryRules.timeframes.remote"), value: t("deliveryRules.timeframes.remoteValue") },
+    ];
+
     return (
         <div className="bg-white">
             <section className="bg-mm-navy">
                 <div className="max-w-[1000px] mx-auto px-4 md:px-6 py-10 text-center">
                     <CarOutlined className="text-4xl text-mm-orange mb-3" />
-                    <h1 className="text-2xl md:text-3xl font-bold text-white mb-3">Правила доставки</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-white mb-3">{t("deliveryRules.title")}</h1>
                     <p className="text-white/70 text-sm md:text-base max-w-2xl mx-auto">
-                        Способи доставки та оплати, терміни, вимоги до пакування та політика Нової пошти —
-                        усе, що потрібно знати перед оформленням замовлення.
+                        {t("deliveryRules.subtitle")}
                     </p>
                 </div>
             </section>
 
             <div className="max-w-[1000px] mx-auto px-4 md:px-6 py-10">
                 <section className="mb-12">
-                    <h2 className="text-xl font-bold text-mm-navy mb-5">Способи доставки</h2>
+                    <h2 className="text-xl font-bold text-mm-navy mb-5">{t("deliveryRules.deliveryMethodsHeading")}</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {DELIVERY_METHODS.map((method) => (
                             <div key={method.title} className="bg-mm-lavender-light border border-purple-100 rounded-xl p-4">
@@ -100,7 +102,7 @@ const DeliveryRulesPage: React.FC = () => {
                 </section>
 
                 <section className="mb-12">
-                    <h2 className="text-xl font-bold text-mm-navy mb-5">Способи оплати</h2>
+                    <h2 className="text-xl font-bold text-mm-navy mb-5">{t("deliveryRules.paymentMethodsHeading")}</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {PAYMENT_METHODS.map((method) => (
                             <div key={method.title} className="flex gap-3 bg-white border border-gray-100 rounded-xl p-4">
@@ -118,7 +120,7 @@ const DeliveryRulesPage: React.FC = () => {
 
                 <section className="mb-12">
                     <h2 className="text-xl font-bold text-mm-navy mb-5 flex items-center gap-2">
-                        <ClockCircleOutlined className="text-mm-purple" /> Орієнтовні терміни доставки
+                        <ClockCircleOutlined className="text-mm-purple" /> {t("deliveryRules.timeframesHeading")}
                     </h2>
                     <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
                         {TIMEFRAMES.map((row, index) => (
@@ -132,14 +134,13 @@ const DeliveryRulesPage: React.FC = () => {
                         ))}
                     </div>
                     <p className="text-xs text-gray-400 mt-2">
-                        Терміни орієнтовні та можуть змінюватись залежно від завантаженості відділень Нової пошти
-                        та дати фактичної передачі відправлення перевізнику.
+                        {t("deliveryRules.timeframesNote")}
                     </p>
                 </section>
 
                 <section className="mb-12">
                     <h2 className="text-xl font-bold text-mm-navy mb-5 flex items-center gap-2">
-                        <SafetyOutlined className="text-mm-purple" /> Вимоги до пакування
+                        <SafetyOutlined className="text-mm-purple" /> {t("deliveryRules.packagingHeading")}
                     </h2>
                     <ul className="flex flex-col gap-2.5 bg-mm-lavender-light border border-purple-100 rounded-xl p-5">
                         {PACKAGING_RULES.map((rule) => (
@@ -153,7 +154,7 @@ const DeliveryRulesPage: React.FC = () => {
 
                 <section className="mb-12">
                     <h2 className="text-xl font-bold text-mm-navy mb-5 flex items-center gap-2">
-                        <StopOutlined className="text-red-500" /> Заборонено до пересилання
+                        <StopOutlined className="text-red-500" /> {t("deliveryRules.prohibitedHeading")}
                     </h2>
                     <div className="bg-red-50 border border-red-100 rounded-xl p-5">
                         <ul className="flex flex-col gap-2 text-sm text-gray-700">
@@ -166,15 +167,15 @@ const DeliveryRulesPage: React.FC = () => {
                         </ul>
                     </div>
                     <p className="text-xs text-gray-400 mt-2">
-                        Повний перелік обмежень визначається чинними правилами перевезення АТ «Нова пошта».
+                        {t("deliveryRules.prohibitedNote")}
                     </p>
                 </section>
 
                 <p className="text-xs text-gray-400 text-center">
-                    Готуєте посилку до відправлення? Перегляньте{" "}
-                    <Link to="/delivery-safety" className="text-mm-purple hover:underline">правила безпечного отримання</Link>{" "}
-                    та поради щодо{" "}
-                    <Link to="/security" className="text-mm-purple hover:underline">безпечних угод</Link>.
+                    {t("deliveryRules.footerPrefix")}{" "}
+                    <Link to="/delivery-safety" className="text-mm-purple hover:underline">{t("deliveryRules.footerSafetyLink")}</Link>{" "}
+                    {t("deliveryRules.footerMiddle")}{" "}
+                    <Link to="/security" className="text-mm-purple hover:underline">{t("deliveryRules.footerSecurityLink")}</Link>.
                 </p>
             </div>
         </div>

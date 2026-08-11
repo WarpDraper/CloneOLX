@@ -31,7 +31,14 @@ namespace Olx.BLL.Pagination.Filters
 
             if (CategoryIds is not null && CategoryIds.Any())
             {
-                query = query.Where(x => CategoryIds.Any(z => z == x.CategoryId));
+                // `.Contains(x.CategoryId)` is the EF Core-idiomatic membership check — it
+                // translates reliably to a SQL `IN (...)`. The previous `.Any(z => z == x.CategoryId)`
+                // form is the one pattern in this file that deviates from that idiom and, depending on
+                // how the outer AdvertDto queryable is projected/composed (ProjectTo + further Where),
+                // could fail to combine into a valid IN clause and yield zero matches instead of the
+                // expected adverts for the selected category (and its subcategories).
+                var categoryIds = CategoryIds.ToList();
+                query = query.Where(x => categoryIds.Contains(x.CategoryId));
             }
 
             if (Filters is not null && Filters.Any())

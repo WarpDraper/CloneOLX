@@ -39,7 +39,9 @@ namespace Olx.BLL.Exstensions
             // not re-created per DI scope. See ConnectionTracker's doc comment.
             services.AddSingleton<IConnectionTracker, ConnectionTracker>();
             services.AddHostedService<TokenCleanupService>();
-            services.AddHostedService<ImageCeanupService>();
+            // ImageCeanupService intentionally NOT registered: it deleted AdvertImage files in the
+            // background, which mutated product images outside of explicit user/seeder actions.
+            // Product images must only ever come from explicit uploads or the JSON seeder fixtures.
             services.AddHostedService<AdminMesssageCleanupService>();
 
             services.AddMailKit(optionBuilder =>

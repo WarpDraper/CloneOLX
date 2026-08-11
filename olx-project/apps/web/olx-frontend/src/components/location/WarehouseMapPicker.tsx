@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { useTranslation } from "react-i18next";
 import type { IWarehouse } from "../../types/location/IWarehouse";
 
 interface WarehouseMapPickerProps {
@@ -22,6 +23,7 @@ const SELECTED_MARKER_COLOR = "#F27127"; // mm-orange
 // Latitude/Longitude the backend now forwards from the Nova Poshta API (see WarehousDto.cs);
 // clicking a pin selects that warehouse the same way picking it from the <Select> dropdown does.
 const WarehouseMapPicker: React.FC<WarehouseMapPickerProps> = ({ warehouses, value, onChange, className }) => {
+    const { t } = useTranslation();
     const containerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<L.Map | null>(null);
     const markersRef = useRef<Map<string, L.CircleMarker>>(new Map());
@@ -103,7 +105,7 @@ const WarehouseMapPicker: React.FC<WarehouseMapPickerProps> = ({ warehouses, val
         <div
             ref={containerRef}
             role="application"
-            aria-label="Карта відділень Нової пошти"
+            aria-label={t('warehouseMapPicker.ariaLabel')}
             className={className ?? "w-full h-72 rounded-lg overflow-hidden border border-gray-200"}
         />
     );

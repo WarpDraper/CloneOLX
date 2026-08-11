@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { AppstoreOutlined } from "@ant-design/icons";
+import { useTranslation } from "react-i18next";
 import { useGetCategoriesQuery } from "../../../services/categoryService";
 import { buildImageUrl, IMAGE_SIZES } from "../../../utils/buildImageUrl";
 import { getSeedTopLevelCategories } from "../../../utils/seedHydration";
@@ -10,6 +11,7 @@ import { useMinLoadingTime } from "../../../hooks/useMinLoadingTime";
 
 // Frame 332: "Всі категорії" — вітрина всіх категорій верхнього рівня плиткою.
 const CategoriesPage: React.FC = () => {
+    const { t } = useTranslation();
     const { data: categories, isLoading, isError } = useGetCategoriesQuery();
     // Keeps the CubeLoader overlay visible for at least 500ms so it never flashes
     // on/off for fast/cached responses.
@@ -22,7 +24,7 @@ const CategoriesPage: React.FC = () => {
 
     return (
         <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-8">
-            <h1 className="text-2xl font-bold text-mm-navy text-center mb-8">Всі категорії</h1>
+            <h1 className="text-2xl font-bold text-mm-navy text-center mb-8">{t('categories.title')}</h1>
 
             {showLoading && (
                 <div className="flex justify-center py-12">
@@ -36,7 +38,7 @@ const CategoriesPage: React.FC = () => {
                     className="relative rounded-lg overflow-hidden aspect-[4/3] bg-mm-orange group border border-mm-orange flex flex-col items-center justify-center gap-2 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
                 >
                     <AppstoreOutlined className="text-4xl text-white" />
-                    <span className="text-white text-sm font-semibold">Усі товари</span>
+                    <span className="text-white text-sm font-semibold">{t('categories.allProducts')}</span>
                 </Link>
                 {topLevelCategories.map((category) => (
                     <Link

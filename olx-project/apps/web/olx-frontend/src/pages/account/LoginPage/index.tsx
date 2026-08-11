@@ -1,9 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
+import { useTranslation } from 'react-i18next';
 import LoginForm from "../../../components/form/LoginForm.tsx";
+import GoogleAuthButton from "../../../components/form/GoogleAuthButton.tsx";
+import { APP_ENV } from "../../../env";
 
 const LoginPage: React.FC = () => {
+  const { t } = useTranslation();
+  const [socialError, setSocialError] = useState<string | null>(null);
+
   return (
+    // Scoped here (not app-wide) so the reCAPTCHA script is only ever requested on the one
+    // page that actually needs it — see main.tsx for why.
+    <GoogleReCaptchaProvider reCaptchaKey={APP_ENV.RECAPTCHA_SITE_KEY}>
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       {/* Card */}
       <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-[502px] px-10 py-10">
@@ -12,7 +22,7 @@ const LoginPage: React.FC = () => {
         <Link
           to="/"
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition-colors"
-          aria-label="Закрити"
+          aria-label={t('login.closeAriaLabel')}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -28,9 +38,9 @@ const LoginPage: React.FC = () => {
 
         {/* Heading */}
         <div className="text-center mb-6">
-          <h1 className="text-lg font-bold text-black">Вхід у ваш акаунт</h1>
+          <h1 className="text-lg font-bold text-black">{t('login.heading')}</h1>
           <p className="text-[10px] text-[#8F8B8B] mt-1 font-medium">
-            Радий вас знову бачити! Увійдіть, щоб продовжити
+            {t('login.subheading')}
           </p>
         </div>
 
@@ -39,22 +49,16 @@ const LoginPage: React.FC = () => {
 
         {/* Divider */}
         <div className="my-4 flex items-center justify-center">
-          <span className="text-[10px] text-black font-normal">Або увійдіть за допомогою:</span>
+          <span className="text-[10px] text-black font-normal">{t('login.orContinueWith')}</span>
         </div>
+
+        {socialError && (
+          <p className="text-red-500 text-xs text-center mb-2">{socialError}</p>
+        )}
 
         {/* Social Icons */}
         <div className="flex items-center justify-center gap-4 mb-6">
-          {/* Google Chrome */}
-          <button className="w-8 h-8 flex items-center justify-center hover:opacity-70 transition-opacity">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5">
-              <path fill="#4CAF50" d="M45 24c0 11.6-9.4 21-21 21S3 35.6 3 24 12.4 3 24 3s21 9.4 21 21z"/>
-              <path fill="#FFC107" d="M24 43c-10.5 0-19-8.5-19-19S13.5 5 24 5s19 8.5 19 19-8.5 19-19 19z"/>
-              <path fill="#F44336" d="M24 5C13.5 5 5 13.5 5 24h19V5z"/>
-              <path fill="#1565C0" d="M5 24c0 10.5 8.5 19 19 19V24H5z"/>
-              <circle cx="24" cy="24" r="8" fill="white"/>
-              <circle cx="24" cy="24" r="6" fill="#1976D2"/>
-            </svg>
-          </button>
+          <GoogleAuthButton onError={setSocialError} />
           {/* Twitter/X */}
           <button className="w-8 h-8 flex items-center justify-center hover:opacity-70 transition-opacity">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5" fill="black">
@@ -86,13 +90,14 @@ const LoginPage: React.FC = () => {
 
         {/* Register link */}
         <p className="text-center text-[10px] text-[#8F8B8B] font-medium">
-          Ще немає акаунту?{' '}
+          {t('login.noAccount')}{' '}
           <Link to="/register" className="text-[#6648D2] hover:underline font-medium">
-            Зареєструватися
+            {t('login.register')}
           </Link>
         </p>
       </div>
     </div>
+    </GoogleReCaptchaProvider>
   );
 };
 

@@ -39,6 +39,15 @@ export function useChatHub({ onReceiveMessage, onCreateChat, onMessagesReaded }:
     useEffect(() => {
         if (!token) return;
 
+        // Guards against the classic SignalR unmount race: if the component unmounts (route
+        // change, React StrictMode's mount->unmount->mount in dev, fast token swap) while
+        // `.start()` is still negotiating, calling `.stop()` on it cancels the in-flight
+        // negotiation and rejects with `AbortError: The connection was stopped during
+        // negotiation.` That's expected/harmless — not a real connection failure — so it must
+        // never reach console.error, and the resolved connection must never go on to invoke
+        // "Connect" after we've already torn down.
+        let cancelled = false;
+
         const connection = new signalR.HubConnectionBuilder()
             .withUrl(`${APP_ENV.API_BASE_URL}/hub`, {
                 accessTokenFactory: () => token,
@@ -77,14 +86,30 @@ export function useChatHub({ onReceiveMessage, onCreateChat, onMessagesReaded }:
 
         connection
             .start()
-            .then(() => connection.invoke("Connect").catch(() => undefined))
-            .catch((err) => console.error("SignalR connection error:", err));
+            .then(() => {
+                if (cancelled) {
+                    // Unmounted while we were still connecting — don't announce "Connect" for a
+                    // hub we're about to tear down anyway, just close it.
+                    return connection.stop().catch(() => undefined);
+                }
+                return connection.invoke("Connect").catch(() => undefined);
+            })
+            .catch((err) => {
+                // AbortError here just means the cleanup below cancelled an in-flight
+                // negotiation — expected during fast unmount/remount, not a real error.
+                if (err?.name !== "AbortError") {
+                    console.error("SignalR connection error:", err);
+                }
+            });
 
         connectionRef.current = connection;
 
         return () => {
+            cancelled = true;
             connection.invoke("Disconnect").catch(() => undefined);
-            connection.stop();
+            // Always catch — stopping a connection mid-negotiation rejects with AbortError,
+            // which would otherwise surface as an unhandled promise rejection in the console.
+            connection.stop().catch(() => undefined);
             connectionRef.current = null;
         };
     }, [token, dispatch]);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
     MessageOutlined,
@@ -9,26 +9,32 @@ import {
 } from '@ant-design/icons';
 import { Badge, Popover, Typography, Button } from 'antd';
 import { useSelector, useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import type { RootState } from '../../store';
 import { markAsRead, markAllAsRead } from '../../store/notificationSlice';
 import type { NotificationItem } from '../../store/notificationSlice';
-
-const NAV_ITEMS = [
-    { icon: MessageOutlined, label: 'Чати', to: '/chat' },
-    { icon: BellOutlined, label: 'Сповіщення', isNotification: true },
-    { icon: ShoppingCartOutlined, label: 'Кошик', to: '/cart', isCart: true },
-    { icon: HeartOutlined, label: 'Обране', to: '/favorites' },
-    { icon: UserOutlined, label: 'Кабінет', isProfile: true },
-];
+import ImageWithFallback from '../../components/common/ImageWithFallback';
 
 const Header: React.FC = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const [language, setLanguage] = useState<'ukr' | 'eng'>('ukr');
+    const { t, i18n } = useTranslation();
+    const language = i18n.language === 'en' ? 'eng' : 'ukr';
+    const setLanguage = (next: 'ukr' | 'eng') => i18n.changeLanguage(next === 'eng' ? 'en' : 'uk');
     const { items } = useSelector((state: RootState) => state.notifications);
+
+    const NAV_ITEMS = [
+        { icon: MessageOutlined, label: t('header.nav.chats'), to: '/chat' },
+        { icon: BellOutlined, label: t('header.nav.notifications'), isNotification: true },
+        { icon: ShoppingCartOutlined, label: t('header.nav.cart'), to: '/cart', isCart: true },
+        { icon: HeartOutlined, label: t('header.nav.favorites'), to: '/favorites' },
+        { icon: UserOutlined, label: t('header.nav.profile'), isProfile: true },
+    ];
 
     // ДОДАЄМО: витягуємо дані користувача (user) з auth slice
     const { isAuth, user } = useSelector((state: RootState) => state.auth);
+
+    const isAdmin = isAuth && user?.role === 'Admin';
 
     const unreadCount = items.filter((n: NotificationItem) => !n.read).length;
     const cartCount = useSelector((state: RootState) => state.cart.items.reduce((n, i) => n + i.quantity, 0));
@@ -38,16 +44,16 @@ const Header: React.FC = () => {
     const notificationContent = (
         <div className="w-80 max-h-96 flex flex-col">
             <div className="flex justify-between items-center mb-2 px-4 shadow-sm pb-2">
-                <span className="font-bold text-mm-navy">Сповіщення</span>
+                <span className="font-bold text-mm-navy">{t('header.notificationsPanel.title')}</span>
                 {unreadCount > 0 && (
                     <Button type="link" size="small" onClick={() => dispatch(markAllAsRead())}>
-                        Прочитано всі
+                        {t('header.notificationsPanel.markAllRead')}
                     </Button>
                 )}
             </div>
             <div className="overflow-y-auto overflow-x-hidden flex-1">
                 {items.length === 0 ? (
-                    <div className="text-center text-gray-400 py-8">Немає нових сповіщень</div>
+                    <div className="text-center text-gray-400 py-8">{t('header.notificationsPanel.empty')}</div>
                 ) : (
                     <div className="flex flex-col divide-y divide-gray-100">
                         {items.map((item: NotificationItem) => (
@@ -82,31 +88,33 @@ const Header: React.FC = () => {
                 </Link>
 
                 <div className="hidden lg:flex items-center gap-4 text-sm font-medium text-gray-600">
-                    <Link to="/about" className="hover:text-mm-purple transition-colors">Про нас</Link>
-                    <Link to="/terms" className="hover:text-mm-purple transition-colors">Умови користування</Link>
+                    <Link to="/about" className="hover:text-mm-purple transition-colors">{t('header.aboutUs')}</Link>
+                    <Link to="/terms" className="hover:text-mm-purple transition-colors">{t('header.terms')}</Link>
                 </div>
 
                 <div className="hidden md:flex items-center rounded-full overflow-hidden border border-gray-200 text-sm font-semibold">
                     <button
                         type="button"
                         onClick={() => setLanguage('ukr')}
+                        aria-pressed={language === 'ukr'}
                         className={`px-4 py-1.5 transition-colors ${language === 'ukr' ? 'bg-mm-purple text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
                     >
-                        Укр
+                        {t('header.langUk')}
                     </button>
                     <button
                         type="button"
                         onClick={() => setLanguage('eng')}
+                        aria-pressed={language === 'eng'}
                         className={`px-4 py-1.5 transition-colors ${language === 'eng' ? 'bg-mm-orange text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
                     >
-                        Eng
+                        {t('header.langEn')}
                     </button>
                 </div>
 
                 <div className="flex items-center gap-4 md:gap-6">
                     {NAV_ITEMS.map(({ icon: Icon, label, isNotification, isCart, isProfile, to }) => {
 
-                        const currentLabel = isProfile && isAuth ? (user?.name || 'Кабінет') : label;
+                        const currentLabel = isProfile && isAuth ? (user?.name || t('header.nav.profile')) : label;
 
                         const content = (
                             <div className="flex flex-col items-center gap-1 cursor-pointer group min-w-[52px]">
@@ -123,7 +131,7 @@ const Header: React.FC = () => {
                                         </div>
                                     </Badge>
                                 ) : isProfile && isAuth && user?.avatarUrl ? (
-                                    <img
+                                    <ImageWithFallback
                                         src={user.avatarUrl}
                                         alt="User avatar"
                                         className="w-10 h-10 rounded-full object-cover border border-purple-100 group-hover:opacity-85 transition-opacity"
@@ -166,12 +174,22 @@ const Header: React.FC = () => {
                         return <div key={label}>{content}</div>;
                     })}
 
+                    {isAdmin && (
+                        <button
+                            type="button"
+                            onClick={() => navigate('/admin')}
+                            className="bg-mm-navy hover:bg-slate-800 text-white font-bold text-sm px-5 py-2.5 rounded-lg transition-colors whitespace-nowrap shadow-sm"
+                        >
+                            {t('header.adminPanel')}
+                        </button>
+                    )}
+
                     <button
                         type="button"
                         onClick={() => navigate(isAuth ? '/adverts/create' : '/login')}
                         className="bg-mm-orange hover:bg-orange-500 text-white font-bold text-sm px-5 py-2.5 rounded-lg transition-colors whitespace-nowrap shadow-sm"
                     >
-                        Додати оголошення
+                        {t('header.addAdvert')}
                     </button>
                 </div>
             </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next";
 import {
     HeartOutlined,
     HeartFilled,
@@ -12,7 +13,7 @@ import {
     CarOutlined,
 } from "@ant-design/icons";
 import type { RootState } from "../../../store";
-import { useGetAdvertByIdQuery, useBuyAdvertMutation, useGetAdvertsPageQuery } from "../../../services/advertService";
+import { useGetAdvertByIdQuery, useBuyAdvertMutation, useGetAdvertsPageQuery, isRealAdvertId } from "../../../services/advertService";
 import {
     useGetFavoritesQuery,
     useAddToFavoritesMutation,
@@ -28,21 +29,22 @@ import AdvertCarousel from "../../../components/advert/AdvertCarousel";
 import { buildImageUrl, IMAGE_SIZES } from "../../../utils/buildImageUrl";
 import { getSeedAdverts, getSeedFilters } from "../../../utils/seedHydration";
 
-// Статичні пункти доставки — бекенд не має API служби доставки/тарифів,
-// тому це загальні інформаційні варіанти (не прив'язані до конкретного оголошення).
-const DELIVERY_OPTIONS = [
-    { label: "Самовивіз з магазинів MultiMart", note: "Середній термін доставки 3 дні", price: "Безкоштовно", priceClass: "text-green-600" },
-    { label: "Самовивіз з Нової Пошти", note: "Середній термін доставки 2 дні", price: "Тариф перевізника", priceClass: "text-gray-500" },
-    { label: "Самовивіз з поштоматів Нової Пошти", note: "Середній термін доставки 2 дні", price: "Тариф перевізника", priceClass: "text-gray-500" },
-    { label: "Кур'єр Нової Пошти", note: "", price: "Тариф перевізника", priceClass: "text-gray-500" },
-];
-
 const AdvertDetailsPage: React.FC = () => {
+    const { t } = useTranslation();
     const { id } = useParams<{ id: string }>();
     const advertId = Number(id);
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { isAuth } = useSelector((state: RootState) => state.auth);
+
+    // Статичні пункти доставки — бекенд не має API служби доставки/тарифів,
+    // тому це загальні інформаційні варіанти (не прив'язані до конкретного оголошення).
+    const DELIVERY_OPTIONS = [
+        { label: t("advertDetails.delivery.options.pickupStore.label"), note: t("advertDetails.delivery.options.pickupStore.note"), price: t("advertDetails.delivery.free"), priceClass: "text-green-600" },
+        { label: t("advertDetails.delivery.options.pickupNovaPoshta.label"), note: t("advertDetails.delivery.options.pickupNovaPoshta.note"), price: t("advertDetails.delivery.carrierRate"), priceClass: "text-gray-500" },
+        { label: t("advertDetails.delivery.options.pickupNovaPoshtaLockers.label"), note: t("advertDetails.delivery.options.pickupNovaPoshtaLockers.note"), price: t("advertDetails.delivery.carrierRate"), priceClass: "text-gray-500" },
+        { label: t("advertDetails.delivery.options.courierNovaPoshta.label"), note: "", price: t("advertDetails.delivery.carrierRate"), priceClass: "text-gray-500" },
+    ];
 
     // Seed-hydrated adverts use synthetic negative ids (see utils/seedHydration.ts) — never
     // issue a real API request for those (backend rejects e.g. GET /api/Advert/get/-2149 with 400).
@@ -114,16 +116,27 @@ const AdvertDetailsPage: React.FC = () => {
     }, [advert, getFiltersByRange]);
 
     if (isLoading) {
-        return <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-16 text-center text-gray-400">Завантаження...</div>;
+        return <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-16 text-center text-gray-400">{t("common.loading")}</div>;
     }
 
     if (!advert) {
-        return <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-16 text-center text-gray-400">Оголошення не знайдено.</div>;
+        return <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-16 text-center text-gray-400">{t("advertDetails.notFound")}</div>;
     }
 
     const requireAuth = (action: () => void) => {
         if (!isAuth) {
             navigate("/login");
+            return;
+        }
+        action();
+    };
+
+    // Seed-fallback adverts (synthetic negative id, offline/no-DB demo mode) have no real
+    // backend record — buying/favoriting/messaging them would 400. Block those actions here
+    // instead of letting the request go out.
+    const requireRealAdvert = (action: () => void) => {
+        if (!isRealAdvertId(advert.id)) {
+            dispatch(addNotification({ type: "error", title: t("advertDetails.demoUnavailable.title"), message: t("advertDetails.demoUnavailable.message") }));
             return;
         }
         action();
@@ -140,23 +153,23 @@ const AdvertDetailsPage: React.FC = () => {
             image: buildImageUrl(cover?.name, IMAGE_SIZES.thumbnail),
             quantity,
         }));
-        dispatch(addNotification({ type: "success", title: "Додано в кошик", message: advert.title }));
+        dispatch(addNotification({ type: "success", title: t("cart.addedTitle"), message: advert.title }));
     });
 
-    const handleBuy = () => requireAuth(async () => {
+    const handleBuy = () => requireAuth(() => requireRealAdvert(async () => {
         await buyAdvert(advert.id).unwrap();
-        dispatch(addNotification({ type: "success", title: "Купівля оформлена", message: advert.title }));
-    });
+        dispatch(addNotification({ type: "success", title: t("advertDetails.purchase.successTitle"), message: advert.title }));
+    }));
 
-    const handleToggleFavorite = () => requireAuth(async () => {
+    const handleToggleFavorite = () => requireAuth(() => requireRealAdvert(async () => {
         if (isFavorite) {
             await removeFromFavorites(advert.id).unwrap();
         } else {
             await addToFavorites(advert.id).unwrap();
         }
-    });
+    }));
 
-    const handleMessage = () => requireAuth(() => navigate(`/chat?advertId=${advert.id}`));
+    const handleMessage = () => requireAuth(() => requireRealAdvert(() => navigate(`/chat?advertId=${advert.id}`)));
 
     const handleShowPhone = () => requireAuth(() => setIsPhoneRevealed(true));
 
@@ -168,7 +181,7 @@ const AdvertDetailsPage: React.FC = () => {
     const characteristicsRows = advert.filterValues.map((fv) => {
         const filter = filters?.find((f) => f.id === fv.filterId);
         const seedFilter = !filter ? getSeedFilters().find((f) => f.id === fv.filterId) : undefined;
-        return { key: filter?.name ?? seedFilter?.name ?? `Характеристика #${fv.filterId}`, value: fv.value };
+        return { key: filter?.name ?? seedFilter?.name ?? t("advertDetails.unknownCharacteristic", { id: fv.filterId }), value: fv.value };
     });
 
     return (
@@ -184,7 +197,7 @@ const AdvertDetailsPage: React.FC = () => {
                         <button
                             type="button"
                             onClick={handleToggleFavorite}
-                            aria-label={isFavorite ? "Прибрати з обраного" : "Додати в обране"}
+                            aria-label={isFavorite ? t("favorites.remove") : t("favorites.add")}
                             className={`shrink-0 w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-mm-lavender transition-colors ${
                                 isFavorite ? "text-red-500" : "text-mm-purple"
                             }`}
@@ -198,9 +211,9 @@ const AdvertDetailsPage: React.FC = () => {
                     )}
 
                     <p className="text-2xl font-black text-mm-navy flex items-baseline gap-2 flex-wrap">
-                        {advert.price.toLocaleString("uk-UA")} грн.
+                        {advert.price.toLocaleString("uk-UA")} {t("common.currency")}
                         {advert.isContractPrice && (
-                            <span className="text-sm font-semibold text-mm-purple">Договірна</span>
+                            <span className="text-sm font-semibold text-mm-purple">{t("common.negotiable")}</span>
                         )}
                     </p>
 
@@ -228,7 +241,7 @@ const AdvertDetailsPage: React.FC = () => {
                                 onClick={handleAddToCart}
                                 className="flex-1 bg-mm-navy hover:bg-mm-navy/90 text-white font-bold text-sm py-2.5 rounded-lg transition-colors"
                             >
-                                Додати в кошик
+                                {t("cart.addToCart")}
                             </button>
                         </div>
                     )}
@@ -239,27 +252,27 @@ const AdvertDetailsPage: React.FC = () => {
                         disabled={isBuying}
                         className="w-full bg-mm-purple hover:bg-mm-purple-dark text-white font-bold text-sm py-2.5 rounded-lg transition-colors disabled:opacity-50"
                     >
-                        {isBuying ? "Обробка..." : "Купити"}
+                        {isBuying ? t("advertDetails.buy.processing") : t("cart.buy")}
                     </button>
 
                     {!isAuth && (
                         <div className="bg-[#fdfcde] border border-yellow-100 rounded-lg px-4 py-3 text-xs text-mm-navy">
-                            Увійдіть у свій профіль MultiMart або створіть новий, щоб зв'язатися з продавцем.{" "}
+                            {t("advertDetails.loginPrompt.text")}{" "}
                             <Link to="/login" className="font-semibold underline">
-                                Увійдіть або створіть профіль
+                                {t("advertDetails.loginPrompt.link")}
                             </Link>
                         </div>
                     )}
 
                     <div className="border border-gray-100 rounded-xl p-4">
-                        <p className="text-xs font-medium text-gray-500 mb-3">Зв'язок з продавцем:</p>
+                        <p className="text-xs font-medium text-gray-500 mb-3">{t("advertDetails.contactSeller")}</p>
                         <div className="flex flex-col gap-2">
                             <button
                                 type="button"
                                 onClick={handleMessage}
                                 className="flex items-center justify-center gap-2 border border-gray-200 text-mm-navy font-medium text-sm py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
                             >
-                                <MessageOutlined /> Повідомлення
+                                <MessageOutlined /> {t("advertDetails.messageButton")}
                             </button>
                             <button
                                 type="button"
@@ -267,16 +280,16 @@ const AdvertDetailsPage: React.FC = () => {
                                 className="flex items-center justify-center gap-2 bg-mm-navy/90 text-white font-medium text-sm py-2.5 rounded-lg hover:bg-mm-navy transition-colors"
                             >
                                 <PhoneOutlined />
-                                {isPhoneRevealed ? advert.phoneNumber || "не вказано" : "Телефон"}
+                                {isPhoneRevealed ? advert.phoneNumber || t("advertDetails.notProvided") : t("advertDetails.showPhone")}
                             </button>
                         </div>
                     </div>
 
                     <div className="bg-gray-100/60 rounded-lg p-4">
-                        <p className="text-[11px] font-semibold text-gray-500 tracking-wide mb-2">МІСЦЕЗНАХОДЖЕННЯ</p>
+                        <p className="text-[11px] font-semibold text-gray-500 tracking-wide mb-2">{t("advertDetails.locationLabel")}</p>
                         <div className="flex items-center gap-2 text-sm text-mm-navy">
                             <EnvironmentOutlined className="text-mm-purple" />
-                            {advert.settlementName || "не вказано"}
+                            {advert.settlementName || t("advertDetails.notProvided")}
                         </div>
                     </div>
 
@@ -292,13 +305,13 @@ const AdvertDetailsPage: React.FC = () => {
                 <div className="lg:col-span-2 flex flex-col gap-8">
                     <section>
                         <div className="flex items-center justify-between mb-3">
-                            <h2 className="text-lg font-bold text-mm-navy">Характеристика та опис</h2>
+                            <h2 className="text-lg font-bold text-mm-navy">{t("advertDetails.specsTitle")}</h2>
                             <button
                                 type="button"
                                 onClick={() => setIsSpecsOpen((prev) => !prev)}
                                 className="text-xs font-semibold text-mm-purple hover:underline shrink-0"
                             >
-                                {isSpecsOpen ? "Приховати опис та характеристики" : "Показати опис та характеристики"}
+                                {isSpecsOpen ? t("advertDetails.hideSpecs") : t("advertDetails.showSpecs")}
                             </button>
                         </div>
                         {isSpecsOpen && (
@@ -321,7 +334,7 @@ const AdvertDetailsPage: React.FC = () => {
 
                 <div className="bg-[#fdfcde] rounded-lg p-5">
                     <h3 className="flex items-center gap-2 text-sm font-bold text-mm-navy mb-4">
-                        <CarOutlined /> Доставка та оплата
+                        <CarOutlined /> {t("advertDetails.deliveryTitle")}
                     </h3>
                     <div className="flex flex-col gap-3 mb-4">
                         {DELIVERY_OPTIONS.map((option) => (
@@ -335,16 +348,15 @@ const AdvertDetailsPage: React.FC = () => {
                         ))}
                     </div>
                     <p className="text-[10px] text-gray-600 leading-relaxed">
-                        <span className="font-bold">Оплата.</span> Оплата під час отримання товару, Apple Pay, Google Pay,
-                        оплата карткою Visa/MasterCard (MultiMart), оплата на рахунок продавця.
+                        <span className="font-bold">{t("advertDetails.paymentInfo.label")}</span> {t("advertDetails.paymentInfo.text")}
                     </p>
                 </div>
             </div>
 
             {/* key={advert.id} resets each carousel's internal page back to 0 when navigating
                 between different adverts, instead of e.g. staying on page 2 of a 1-page list. */}
-            <AdvertCarousel key={`related-${advert.id}`} title="Також Вас можуть зацікавити" adverts={relatedAdverts} itemsPerPage={4} />
-            <AdvertCarousel key={`seller-${advert.id}`} title="Товари продавця" adverts={sellerAdverts} itemsPerPage={4} />
+            <AdvertCarousel key={`related-${advert.id}`} title={t("advertDetails.relatedTitle")} adverts={relatedAdverts} itemsPerPage={4} />
+            <AdvertCarousel key={`seller-${advert.id}`} title={t("advertDetails.sellerItemsTitle")} adverts={sellerAdverts} itemsPerPage={4} />
         </div>
     );
 };

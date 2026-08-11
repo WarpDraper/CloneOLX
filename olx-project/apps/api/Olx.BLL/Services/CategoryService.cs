@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Olx.BLL.Exstensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 
 namespace Olx.BLL.Services
@@ -27,11 +28,26 @@ namespace Olx.BLL.Services
         IValidator<CategoryCreationModel> validator,
         IFilterService filterService,
         UserManager<OlxUser> userManager,
-        IHttpContextAccessor httpContext) : ICategoryService
+        IHttpContextAccessor httpContext,
+        ILogger<CategoryService> logger) : ICategoryService
     {
 
-        public async Task<IEnumerable<CategoryDto>> Get() => await mapper.ProjectTo<CategoryDto>(categoryRepository.GetQuery().AsNoTracking()).ToArrayAsync();
-     
+        // Falls back to an empty list instead of letting a DB outage (unreachable Neon instance,
+        // missing table, etc.) bubble up as a raw 500 on the public Category/get endpoint — the
+        // storefront can still render (just without categories) rather than hard-failing.
+        public async Task<IEnumerable<CategoryDto>> Get()
+        {
+            try
+            {
+                return await mapper.ProjectTo<CategoryDto>(categoryRepository.GetQuery().AsNoTracking()).ToArrayAsync();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to load categories from the database; returning an empty list.");
+                return [];
+            }
+        }
+
         public async Task<CategoryDto> CreateAsync(CategoryCreationModel creationModel)
         {
             await userManager.UpdateUserActivityAsync(httpContext);
@@ -165,16 +181,24 @@ namespace Olx.BLL.Services
 
         public async Task<PageResponse<CategoryDto>> GetPageAsync(CategoryPageRequest pageRequest)
         {
-            var query = mapper.ProjectTo<CategoryDto>(categoryRepository.GetQuery().AsNoTracking());
-            var paginationBuilder = new PaginationBuilder<CategoryDto>(query);
-            var filter = new CategoryFilter(pageRequest.SearchName, pageRequest.ParentName);
-            var sortData = new CategorySortData(pageRequest.IsDescending, pageRequest.SortKey);
-            var page = await paginationBuilder.GetPageAsync(pageRequest.Page, pageRequest.Size, filter, sortData);
-            return new()
+            try
             {
-                Total = page.Total,
-                Items = page.Items
-            };
+                var query = mapper.ProjectTo<CategoryDto>(categoryRepository.GetQuery().AsNoTracking());
+                var paginationBuilder = new PaginationBuilder<CategoryDto>(query);
+                var filter = new CategoryFilter(pageRequest.SearchName, pageRequest.ParentName);
+                var sortData = new CategorySortData(pageRequest.IsDescending, pageRequest.SortKey);
+                var page = await paginationBuilder.GetPageAsync(pageRequest.Page, pageRequest.Size, filter, sortData);
+                return new()
+                {
+                    Total = page.Total,
+                    Items = page.Items
+                };
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to load category page from the database; returning an empty page.");
+                return new() { Total = 0, Items = [] };
+            }
         }
 
         

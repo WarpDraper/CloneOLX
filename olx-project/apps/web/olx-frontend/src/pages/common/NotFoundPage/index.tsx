@@ -2,9 +2,11 @@ import React from 'react';
 import { Button } from 'antd';
 import { HomeOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const NotFoundPage: React.FC = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden bg-[#002f34]">
@@ -28,11 +30,11 @@ const NotFoundPage: React.FC = () => {
                 </div>
 
                 <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6 font-sans">
-                    Oops! Page not found
+                    {t('notFound.title')}
                 </h2>
 
                 <p className="text-lg text-teal-100 mb-10 max-w-lg mx-auto font-light">
-                    The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
+                    {t('notFound.description')}
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -43,7 +45,7 @@ const NotFoundPage: React.FC = () => {
                         onClick={() => navigate('/')}
                         className="w-full sm:w-auto bg-[#cbf7ee] hover:!bg-[#23e5db] hover:!text-[#002f34] text-[#002f34] h-12 px-8 rounded-xl font-bold shadow-md border-0"
                     >
-                        Back to Home
+                        {t('notFound.backHome')}
                     </Button>
                     <Button
                         size="large"
@@ -51,7 +53,7 @@ const NotFoundPage: React.FC = () => {
                         onClick={() => navigate(-1)}
                         className="w-full sm:w-auto h-12 px-8 rounded-xl font-semibold border-white/50 text-white bg-transparent hover:!text-[#23e5db] hover:!border-[#23e5db]"
                     >
-                        Go Back
+                        {t('notFound.goBack')}
                     </Button>
                 </div>
             </div>

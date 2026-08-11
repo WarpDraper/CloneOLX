@@ -50,6 +50,11 @@ namespace Olx.BLL.Services
         IValidator<UserEditModel> userEditModelValidator) : IAccountService
     {
         private static readonly ConcurrentDictionary<int, SemaphoreSlim> _userSemaphores = new();
+        // In-memory 6-digit email verification codes for the Profile Settings "confirm email"
+        // flow — separate from the token-link confirmation used at registration. Keyed by user
+        // id; a fresh request overwrites any pending code. Not persisted since a 10-minute expiry
+        // makes surviving an app restart irrelevant.
+        private static readonly ConcurrentDictionary<int, (string Code, DateTime Expiry)> _emailVerificationCodes = new();
 
         private async Task<string> CreateRefreshToken(int userId)
         {
@@ -262,10 +267,10 @@ namespace Olx.BLL.Services
             }
         }
 
-        public async Task FogotPasswordAsync(string email) 
+        public async Task FogotPasswordAsync(string email)
         {
             var user = await userManager.FindByEmailAsync(email);
-            if (user is not null) 
+            if (user is not null)
             {
                 var passwordResetToken = await userManager.GeneratePasswordResetTokenAsync(user);
                 var mail = EmailTemplates.GetPasswordResetTemplate(configuration["FrontendResetPasswordUrl"]!, passwordResetToken,user.Id);
@@ -280,9 +285,36 @@ namespace Olx.BLL.Services
             if (user is not null)
             {
                 var result = await userManager.ResetPasswordAsync(user,resetPasswordModel.Token,resetPasswordModel.Password);
-                if (result.Succeeded) return;
+                if (result.Succeeded)
+                {
+                    await emailService.SendAsync(user.Email, "Пароль змінено", EmailTemplates.GetPasswordChangedTemplate(), true);
+                    return;
+                }
             }
             throw new HttpException(Errors.InvalidResetPasswordData, HttpStatusCode.BadRequest);
+        }
+
+        public async Task SendEmailVerificationCodeAsync()
+        {
+            var user = await GetCurrentUser();
+            var code = Random.Shared.Next(100000, 1000000).ToString();
+            _emailVerificationCodes[user.Id] = (code, DateTime.UtcNow.AddMinutes(10));
+            await emailService.SendAsync(user.Email, "Підтвердження email", EmailTemplates.GetEmailVerificationCodeTemplate(code), true);
+        }
+
+        public async Task VerifyEmailCodeAsync(string code)
+        {
+            var user = await GetCurrentUser();
+            if (string.IsNullOrWhiteSpace(code)
+                || !_emailVerificationCodes.TryGetValue(user.Id, out var entry)
+                || entry.Expiry < DateTime.UtcNow
+                || entry.Code != code.Trim())
+            {
+                throw new HttpException(Errors.InvalidConfirmationData, HttpStatusCode.BadRequest);
+            }
+            _emailVerificationCodes.TryRemove(user.Id, out _);
+            user.EmailConfirmed = true;
+            await userManager.UpdateAsync(user);
         }
 
         public async Task BlockUserAsync(UserBlockModel userBlockModel)
@@ -402,13 +434,14 @@ namespace Olx.BLL.Services
             }
 
             userEditModelValidator.ValidateAndThrow(userEditModel);
-            if (userEditModel.OldPassword is not null) 
+            if (userEditModel.OldPassword is not null)
             {
                 var result = await userManager.ChangePasswordAsync(user, userEditModel.OldPassword!, userEditModel.Password!);
                 if (!result.Succeeded)
                 {
                     throw new HttpException(Errors.CurrentPasswordIsNotValid, HttpStatusCode.BadRequest);
                 }
+                await emailService.SendAsync(user.Email, "Пароль змінено", EmailTemplates.GetPasswordChangedTemplate(), true);
             }
             
             

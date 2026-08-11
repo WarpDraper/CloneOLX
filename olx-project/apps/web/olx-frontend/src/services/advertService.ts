@@ -4,6 +4,13 @@ import type { IAdvert } from "../types/advert/IAdvert";
 import type { IAdvertPageRequest } from "../types/advert/IAdvertPageRequest";
 import type { IPageResponse } from "../types/common/IPageResponse";
 
+/** True for real backend advert ids — synthetic seed-fallback ids are negative (see
+ *  utils/seedHydration.ts) and must never be sent to advert/favorites/chat endpoints
+ *  (backend rejects e.g. GET /api/Advert/get/-2182 or POST /api/Account/favorites/add/-2182
+ *  with 400 Bad Request). Mirrors profileService.isRealUserId. */
+export const isRealAdvertId = (id: number | null | undefined): id is number =>
+    typeof id === "number" && Number.isFinite(id) && id > 0;
+
 export const advertService = createApi({
     reducerPath: "advertService",
     baseQuery: createBaseQuery("Advert"), // префікс /api/Advert

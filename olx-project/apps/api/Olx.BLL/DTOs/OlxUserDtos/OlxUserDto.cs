@@ -17,6 +17,7 @@
         public string? About { get; set; }
         public double Rating { get; set; }
         public int ReviewsCount { get; set; }
+        public string AccountType { get; set; } = "Individual";
         public string? SettlementRef { get; set; }
         public string? SettlementDescrption { get; set; }
         public IEnumerable<int> Adverts { get; set; } = [];

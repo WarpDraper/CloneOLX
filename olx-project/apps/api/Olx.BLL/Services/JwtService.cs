@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Olx.BLL.Entities;
+using Olx.BLL.Entities.NewPost;
 using Olx.BLL.Exceptions;
 using Olx.BLL.Helpers.Options;
 using Olx.BLL.Interfaces;
@@ -14,7 +15,7 @@ using System.Text;
 
 namespace Olx.BLL.Services
 {
-    public class JwtService(IConfiguration configuration, UserManager<OlxUser> userManager) : IJwtService
+    public class JwtService(IConfiguration configuration, UserManager<OlxUser> userManager, IRepository<Settlement> settlementRepository) : IJwtService
     {
         private JwtOptions _jwtOpts = configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>()
                 ?? throw new HttpException(Errors.JwtSettingsReadError, HttpStatusCode.InternalServerError);
@@ -41,6 +42,13 @@ namespace Olx.BLL.Services
 
         public async Task<IEnumerable<Claim>> GetClaimsAsync(OlxUser user)
         {
+            // "city" must be a human-readable settlement name for the frontend (UserProfilePage/
+            // SettingsPage render it directly) — resolve the raw SettlementRef GUID against
+            // tbl_Settlements instead of putting the GUID itself in the claim.
+            var settlementDescription = string.IsNullOrEmpty(user.SettlementRef)
+                ? string.Empty
+                : (await settlementRepository.GetByIDAsync(user.SettlementRef))?.Description ?? string.Empty;
+
             var claims = new List<Claim>
             {
                 // 1. ID користувача (тут усе добре)
@@ -60,12 +68,21 @@ namespace Olx.BLL.Services
                 // 4. Перейменовуємо "photo" на "avatarUrl", як хоче фронтенд
                 new ("avatarUrl", user.Photo ?? string.Empty),
         
-                // 5. Перейменовуємо "settlement" на "city" для відображення локації
-                new ("city", user.SettlementRef ?? string.Empty),
+                // 5. Перейменовуємо "settlement" на "city" для відображення локації —
+                // людиночитна назва (напр. "м. Київ"), а не сирий SettlementRef GUID.
+                new ("city", settlementDescription),
                 new ("website", user.WebSite ?? string.Empty),
+                new ("accountType", user.AccountType),
             };
+            // Must be ClaimTypes.Role (not a custom "roles" claim) — [Authorize(Roles = ...)]
+            // on AccountController/AdvertController/ChatController/UserController checks claims
+            // of type ClaimTypes.Role by default (RoleClaimType isn't overridden in
+            // OlxApiServiceExtensions' TokenValidationParameters). A custom claim type here
+            // authenticates fine but fails every role check with 403 Forbidden even for a valid
+            // token — and the frontend's authSlice.ts decodes the same ClaimTypes.Role URI for
+            // user.role, so this also silently hid the Header "Admin" button for actual admins.
             var roles = await userManager.GetRolesAsync(user);
-            claims.AddRange(roles.Select(role => new Claim("roles", role)));
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
             return claims;
         }
 

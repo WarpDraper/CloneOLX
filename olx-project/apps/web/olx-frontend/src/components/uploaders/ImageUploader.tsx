@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Upload, Image } from "antd";
 import ImgCrop from "antd-img-crop";
+import { useTranslation } from "react-i18next";
 import type { UploadFile, UploadProps, GetProp } from "antd";
 
 type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
@@ -17,6 +18,7 @@ const ImageUploader: React.FC<Props> = ({
                                             setFileList,
                                             setImageError
                                         }) => {
+    const { t } = useTranslation();
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewImage, setPreviewImage] = useState("");
 
@@ -52,7 +54,7 @@ const ImageUploader: React.FC<Props> = ({
                         setTimeout(() => onSuccess?.("ok"), 0);
                     }}
                 >
-                    {fileList.length < 1 && "+ Upload"}
+                    {fileList.length < 1 && t("imageUploader.upload")}
                 </Upload>
             </ImgCrop>
 

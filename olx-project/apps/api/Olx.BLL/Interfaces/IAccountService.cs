@@ -15,6 +15,8 @@ namespace Olx.BLL.Interfaces
         Task EmailConfirmAsync(EmailConfirmationModel confirmationModel);
         Task FogotPasswordAsync(string email);
         Task ResetPasswordAsync(ResetPasswordModel resetPasswordModel);
+        Task SendEmailVerificationCodeAsync();
+        Task VerifyEmailCodeAsync(string code);
         Task BlockUserAsync(UserBlockModel userBlockModel);
         Task AddUserAsync(UserCreationModel userModel,bool isAdmin = false);
         Task RemoveAccountAsync(int id);

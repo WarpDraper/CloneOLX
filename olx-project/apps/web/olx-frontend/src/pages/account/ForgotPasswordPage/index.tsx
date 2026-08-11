@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useForgotPasswordMutation } from '../../../services/accountService.ts';
 
 const ForgotPasswordPage: React.FC = () => {
+    const { t } = useTranslation();
     const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
     const [email, setEmail] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -14,16 +16,16 @@ const ForgotPasswordPage: React.FC = () => {
         setSuccess(null);
 
         if (!email) {
-            setError('Будь ласка, введіть Email!');
+            setError(t('forgotPassword.errors.emailRequired'));
             return;
         }
 
         try {
             const response = await forgotPassword({ email }).unwrap();
-            setSuccess(response.message || 'Лист для відновлення надіслано!');
+            setSuccess(response.message || t('forgotPassword.success.default'));
             setEmail('');
         } catch (err: any) {
-            setError(err?.data?.message || 'Сталася помилка. Спробуйте пізніше.');
+            setError(err?.data?.message || t('forgotPassword.errors.generic'));
         }
     };
 
@@ -36,7 +38,7 @@ const ForgotPasswordPage: React.FC = () => {
                 <Link
                     to="/login"
                     className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition-colors"
-                    aria-label="Закрити"
+                    aria-label={t('forgotPassword.closeAriaLabel')}
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -61,9 +63,9 @@ const ForgotPasswordPage: React.FC = () => {
 
                 {/* Heading */}
                 <div className="text-center mb-6">
-                    <h1 className="text-lg font-bold text-black">Відновлення паролю</h1>
+                    <h1 className="text-lg font-bold text-black">{t('forgotPassword.heading')}</h1>
                     <p className="text-[10px] text-[#8F8B8B] mt-1 font-medium">
-                        Введіть ваш Email, і ми надішлемо вам посилання для зміни паролю
+                        {t('forgotPassword.subheading')}
                     </p>
                 </div>
 
@@ -78,13 +80,13 @@ const ForgotPasswordPage: React.FC = () => {
                 <form onSubmit={handleSubmit} className="space-y-3">
                     <div>
                         <label className="block text-xs font-medium text-[rgba(62,57,57,0.99)] mb-1">
-                            Email
+                            {t('forgotPassword.emailLabel')}
                         </label>
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="Введіть ваш Email"
+                            placeholder={t('forgotPassword.emailPlaceholder')}
                             className="w-full h-11 px-3 text-xs text-[#8F8B8B] border border-black/30 rounded focus:outline-none focus:ring-1 focus:ring-[#6648D2] focus:border-[#6648D2] transition-colors"
                         />
                         {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
@@ -95,15 +97,15 @@ const ForgotPasswordPage: React.FC = () => {
                         disabled={isLoading}
                         className="w-full h-11 bg-[#6648D2] hover:bg-[#5538c0] text-white text-base font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-1"
                     >
-                        {isLoading ? 'Надсилання...' : 'Надіслати посилання'}
+                        {isLoading ? t('forgotPassword.sending') : t('forgotPassword.submit')}
                     </button>
                 </form>
 
                 {/* Back to login */}
                 <p className="text-center text-[10px] text-[#8F8B8B] font-medium mt-6">
-                    Згадали пароль?{' '}
+                    {t('forgotPassword.rememberedPassword')}{' '}
                     <Link to="/login" className="text-[#6648D2] hover:underline font-medium">
-                        Увійти
+                        {t('forgotPassword.login')}
                     </Link>
                 </p>
             </div>

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router";
 import { useDispatch } from "react-redux";
 // 1. Імпортуємо хук для роботи з reCAPTCHA v3
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
+import { useTranslation } from "react-i18next";
 import { useLoginMutation } from "../../services/accountService.ts";
 import type { IUserLogin } from "../../types/account/IUserLogin.ts";
 import { parseServerValidationErrors } from "../../utils/parseServerValidationErrors.ts";
@@ -11,6 +12,7 @@ import { Link } from "react-router-dom";
 import { consumeReturnUrl } from "../../utils/returnUrl.ts";
 
 const LoginForm: React.FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
     const dispatch = useDispatch();
@@ -41,23 +43,36 @@ const LoginForm: React.FC = () => {
         setFormError(null);
         setFieldErrors({});
 
+        // Client-side check for missing/invalid fields before ever calling the API — gives
+        // immediate, field-level feedback instead of waiting on a round trip that would fail
+        // server-side validation anyway.
+        const nextFieldErrors: Record<string, string> = {};
+        if (!formValues.email.trim()) {
+            nextFieldErrors.email = t('login.errors.emailRequired');
+        }
+        if (!formValues.password) {
+            nextFieldErrors.password = t('login.errors.passwordRequired');
+        }
+        if (Object.keys(nextFieldErrors).length > 0) {
+            setFieldErrors(nextFieldErrors);
+            return;
+        }
+
         // Перевіряємо, чи скрипт капчі готовий
         if (!executeRecaptcha) {
-            setFormError("Захист від роботів завантажується. Спробуйте ще раз через мить.");
+            setFormError(t('login.errors.captchaLoading'));
             return;
         }
 
         try {
             const token = await executeRecaptcha("login");
 
-            const userData = (await login({
+            const userData = await login({
                 email: formValues.email,
                 password: formValues.password,
                 recapthcaToken: token,
                 action: "login",
-            } as any).unwrap()) as any;
-
-            console.log("Дані користувача:", userData);
+            }).unwrap();
 
             dispatch(setAuth({
                 token: userData.accessToken,
@@ -74,7 +89,7 @@ const LoginForm: React.FC = () => {
                 const { fieldErrors } = parseServerValidationErrors(err.data.errors);
                 setFieldErrors(fieldErrors);
             } else {
-                setFormError(err?.data?.message || "Помилка входу. Перевірте дані.");
+                setFormError(err?.data?.message || t('login.errors.generic'));
             }
         }
     };
@@ -85,12 +100,12 @@ const LoginForm: React.FC = () => {
             {/* Email */}
             <div>
                 <label className="block text-xs font-medium text-[rgba(62,57,57,0.99)] mb-1">
-                    Email або телефон
+                    {t('login.emailOrPhone')}
                 </label>
                 <input
                     name="email"
                     type="email"
-                    placeholder="Введіть емейл або номер телефону"
+                    placeholder={t('login.emailPlaceholder')}
                     value={formValues.email}
                     onChange={handleChange}
                     className="w-full h-11 px-3 text-xs text-[#8F8B8B] border border-black/30 rounded focus:outline-none focus:ring-1 focus:ring-[#6648D2] focus:border-[#6648D2] transition-colors"
@@ -103,13 +118,13 @@ const LoginForm: React.FC = () => {
             {/* Password */}
             <div>
                 <label className="block text-xs font-medium text-[rgba(62,57,57,0.99)] mb-1">
-                    Пароль
+                    {t('login.password')}
                 </label>
                 <div className="relative">
                     <input
                         name="password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="Введіть пароль"
+                        placeholder={t('login.passwordPlaceholder')}
                         value={formValues.password}
                         onChange={handleChange}
                         className="w-full h-11 px-3 pr-10 text-xs text-[#8F8B8B] border border-black/30 rounded focus:outline-none focus:ring-1 focus:ring-[#6648D2] focus:border-[#6648D2] transition-colors"
@@ -148,13 +163,13 @@ const LoginForm: React.FC = () => {
                             </svg>
                         )}
                     </div>
-                    <span className="text-[10px] text-[#8F8B8B] font-medium">Запам'ятати мене</span>
+                    <span className="text-[10px] text-[#8F8B8B] font-medium">{t('login.rememberMe')}</span>
                 </label>
                 <Link
                     to="/forgot-password"
                     className="text-[10px] text-[#6648D2] font-medium hover:underline"
                 >
-                    Забули пароль?
+                    {t('login.forgotPassword')}
                 </Link>
             </div>
 
@@ -169,7 +184,7 @@ const LoginForm: React.FC = () => {
                 disabled={isLoading}
                 className="w-full h-11 bg-[#6648D2] hover:bg-[#5538c0] text-white text-base font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-1"
             >
-                {isLoading ? "Завантаження..." : "Увійти"}
+                {isLoading ? t('common.loading') : t('login.submit')}
             </button>
         </form>
     );

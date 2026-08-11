@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { ShoppingCartOutlined, CrownFilled } from "@ant-design/icons";
 import type { IAdvert } from "../../types/advert/IAdvert";
 import type { RootState } from "../../store";
@@ -16,6 +17,7 @@ interface RecommendationCardProps {
 
 // Темна картка рекомендацій для головної сторінки (Frame 126, секція "Рекомендації для вас").
 const RecommendationCard: React.FC<RecommendationCardProps> = ({ advert }) => {
+    const { t } = useTranslation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
@@ -43,7 +45,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({ advert }) => {
         }
 
         dispatch(addToCart({ advertId: advert.id, title: advert.title, price: advert.price, image: imageUrl }));
-        dispatch(addNotification({ type: "success", title: "Додано в кошик", message: advert.title }));
+        dispatch(addNotification({ type: "success", title: t("cart.addedTitle"), message: advert.title }));
     };
 
     return (
@@ -59,12 +61,12 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({ advert }) => {
                     alt={advert.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     placeholder={
-                        <div className="w-full h-full flex items-center justify-center text-white/30 text-xs">Немає фото</div>
+                        <div className="w-full h-full flex items-center justify-center text-white/30 text-xs">{t("advertCard.noPhoto")}</div>
                     }
                 />
                 {advert.isTop && (
                     <span className="absolute bottom-1.5 left-1.5 z-10 flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 text-mm-navy shadow">
-                        <CrownFilled /> ТОП
+                        <CrownFilled /> {t("advertCard.top")}
                     </span>
                 )}
             </div>
@@ -74,8 +76,8 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({ advert }) => {
             <div className="mt-auto flex items-end justify-between gap-2">
                 <div className="min-w-0">
                     <p className="text-sm font-medium text-white">
-                        {advert.price.toLocaleString("uk-UA")} грн.
-                        {advert.isContractPrice && <span className="ml-1.5 text-xs font-semibold text-mm-purple">Договірна</span>}
+                        {advert.price.toLocaleString("uk-UA")} {t("common.currency")}
+                        {advert.isContractPrice && <span className="ml-1.5 text-xs font-semibold text-mm-purple">{t("common.negotiable")}</span>}
                     </p>
                     <p className="text-[10px] font-light text-white/90 leading-tight">
                         {advert.settlementName}
@@ -87,7 +89,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({ advert }) => {
                     <button
                         type="button"
                         onClick={handleCartClick}
-                        aria-label={isInCart ? "Прибрати з кошика" : "Додати в кошик"}
+                        aria-label={isInCart ? t("cart.removeFromCart") : t("cart.addToCart")}
                         aria-pressed={isInCart}
                         className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
                             isInCart ? "bg-mm-purple text-white" : "bg-white/10 text-white hover:bg-white/20"

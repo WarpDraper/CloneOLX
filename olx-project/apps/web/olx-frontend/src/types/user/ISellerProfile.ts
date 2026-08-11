@@ -17,6 +17,7 @@ export interface ISellerProfile {
     settlementDescrption: string | null;
     rating: number;
     reviewsCount: number;
+    accountType: "Individual" | "Business";
     adverts: number[];
     favoriteAdverts: number[];
     // Live SignalR presence (see MessageHub.OnConnectedAsync/OnDisconnectedAsync +

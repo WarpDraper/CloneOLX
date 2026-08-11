@@ -62,6 +62,25 @@ namespace Olx.BLL.Helpers.Email
         }
 
         public static string GetAccountUnblockedTemplate() => File.ReadAllText(Path.Combine(_path, "AccountUnblocked.html"));
-        
+
+        // 6-digit code shown in Profile Settings -> "Підтвердити email". Built inline (no
+        // external .html asset) since it's a small transactional message, unlike the templated
+        // registration/reset flows above.
+        public static string GetEmailVerificationCodeTemplate(string code) =>
+            $@"<div style=""font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;padding:32px;text-align:center"">
+                <h2 style=""color:#1a1a2e;margin-bottom:8px"">Підтвердження email</h2>
+                <p style=""color:#555;font-size:14px"">Введіть цей код у формі підтвердження email на MultiMart:</p>
+                <div style=""font-size:34px;font-weight:bold;letter-spacing:10px;color:#6648D2;margin:24px 0"">{code}</div>
+                <p style=""color:#999;font-size:12px"">Код дійсний протягом 10 хвилин. Якщо ви не робили цей запит, просто проігноруйте цей лист.</p>
+            </div>";
+
+        // Sent after a successful password change (via ResetPassword or profile "old password"
+        // change) as a security notification — the user didn't necessarily trigger it themselves.
+        public static string GetPasswordChangedTemplate() =>
+            @"<div style=""font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;padding:32px;text-align:center"">
+                <h2 style=""color:#1a1a2e;margin-bottom:8px"">Пароль змінено</h2>
+                <p style=""color:#555;font-size:14px"">Пароль вашого акаунту MultiMart щойно було успішно змінено.</p>
+                <p style=""color:#999;font-size:12px"">Якщо це були не ви, негайно зв'яжіться з нашою службою підтримки та відновіть доступ до акаунту.</p>
+            </div>";
     }
 }

@@ -98,11 +98,13 @@ namespace OLX.API.Controllers
         }
 
         // Ініціює процес відновлення пароля для користувача.
-        [HttpPost("password/fogot")]
-        public async Task<IActionResult> FogotPassword([FromQuery] string email)
+        // Приймає адресу з тіла запиту (JSON { email }) — раніше очікувався query-параметр,
+        // тоді як фронтенд завжди надсилав JSON body, через що запит ніколи не доходив до сервісу.
+        [HttpPost("password/forgot")]
+        public async Task<IActionResult> FogotPassword([FromBody] ForgotPasswordModel model)
         {
-            await accountService.FogotPasswordAsync(email);
-            return Ok();
+            await accountService.FogotPasswordAsync(model.Email);
+            return Ok(new { message = "Лист для відновлення паролю надіслано, якщо такий email зареєстрований." });
         }
 
         // Задає новий пароль після відновлення доступу.
@@ -110,6 +112,24 @@ namespace OLX.API.Controllers
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel resetPasswordModel)
         {
             await accountService.ResetPasswordAsync(resetPasswordModel);
+            return Ok(new { message = "Пароль успішно змінено." });
+        }
+
+        // Надсилає 6-значний код підтвердження на email поточного користувача (Налаштування профілю).
+        [Authorize(Roles = Roles.User)]
+        [HttpPost("send-verification-code")]
+        public async Task<IActionResult> SendVerificationCode()
+        {
+            await accountService.SendEmailVerificationCodeAsync();
+            return Ok();
+        }
+
+        // Перевіряє 6-значний код і, у разі успіху, підтверджує email поточного користувача.
+        [Authorize(Roles = Roles.User)]
+        [HttpPost("verify-email-code")]
+        public async Task<IActionResult> VerifyEmailCode([FromBody] VerifyEmailCodeModel model)
+        {
+            await accountService.VerifyEmailCodeAsync(model.Code);
             return Ok();
         }
 

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Select } from "antd";
 import { EnvironmentOutlined } from "@ant-design/icons";
+import { useTranslation } from "react-i18next";
 import { useGetAreasQuery, useGetRegionsByAreaQuery, useGetSettlementsByRegionQuery, useGetSettlementByRefQuery } from "../../services/newPostService";
 
 interface SettlementPickerProps {
@@ -14,7 +15,9 @@ interface SettlementPickerProps {
 // Каскадний вибір населеного пункту (Область → Район → Місто) через реальні ендпоінти
 // NewPostController: /api/newpost/areas, /areas/regions, /region/settlements.
 // SettlementRef — обов'язкове поле для AdvertCreationModel і опційне для UserEditModel.
-const SettlementPicker: React.FC<SettlementPickerProps> = ({ value, displayValue, onChange, error, label = "Населений пункт" }) => {
+const SettlementPicker: React.FC<SettlementPickerProps> = ({ value, displayValue, onChange, error, label }) => {
+    const { t } = useTranslation();
+    const resolvedLabel = label ?? t('settlementPicker.defaultLabel');
     const [isEditing, setIsEditing] = useState(!value);
     const [areaRef, setAreaRef] = useState<string | null>(null);
     const [regionRef, setRegionRef] = useState<string | null>(null);
@@ -29,14 +32,14 @@ const SettlementPicker: React.FC<SettlementPickerProps> = ({ value, displayValue
     if (!isEditing) {
         return (
             <div className="flex flex-col gap-1">
-                {label && <label className="text-sm font-medium text-mm-navy">{label}</label>}
+                {resolvedLabel && <label className="text-sm font-medium text-mm-navy">{resolvedLabel}</label>}
                 <div className="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2">
                     <span className="flex items-center gap-2 text-sm text-mm-navy">
                         <EnvironmentOutlined className="text-mm-purple" />
-                        {resolvedDescription || "Не вказано"}
+                        {resolvedDescription || t('settlementPicker.notSpecified')}
                     </span>
                     <button type="button" onClick={() => setIsEditing(true)} className="text-xs font-semibold text-mm-purple hover:underline shrink-0">
-                        Змінити
+                        {t('settlementPicker.change')}
                     </button>
                 </div>
                 {error && <p className="text-red-500 text-xs">{error}</p>}
@@ -46,11 +49,11 @@ const SettlementPicker: React.FC<SettlementPickerProps> = ({ value, displayValue
 
     return (
         <div className="flex flex-col gap-1">
-            {label && <label className="text-sm font-medium text-mm-navy">{label}</label>}
+            {resolvedLabel && <label className="text-sm font-medium text-mm-navy">{resolvedLabel}</label>}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <Select
                     showSearch
-                    placeholder="Область"
+                    placeholder={t('settlementPicker.areaPlaceholder')}
                     loading={isAreasLoading}
                     value={areaRef ?? undefined}
                     optionFilterProp="label"
@@ -62,7 +65,7 @@ const SettlementPicker: React.FC<SettlementPickerProps> = ({ value, displayValue
                 />
                 <Select
                     showSearch
-                    placeholder="Район"
+                    placeholder={t('settlementPicker.regionPlaceholder')}
                     loading={isRegionsLoading}
                     disabled={!areaRef}
                     value={regionRef ?? undefined}
@@ -72,7 +75,7 @@ const SettlementPicker: React.FC<SettlementPickerProps> = ({ value, displayValue
                 />
                 <Select
                     showSearch
-                    placeholder="Місто / село"
+                    placeholder={t('settlementPicker.settlementPlaceholder')}
                     loading={isSettlementsLoading}
                     disabled={!regionRef}
                     optionFilterProp="label"
@@ -88,7 +91,7 @@ const SettlementPicker: React.FC<SettlementPickerProps> = ({ value, displayValue
             </div>
             {value && (
                 <button type="button" onClick={() => setIsEditing(false)} className="text-xs text-gray-400 hover:text-mm-purple self-start mt-1">
-                    Скасувати
+                    {t('common.cancel')}
                 </button>
             )}
             {error && <p className="text-red-500 text-xs">{error}</p>}

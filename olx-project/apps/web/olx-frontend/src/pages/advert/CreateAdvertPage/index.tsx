@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { TreeSelect, Select, message } from "antd";
 import type { UploadFile } from "antd";
 import type { RootState } from "../../../store";
@@ -27,6 +28,7 @@ const findCategoryById = (categories: ICategory[], id: number): ICategory | null
 // Frame 331: форма створення оголошення. PUT /api/advert/create, multipart/form-data,
 // точна відповідність Olx.BLL.Models.Advert.AdvertCreationModel + AdvertCreationModelValidator.
 const CreateAdvertPage: React.FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { isAuth, user } = useSelector((state: RootState) => state.auth);
     const currentUserId = Number(user?.id);
@@ -77,17 +79,17 @@ const CreateAdvertPage: React.FC = () => {
         setFormError(null);
 
         const errors: Record<string, string> = {};
-        if (!title.trim()) errors.title = "Обов'язкове поле";
-        else if (title.length > 256) errors.title = "Максимум 256 символів";
-        if (!description.trim()) errors.description = "Обов'язкове поле";
-        else if (description.length > 5000) errors.description = "Максимум 5000 символів";
-        if (!isContractPrice && (price.trim() === "" || Number(price) < 0)) errors.price = "Вкажіть коректну ціну";
-        if (!categoryId) errors.categoryId = "Виберіть категорію";
-        if (!settlementRef) errors.settlementRef = "Виберіть населений пункт";
-        if (!contactPersone.trim()) errors.contactPersone = "Обов'язкове поле";
-        if (!contactEmail.trim() || !EMAIL_REGEX.test(contactEmail.trim())) errors.contactEmail = "Вкажіть коректний email";
-        if (phoneNumber.trim() && !PHONE_REGEX.test(phoneNumber.trim())) errors.phoneNumber = "Формат: +38 (0XX) XXX-XX-XX";
-        if (fileList.length === 0) errors.images = "Додайте хоча б одне фото";
+        if (!title.trim()) errors.title = t("createAdvert.errors.required");
+        else if (title.length > 256) errors.title = t("createAdvert.errors.titleMaxLength");
+        if (!description.trim()) errors.description = t("createAdvert.errors.required");
+        else if (description.length > 5000) errors.description = t("createAdvert.errors.descriptionMaxLength");
+        if (!isContractPrice && (price.trim() === "" || Number(price) < 0)) errors.price = t("createAdvert.errors.invalidPrice");
+        if (!categoryId) errors.categoryId = t("createAdvert.errors.selectCategory");
+        if (!settlementRef) errors.settlementRef = t("createAdvert.errors.selectSettlement");
+        if (!contactPersone.trim()) errors.contactPersone = t("createAdvert.errors.required");
+        if (!contactEmail.trim() || !EMAIL_REGEX.test(contactEmail.trim())) errors.contactEmail = t("createAdvert.errors.invalidEmail");
+        if (phoneNumber.trim() && !PHONE_REGEX.test(phoneNumber.trim())) errors.phoneNumber = t("createAdvert.errors.invalidPhoneFormat");
+        if (fileList.length === 0) errors.images = t("createAdvert.errors.imagesRequired");
 
         setFieldErrors(errors);
         if (Object.keys(errors).length > 0) return;
@@ -110,34 +112,34 @@ const CreateAdvertPage: React.FC = () => {
 
         try {
             const created = await createAdvert(formData).unwrap();
-            message.success("Оголошення опубліковано!");
+            message.success(t("createAdvert.messages.publishSuccess"));
             navigate(`/advert/${created.id}`);
         } catch (err: any) {
             if (err?.data?.errors) {
                 const { fieldErrors: serverErrors } = parseServerValidationErrors(err.data.errors);
                 setFieldErrors((prev) => ({ ...prev, ...serverErrors }));
             } else {
-                setFormError(err?.data?.message || "Не вдалося опублікувати оголошення.");
+                setFormError(err?.data?.message || t("createAdvert.messages.publishError"));
             }
         }
     };
 
     return (
         <div className="max-w-[860px] mx-auto px-4 md:px-6 py-8">
-            <h1 className="text-2xl font-bold text-mm-navy mb-6">Розмістити оголошення</h1>
+            <h1 className="text-2xl font-bold text-mm-navy mb-6">{t("createAdvert.pageTitle")}</h1>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                 <div className="bg-white border border-gray-100 rounded-xl p-5 flex flex-col gap-4">
-                    <h2 className="text-sm font-bold text-mm-navy uppercase tracking-wide">Основна інформація</h2>
+                    <h2 className="text-sm font-bold text-mm-navy uppercase tracking-wide">{t("createAdvert.sections.mainInfo")}</h2>
 
                     <div className="flex flex-col gap-1">
-                        <label className="text-sm font-medium text-mm-navy">Категорія</label>
+                        <label className="text-sm font-medium text-mm-navy">{t("createAdvert.fields.category")}</label>
                         <TreeSelect
                             treeData={categoryTree}
                             fieldNames={{ label: "name", value: "id", children: "childs" }}
                             value={categoryId ?? undefined}
                             onChange={(id) => setCategoryId(id)}
-                            placeholder="Виберіть категорію"
+                            placeholder={t("createAdvert.fields.categoryPlaceholder")}
                             showSearch
                             treeNodeFilterProp="name"
                             treeDefaultExpandAll
@@ -146,26 +148,26 @@ const CreateAdvertPage: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                        <label className="text-sm font-medium text-mm-navy">Назва оголошення</label>
+                        <label className="text-sm font-medium text-mm-navy">{t("createAdvert.fields.title")}</label>
                         <input
                             type="text"
                             value={title}
                             maxLength={256}
                             onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Напр. iPhone 13 Pro 128GB"
+                            placeholder={t("createAdvert.fields.titlePlaceholder")}
                             className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-mm-purple"
                         />
                         {fieldErrors.title && <p className="text-red-500 text-xs">{fieldErrors.title}</p>}
                     </div>
 
                     <div className="flex flex-col gap-1">
-                        <label className="text-sm font-medium text-mm-navy">Опис</label>
+                        <label className="text-sm font-medium text-mm-navy">{t("createAdvert.fields.description")}</label>
                         <textarea
                             value={description}
                             maxLength={5000}
                             onChange={(e) => setDescription(e.target.value)}
                             rows={6}
-                            placeholder="Опишіть стан, комплектацію та інші деталі"
+                            placeholder={t("createAdvert.fields.descriptionPlaceholder")}
                             className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-mm-purple resize-y"
                         />
                         <p className="text-xs text-gray-400 text-right">{description.length}/5000</p>
@@ -179,7 +181,7 @@ const CreateAdvertPage: React.FC = () => {
                                     <label className="text-sm font-medium text-mm-navy">{facetNameById.get(facet.id) ?? facet.name}</label>
                                     <Select
                                         allowClear
-                                        placeholder="Не вказано"
+                                        placeholder={t("createAdvert.fields.notSpecified")}
                                         value={filterValueIds[facet.id]}
                                         onChange={(valueId) =>
                                             setFilterValueIds((prev) => {
@@ -198,10 +200,10 @@ const CreateAdvertPage: React.FC = () => {
                 </div>
 
                 <div className="bg-white border border-gray-100 rounded-xl p-5 flex flex-col gap-4">
-                    <h2 className="text-sm font-bold text-mm-navy uppercase tracking-wide">Ціна та розташування</h2>
+                    <h2 className="text-sm font-bold text-mm-navy uppercase tracking-wide">{t("createAdvert.sections.priceAndLocation")}</h2>
 
                     <div className="flex flex-col gap-1">
-                        <label className="text-sm font-medium text-mm-navy">Ціна, ₴</label>
+                        <label className="text-sm font-medium text-mm-navy">{t("createAdvert.fields.price")}</label>
                         <div className="flex items-center gap-3">
                             <input
                                 type="number"
@@ -219,7 +221,7 @@ const CreateAdvertPage: React.FC = () => {
                                     onChange={(e) => setIsContractPrice(e.target.checked)}
                                     className="accent-mm-purple"
                                 />
-                                Договірна
+                                {t("common.negotiable")}
                             </label>
                         </div>
                         {fieldErrors.price && <p className="text-red-500 text-xs">{fieldErrors.price}</p>}
@@ -237,11 +239,11 @@ const CreateAdvertPage: React.FC = () => {
                 </div>
 
                 <div className="bg-white border border-gray-100 rounded-xl p-5 flex flex-col gap-4">
-                    <h2 className="text-sm font-bold text-mm-navy uppercase tracking-wide">Контактна інформація</h2>
+                    <h2 className="text-sm font-bold text-mm-navy uppercase tracking-wide">{t("createAdvert.sections.contactInfo")}</h2>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium text-mm-navy">Контактна особа</label>
+                            <label className="text-sm font-medium text-mm-navy">{t("createAdvert.fields.contactPerson")}</label>
                             <input
                                 type="text"
                                 value={contactPersone}
@@ -251,7 +253,7 @@ const CreateAdvertPage: React.FC = () => {
                             {fieldErrors.contactPersone && <p className="text-red-500 text-xs">{fieldErrors.contactPersone}</p>}
                         </div>
                         <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium text-mm-navy">Email</label>
+                            <label className="text-sm font-medium text-mm-navy">{t("createAdvert.fields.email")}</label>
                             <input
                                 type="email"
                                 value={contactEmail}
@@ -261,7 +263,7 @@ const CreateAdvertPage: React.FC = () => {
                             {fieldErrors.contactEmail && <p className="text-red-500 text-xs">{fieldErrors.contactEmail}</p>}
                         </div>
                         <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium text-mm-navy">Телефон</label>
+                            <label className="text-sm font-medium text-mm-navy">{t("createAdvert.fields.phone")}</label>
                             <input
                                 type="text"
                                 value={phoneNumber}
@@ -275,7 +277,7 @@ const CreateAdvertPage: React.FC = () => {
                 </div>
 
                 <div className="bg-white border border-gray-100 rounded-xl p-5 flex flex-col gap-4">
-                    <h2 className="text-sm font-bold text-mm-navy uppercase tracking-wide">Фото</h2>
+                    <h2 className="text-sm font-bold text-mm-navy uppercase tracking-wide">{t("createAdvert.sections.photos")}</h2>
                     <AdvertImageDropzone fileList={fileList} setFileList={setFileList} error={fieldErrors.images} />
                 </div>
 
@@ -286,7 +288,7 @@ const CreateAdvertPage: React.FC = () => {
                     disabled={isSubmitting}
                     className="bg-mm-purple hover:bg-mm-purple-dark disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm py-3 rounded-lg transition-colors"
                 >
-                    {isSubmitting ? "Публікація..." : "Опублікувати оголошення"}
+                    {isSubmitting ? t("createAdvert.submit.publishing") : t("createAdvert.submit.publish")}
                 </button>
             </form>
         </div>

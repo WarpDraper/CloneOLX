@@ -3,6 +3,7 @@ import { Table, Button, Tag, Space, message, Popconfirm } from 'antd';
 import { CheckCircleOutlined, DeleteOutlined, StopOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { addNotification } from '../../../store/notificationSlice';
 import { useToggleUserBlockMutation } from '../../../services/adminService.ts';
 
@@ -19,6 +20,7 @@ interface ReportData {
 }
 
 const ReportsPage: React.FC = () => {
+    const { t } = useTranslation();
     const { data: reports = [], isLoading } = useGetReportsQuery();
     // ПРАВИЛЬНО: Викликаємо нову мутацію розв'язання скарги
     const [resolveReport] = useResolveReportMutation();
@@ -29,9 +31,12 @@ const ReportsPage: React.FC = () => {
         try {
             await resolveReport({ reportId: id, status: newStatus }).unwrap();
 
-            message.success(`Скаргу ${id} позначено як ${newStatus === 'resolved' ? 'вирішену' : 'відхилену'}`);
+            message.success(t('admin.reports.messages.statusChanged', {
+                id,
+                status: newStatus === 'resolved' ? t('admin.reports.statusVerb.resolved') : t('admin.reports.statusVerb.dismissed'),
+            }));
         } catch {
-            message.error('Помилка оновлення статусу. Перевірте підключення до API.');
+            message.error(t('admin.reports.messages.updateError'));
         }
     };
 
@@ -40,32 +45,32 @@ const ReportsPage: React.FC = () => {
             await toggleBlock(targetId).unwrap();
             dispatch(addNotification({
                 type: 'warning',
-                title: 'Блокування',
-                message: `Користувача ${targetId} було заблоковано за скаргою.`,
+                title: t('admin.reports.notifications.blockTitle'),
+                message: t('admin.reports.notifications.blockMessage', { targetId }),
             }));
-            message.warning(`Користувача ${targetId} успішно заблоковано.`);
+            message.warning(t('admin.reports.messages.blockSuccess', { targetId }));
         } catch {
-            message.error('Помилка блокування користувача. Перевірте підключення до API.');
+            message.error(t('admin.reports.messages.blockError'));
         }
     };
 
     const columns: ColumnsType<ReportData> = [
-        { title: 'ID Скарги', dataIndex: 'id', key: 'id', width: 90 },
-        { title: 'Хто поскаржився', dataIndex: 'reporterName', key: 'reporterName' },
+        { title: t('admin.reports.table.id'), dataIndex: 'id', key: 'id', width: 90 },
+        { title: t('admin.reports.table.reporter'), dataIndex: 'reporterName', key: 'reporterName' },
         {
-            title: 'Об\'єкт',
+            title: t('admin.reports.table.target'),
             key: 'target',
             render: (_, record) => (
                 <span className="font-semibold text-blue-600 cursor-pointer hover:underline">
-          {record.targetType === 'ad' ? 'Оголошення ' : 'Користувач '}
+          {record.targetType === 'ad' ? t('admin.reports.targetType.ad') : t('admin.reports.targetType.user')}{' '}
                     {record.targetId}
         </span>
             )
         },
-        { title: 'Причина', dataIndex: 'reason', key: 'reason' },
-        { title: 'Дата', dataIndex: 'date', key: 'date', width: 140 },
+        { title: t('admin.reports.table.reason'), dataIndex: 'reason', key: 'reason' },
+        { title: t('admin.reports.table.date'), dataIndex: 'date', key: 'date', width: 140 },
         {
-            title: 'Статус',
+            title: t('admin.reports.table.status'),
             key: 'status',
             width: 120,
             render: (_, record) => {
@@ -75,15 +80,15 @@ const ReportsPage: React.FC = () => {
                     dismissed: 'default'
                 };
                 const labels = {
-                    pending: 'Очікує',
-                    resolved: 'Вирішено',
-                    dismissed: 'Відхилено'
+                    pending: t('admin.reports.status.pending'),
+                    resolved: t('admin.reports.status.resolved'),
+                    dismissed: t('admin.reports.status.dismissed')
                 };
                 return <Tag color={colors[record.status]}>{labels[record.status]}</Tag>;
             }
         },
         {
-            title: 'Статус',
+            title: t('admin.reports.table.status'),
             key: 'status',
             width: 120,
             render: (_, record) => {
@@ -99,18 +104,18 @@ const ReportsPage: React.FC = () => {
                     '2': 'default'
                 };
                 const labels: Record<string, string> = {
-                    pending: 'Очікує',
-                    resolved: 'Вирішено',
-                    dismissed: 'Відхилено',
-                    '0': 'Очікує',
-                    '1': 'Вирішено',
-                    '2': 'Відхилено'
+                    pending: t('admin.reports.status.pending'),
+                    resolved: t('admin.reports.status.resolved'),
+                    dismissed: t('admin.reports.status.dismissed'),
+                    '0': t('admin.reports.status.pending'),
+                    '1': t('admin.reports.status.resolved'),
+                    '2': t('admin.reports.status.dismissed')
                 };
-                return <Tag color={colors[currentStatus] || 'orange'}>{labels[currentStatus] || 'Очікує'}</Tag>;
+                return <Tag color={colors[currentStatus] || 'orange'}>{labels[currentStatus] || t('admin.reports.status.pending')}</Tag>;
             }
         },
         {
-            title: 'Дії',
+            title: t('admin.reports.table.actions'),
             key: 'actions',
             render: (_, record) => {
                 // Захищаємо умову відображення кнопок
@@ -128,7 +133,7 @@ const ReportsPage: React.FC = () => {
                                     className="bg-green-600 hover:!bg-green-500"
                                     onClick={() => handleStatusChange(record.id, 'resolved')}
                                 >
-                                    Підтвердити
+                                    {t('admin.reports.actions.confirm')}
                                 </Button>
                                 <Button
                                     type="default"
@@ -136,18 +141,18 @@ const ReportsPage: React.FC = () => {
                                     size="small"
                                     onClick={() => handleStatusChange(record.id, 'dismissed')}
                                 >
-                                    Відхилити
+                                    {t('admin.reports.actions.dismiss')}
                                 </Button>
                                 {record.targetType === 'user' && (
                                     <Popconfirm
-                                        title="Заблокувати користувача?"
-                                        description="Ви впевнені, що хочете заблокувати порушника?"
+                                        title={t('admin.reports.blockConfirm.title')}
+                                        description={t('admin.reports.blockConfirm.description')}
                                         onConfirm={() => handleBlockUser(record.targetId)}
-                                        okText="Так"
-                                        cancelText="Ні"
+                                        okText={t('admin.common.yes')}
+                                        cancelText={t('admin.common.no')}
                                     >
                                         <Button danger size="small" icon={<StopOutlined />}>
-                                            Блок
+                                            {t('admin.reports.actions.block')}
                                         </Button>
                                     </Popconfirm>
                                 )}
@@ -162,7 +167,7 @@ const ReportsPage: React.FC = () => {
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-[#002f34]">Обробка скарг</h1>
+                <h1 className="text-2xl font-bold text-[#002f34]">{t('admin.reports.title')}</h1>
             </div>
 
             <Table

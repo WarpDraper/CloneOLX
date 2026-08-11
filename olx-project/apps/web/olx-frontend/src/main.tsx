@@ -4,24 +4,35 @@ import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store';
 import './services/api'; // startup banner + shared RTK Query logging (side effect only)
-import './services/imagePrefetcher'; // background advert/category image prefetch queue (side effect only)
+import './i18n'; // bilingual UKR/ENG setup (side effect only) — see Header.tsx language toggle
+// NOTE: the background picsum.photos advert/category image prefetch queue
+// (./services/imagePrefetcher) has been removed — the app must never fetch or generate
+// dynamic images at runtime, only render explicit backend/seeder-provided image paths.
 import './index.css';
 import App from './App.tsx';
-import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
-// Falls back to a dummy key in dev when VITE_RECAPTCHA_SITE_KEY isn't set, instead of handing
-// GoogleReCaptchaProvider an empty string — an empty reCaptchaKey makes the underlying script
-// warn on every page load even though ReCAPTCHA itself is never actually exercised locally.
-const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6Ld_dummy_dev_key';
+// @react-oauth/google's GoogleOAuthProvider throws synchronously ("Missing required parameter
+// client_id") if clientId is falsy — an empty VITE_GOOGLE_CLIENT_ID would crash the whole app on
+// boot, not just the Google button. Fall back to a non-functional placeholder instead;
+// GoogleAuthButton separately checks the real env var and disables itself so it never actually
+// calls into the SDK with this placeholder.
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'dummy-client-id.apps.googleusercontent.com';
 
+// NOTE: GoogleReCaptchaProvider is intentionally NOT mounted here anymore. It used to wrap the
+// whole app, which meant every route — not just /login and /register, the only two pages that
+// actually call executeRecaptcha() — fetched https://www.google.com/recaptcha/api.js on load.
+// It's now scoped locally to LoginPage/RegisterPage (see those files) so the script (and any
+// failure loading it, e.g. an unauthorized-domain 400 the browser reports as
+// net::ERR_BLOCKED_BY_ORB) only ever touches the two pages that need it.
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
       <Provider store={store}>
-          <GoogleReCaptchaProvider reCaptchaKey={recaptchaSiteKey}>
+          <GoogleOAuthProvider clientId={googleClientId}>
               <BrowserRouter>
               <App />
           </BrowserRouter>
-          </GoogleReCaptchaProvider>
+          </GoogleOAuthProvider>
       </Provider>
   </StrictMode>,
 )
