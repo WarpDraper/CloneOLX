@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: olx-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    rootDir: olx-project/apps/api
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /swagger/index.html
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://0.0.0.0:8080
+      # Neon Postgres connection string in Npgsql format, e.g.
+      # Host=ep-xxx.eu-central-1.aws.neon.tech;Database=neondb;Username=...;Password=...;SslMode=Require
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      # Comma-separated list of frontend origins allowed by CORS.
+      - key: AllowedCorsOrigins
+        sync: false
+      - key: JwtOptions__Key
+        generateValue: true
