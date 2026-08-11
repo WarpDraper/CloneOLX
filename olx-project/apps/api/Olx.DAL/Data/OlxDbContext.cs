@@ -19,7 +19,7 @@ namespace Olx.DAL.Data
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection")!;
+            var connectionString = ToNpgsqlConnectionString(configuration.GetConnectionString("DefaultConnection")!);
 
             // Enforced programmatically (not just via the appsettings connection string text)
             // so every environment gets these regardless of how DefaultConnection was set —
@@ -44,6 +44,34 @@ namespace Olx.DAL.Data
             }
 
             optionsBuilder.UseNpgsql(builder.ConnectionString);
+        }
+
+        // Neon, Supabase, Render and Heroku all hand out credentials as a URI
+        // (postgresql://user:pass@host/db?sslmode=require), but Npgsql only understands
+        // keyword/value strings. Translate URIs so either format can be pasted into
+        // ConnectionStrings__DefaultConnection without surprises.
+        private static string ToNpgsqlConnectionString(string connectionString)
+        {
+            if (String.IsNullOrWhiteSpace(connectionString)
+                || !(connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase)
+                     || connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase)))
+            {
+                return connectionString;
+            }
+
+            var uri = new Uri(connectionString);
+            var userInfo = uri.UserInfo.Split(':', 2);
+
+            var builder = new NpgsqlConnectionStringBuilder
+            {
+                Host = uri.Host,
+                Port = uri.IsDefaultPort ? 5432 : uri.Port,
+                Database = uri.AbsolutePath.TrimStart('/'),
+                Username = Uri.UnescapeDataString(userInfo[0]),
+                Password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : null,
+            };
+
+            return builder.ConnectionString;
         }
     }
 }
