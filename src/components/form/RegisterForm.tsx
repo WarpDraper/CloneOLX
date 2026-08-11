@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { useRegisterMutation } from "../../services/accountService.ts";
 import type { IRegisterUser } from "../../types/account/IRegisterUser.ts";
 
@@ -9,11 +10,16 @@ import type { UploadFile } from "antd";
 import { parseServerValidationErrors } from "../../utils/parseServerValidationErrors.ts";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { setAuth } from "../../Slice/authSlice.ts";
+import PhoneInput from "../inputs/PhoneInput.tsx";
+import { extractSubscriberDigits, ukrainianPhoneErrorMessage } from "../../utils/phone.ts";
+import WelcomeModal from "../common/WelcomeModal.tsx";
 
 const RegisterForm: React.FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [register, { isLoading }] = useRegisterMutation();
+    const [showWelcome, setShowWelcome] = useState(false);
 
     // Ініціалізуємо хук капчі
     const { executeRecaptcha } = useGoogleReCaptcha();
@@ -43,22 +49,45 @@ const RegisterForm: React.FC = () => {
         setFormValues((prev) => ({ ...prev, [name]: value }));
     };
 
+    const handlePhoneChange = (backendFormattedValue: string) => {
+        setFormValues((prev) => ({ ...prev, PhoneNumber: backendFormattedValue }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setFormError(null);
         setFieldErrors({});
 
+        // Client-side check for missing required fields before hitting the API — surfaces all
+        // of them at once instead of one round trip per mistake.
+        const nextFieldErrors: Record<string, string> = {};
+        if (!formValues.FirstName.trim()) nextFieldErrors.FirstName = t('register.errors.firstNameRequired');
+        if (!formValues.LastName.trim()) nextFieldErrors.LastName = t('register.errors.lastNameRequired');
+        if (!formValues.Email.trim()) nextFieldErrors.Email = t('register.errors.emailRequired');
+        if (!formValues.PhoneNumber.trim()) {
+            nextFieldErrors.PhoneNumber = t('register.errors.phoneRequired');
+        } else {
+            const phoneError = ukrainianPhoneErrorMessage(extractSubscriberDigits(formValues.PhoneNumber));
+            if (phoneError) nextFieldErrors.PhoneNumber = phoneError;
+        }
+        if (!formValues.Password) nextFieldErrors.Password = t('register.errors.passwordRequired');
+        if (!formValues.PasswordConfirmation) nextFieldErrors.PasswordConfirmation = t('register.errors.passwordConfirmationRequired');
+        if (Object.keys(nextFieldErrors).length > 0) {
+            setFieldErrors(nextFieldErrors);
+            return;
+        }
+
         // Перевіряємо збіг паролів
         if (formValues.Password !== formValues.PasswordConfirmation) {
             setFieldErrors((prev) => ({
                 ...prev,
-                PasswordConfirmation: "Паролі не збігаються!",
+                PasswordConfirmation: t('register.errors.passwordMismatch'),
             }));
             return;
         }
 
         if (!executeRecaptcha) {
-            setFormError("Захист від роботів завантажується. Спробуйте ще раз через мить.");
+            setFormError(t('register.errors.captchaLoading'));
             return;
         }
 
@@ -93,13 +122,13 @@ const RegisterForm: React.FC = () => {
                 dispatch(setAuth({ token: userData.accessToken }));
             }
 
-            navigate("/");
+            setShowWelcome(true);
         } catch (err: any) {
             if (err?.data?.errors) {
                 const { fieldErrors } = parseServerValidationErrors(err.data.errors);
                 setFieldErrors(fieldErrors);
             } else {
-                setFormError(err?.data?.message || "Помилка реєстрації");
+                setFormError(err?.data?.message || t('register.errors.generic'));
             }
         }
     };
@@ -111,12 +140,12 @@ const RegisterForm: React.FC = () => {
             <div className="grid grid-cols-2 gap-3">
                 <div>
                     <label className="block text-xs font-medium text-[rgba(62,57,57,0.99)] mb-1">
-                        Ім'я
+                        {t('register.firstName')}
                     </label>
                     <input
                         name="FirstName"
                         type="text"
-                        placeholder="Введіть ім'я"
+                        placeholder={t('register.firstNamePlaceholder')}
                         value={formValues.FirstName}
                         onChange={handleChange}
                         className="w-full h-11 px-3 text-xs text-[#8F8B8B] border border-black/30 rounded focus:outline-none focus:ring-1 focus:ring-[#6648D2] focus:border-[#6648D2] transition-colors"
@@ -127,12 +156,12 @@ const RegisterForm: React.FC = () => {
                 </div>
                 <div>
                     <label className="block text-xs font-medium text-[rgba(62,57,57,0.99)] mb-1">
-                        Прізвище
+                        {t('register.lastName')}
                     </label>
                     <input
                         name="LastName"
                         type="text"
-                        placeholder="Введіть прізвище"
+                        placeholder={t('register.lastNamePlaceholder')}
                         value={formValues.LastName}
                         onChange={handleChange}
                         className="w-full h-11 px-3 text-xs text-[#8F8B8B] border border-black/30 rounded focus:outline-none focus:ring-1 focus:ring-[#6648D2] focus:border-[#6648D2] transition-colors"
@@ -146,12 +175,12 @@ const RegisterForm: React.FC = () => {
             {/* Email */}
             <div>
                 <label className="block text-xs font-medium text-[rgba(62,57,57,0.99)] mb-1">
-                    Email або телефон
+                    {t('register.emailOrPhone')}
                 </label>
                 <input
                     name="Email"
                     type="email"
-                    placeholder="Введіть емейл або номер телефону"
+                    placeholder={t('register.emailPlaceholder')}
                     value={formValues.Email}
                     onChange={handleChange}
                     className="w-full h-11 px-3 text-xs text-[#8F8B8B] border border-black/30 rounded focus:outline-none focus:ring-1 focus:ring-[#6648D2] focus:border-[#6648D2] transition-colors"
@@ -164,14 +193,12 @@ const RegisterForm: React.FC = () => {
             {/* Phone Number */}
             <div>
                 <label className="block text-xs font-medium text-[rgba(62,57,57,0.99)] mb-1">
-                    Номер телефону
+                    {t('register.phoneNumber')}
                 </label>
-                <input
+                <PhoneInput
                     name="PhoneNumber"
-                    type="text"
-                    placeholder="+380..."
                     value={formValues.PhoneNumber}
-                    onChange={handleChange}
+                    onChange={handlePhoneChange}
                     className="w-full h-11 px-3 text-xs text-[#8F8B8B] border border-black/30 rounded focus:outline-none focus:ring-1 focus:ring-[#6648D2] focus:border-[#6648D2] transition-colors"
                 />
                 {(fieldErrors.PhoneNumber || fieldErrors.phoneNumber) && (
@@ -183,11 +210,11 @@ const RegisterForm: React.FC = () => {
             <div className="grid grid-cols-2 gap-3">
                 <div>
                     <label className="block text-xs font-medium text-[rgba(62,57,57,0.99)] mb-1">
-                        Пароль
+                        {t('register.password')}
                     </label>
                     <PasswordInput
                         name="Password"
-                        placeholder="Введіть пароль"
+                        placeholder={t('register.passwordPlaceholder')}
                         value={formValues.Password}
                         onChange={handleChange}
                     />
@@ -197,11 +224,11 @@ const RegisterForm: React.FC = () => {
                 </div>
                 <div>
                     <label className="block text-xs font-medium text-[rgba(62,57,57,0.99)] mb-1">
-                        Підтвердження паролю
+                        {t('register.passwordConfirmation')}
                     </label>
                     <PasswordInput
                         name="PasswordConfirmation"
-                        placeholder="Повторіть пароль"
+                        placeholder={t('register.passwordConfirmationPlaceholder')}
                         value={formValues.PasswordConfirmation}
                         onChange={handleChange}
                     />
@@ -221,7 +248,7 @@ const RegisterForm: React.FC = () => {
                     imageError={imageError}
                     setImageError={setImageError}
                 />
-                {imageError && <p className="text-red-500 text-xs mt-1">Зображення є обов'язковим</p>}
+                {imageError && <p className="text-red-500 text-xs mt-1">{t('register.imageRequired')}</p>}
             </div>
 
             {/* Form error */}
@@ -235,8 +262,15 @@ const RegisterForm: React.FC = () => {
                 disabled={isLoading}
                 className="w-full h-11 bg-[#6648D2] hover:bg-[#5538c0] text-white text-base font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-1"
             >
-                {isLoading ? "Завантаження..." : "Зареєструватися"}
+                {isLoading ? t('common.loading') : t('register.submit')}
             </button>
+
+            <WelcomeModal
+                open={showWelcome}
+                onClose={() => navigate("/")}
+                onShop={() => navigate("/")}
+                onGoToProfile={() => navigate("/profile")}
+            />
         </form>
     );
 };

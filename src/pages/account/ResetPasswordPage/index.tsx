@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useResetPasswordMutation } from '../../../services/accountService.ts';
 
 const ResetPasswordPage: React.FC = () => {
+    const { t } = useTranslation();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const [resetPassword, { isLoading }] = useResetPasswordMutation();
 
+    // The reset email link is built as "...?token=[token]&id=[id]" (see
+    // EmailTemplates.GetPasswordResetTemplate) — the backend identifies the user by id, not
+    // email, and ResetPasswordModel expects UserId/Token/Password.
     const token = searchParams.get('token');
-    const email = searchParams.get('email');
+    const userId = searchParams.get('id');
 
     const [formValues, setFormValues] = useState({ password: '', confirm: '' });
     const [showPassword, setShowPassword] = useState(false);
@@ -27,37 +32,37 @@ const ResetPasswordPage: React.FC = () => {
         setError(null);
         setFieldErrors({});
 
-        if (!token || !email) {
-            setError('Посилання недійсне або пошкоджене.');
+        if (!token || !userId) {
+            setError(t('resetPassword.errors.invalidLink'));
             return;
         }
 
         if (!formValues.password) {
-            setFieldErrors(prev => ({ ...prev, password: 'Будь ласка, введіть новий пароль!' }));
+            setFieldErrors(prev => ({ ...prev, password: t('resetPassword.errors.passwordRequired') }));
             return;
         }
 
         if (formValues.password.length < 6) {
-            setFieldErrors(prev => ({ ...prev, password: 'Пароль має містити мінімум 6 символів!' }));
+            setFieldErrors(prev => ({ ...prev, password: t('resetPassword.errors.passwordTooShort') }));
             return;
         }
 
         if (formValues.password !== formValues.confirm) {
-            setFieldErrors(prev => ({ ...prev, confirm: 'Паролі не збігаються!' }));
+            setFieldErrors(prev => ({ ...prev, confirm: t('resetPassword.errors.passwordMismatch') }));
             return;
         }
 
         try {
             const response = await resetPassword({
-                email,
+                userId: Number(userId),
                 token,
-                newPassword: formValues.password,
+                password: formValues.password,
             }).unwrap();
 
-            setSuccess(response.message || 'Пароль успішно змінено!');
+            setSuccess(response.message || t('resetPassword.success.default'));
             setTimeout(() => navigate('/login'), 3000);
         } catch (err: any) {
-            setError(err?.data?.message || 'Не вдалося змінити пароль. Можливо, посилання застаріло.');
+            setError(err?.data?.message || t('resetPassword.errors.generic'));
         }
     };
 
@@ -70,7 +75,7 @@ const ResetPasswordPage: React.FC = () => {
                 <Link
                     to="/login"
                     className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition-colors"
-                    aria-label="Закрити"
+                    aria-label={t('resetPassword.closeAriaLabel')}
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -95,23 +100,23 @@ const ResetPasswordPage: React.FC = () => {
 
                 {/* Heading */}
                 <div className="text-center mb-6">
-                    <h1 className="text-lg font-bold text-black">Встановлення нового паролю</h1>
+                    <h1 className="text-lg font-bold text-black">{t('resetPassword.heading')}</h1>
                     <p className="text-[10px] text-[#8F8B8B] mt-1 font-medium">
-                        Придумайте надійний пароль для вашого акаунту
+                        {t('resetPassword.subheading')}
                     </p>
                 </div>
 
                 {/* Success message */}
                 {success && (
                     <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded text-green-700 text-xs text-center">
-                        {success} Переходимо на сторінку входу...
+                        {success} {t('resetPassword.successRedirecting')}
                     </div>
                 )}
 
                 {/* Invalid link */}
-                {(!token || !email) && (
+                {(!token || !userId) && (
                     <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-xs text-center">
-                        Посилання недійсне або пошкоджене. Спробуйте знову.
+                        {t('resetPassword.invalidLink')}
                     </div>
                 )}
 
@@ -121,13 +126,13 @@ const ResetPasswordPage: React.FC = () => {
                     {/* New password */}
                     <div>
                         <label className="block text-xs font-medium text-[rgba(62,57,57,0.99)] mb-1">
-                            Новий пароль
+                            {t('resetPassword.newPasswordLabel')}
                         </label>
                         <div className="relative">
                             <input
                                 name="password"
                                 type={showPassword ? 'text' : 'password'}
-                                placeholder="Мінімум 6 символів"
+                                placeholder={t('resetPassword.newPasswordPlaceholder')}
                                 value={formValues.password}
                                 onChange={handleChange}
                                 className="w-full h-11 px-3 pr-10 text-xs text-[#8F8B8B] border border-black/30 rounded focus:outline-none focus:ring-1 focus:ring-[#6648D2] focus:border-[#6648D2] transition-colors"
@@ -154,13 +159,13 @@ const ResetPasswordPage: React.FC = () => {
                     {/* Confirm password */}
                     <div>
                         <label className="block text-xs font-medium text-[rgba(62,57,57,0.99)] mb-1">
-                            Підтвердіть новий пароль
+                            {t('resetPassword.confirmPasswordLabel')}
                         </label>
                         <div className="relative">
                             <input
                                 name="confirm"
                                 type={showConfirm ? 'text' : 'password'}
-                                placeholder="Повторіть пароль"
+                                placeholder={t('resetPassword.confirmPasswordPlaceholder')}
                                 value={formValues.confirm}
                                 onChange={handleChange}
                                 className="w-full h-11 px-3 pr-10 text-xs text-[#8F8B8B] border border-black/30 rounded focus:outline-none focus:ring-1 focus:ring-[#6648D2] focus:border-[#6648D2] transition-colors"
@@ -190,18 +195,18 @@ const ResetPasswordPage: React.FC = () => {
                     {/* Submit */}
                     <button
                         type="submit"
-                        disabled={isLoading || !token || !email}
+                        disabled={isLoading || !token || !userId}
                         className="w-full h-11 bg-[#6648D2] hover:bg-[#5538c0] text-white text-base font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-1"
                     >
-                        {isLoading ? 'Збереження...' : 'Зберегти новий пароль'}
+                        {isLoading ? t('common.saving') : t('resetPassword.submit')}
                     </button>
                 </form>
 
                 {/* Back to login */}
                 <p className="text-center text-[10px] text-[#8F8B8B] font-medium mt-6">
-                    Повернутись до{' '}
+                    {t('resetPassword.backTo')}{' '}
                     <Link to="/login" className="text-[#6648D2] hover:underline font-medium">
-                        Входу
+                        {t('resetPassword.login')}
                     </Link>
                 </p>
             </div>

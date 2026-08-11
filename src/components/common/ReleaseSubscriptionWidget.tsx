@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { MailOutlined, CheckCircleFilled } from "@ant-design/icons";
 import type { RootState } from "../../store";
 import { addNotification } from "../../store/notificationSlice";
@@ -16,6 +17,7 @@ import { subscribeToReleaseNewsletter, isSubscribedToReleaseNewsletter } from ".
 // authenticated, the pending subscription is detected and completed automatically, no re-typing
 // or re-clicking required.
 const ReleaseSubscriptionWidget: React.FC = () => {
+    const { t } = useTranslation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
@@ -34,8 +36,8 @@ const ReleaseSubscriptionWidget: React.FC = () => {
             setSubscribed(true);
             dispatch(addNotification({
                 type: "success",
-                title: "Підписку оформлено",
-                message: `Ми надсилатимемо новини про оновлення MultiMart на ${targetEmail}.`,
+                title: t('newsletterWidget.notificationTitle'),
+                message: t('newsletterWidget.notificationMessage', { email: targetEmail }),
             }));
         } finally {
             setSubmitting(false);
@@ -62,7 +64,7 @@ const ReleaseSubscriptionWidget: React.FC = () => {
         e.preventDefault();
         const trimmed = email.trim();
         if (!trimmed || !trimmed.includes("@")) {
-            setError("Введіть коректний email.");
+            setError(t('newsletterWidget.invalidEmail'));
             return;
         }
         setError(null);
@@ -84,9 +86,9 @@ const ReleaseSubscriptionWidget: React.FC = () => {
             <section className="max-w-[1280px] mx-auto px-4 md:px-6 pb-12">
                 <div className="rounded-2xl bg-mm-navy px-6 py-8 md:px-10 md:py-10 flex flex-col items-center text-center gap-3">
                     <CheckCircleFilled className="text-3xl text-mm-orange" />
-                    <h2 className="text-lg md:text-xl font-bold text-white">Дякуємо за підписку!</h2>
+                    <h2 className="text-lg md:text-xl font-bold text-white">{t('newsletterWidget.thankYouTitle')}</h2>
                     <p className="text-white/70 text-sm max-w-md">
-                        Ви будете отримувати новини про оновлення MultiMart першими.
+                        {t('newsletterWidget.thankYouDescription')}
                     </p>
                 </div>
             </section>
@@ -97,9 +99,9 @@ const ReleaseSubscriptionWidget: React.FC = () => {
         <section className="max-w-[1280px] mx-auto px-4 md:px-6 pb-12">
             <div className="rounded-2xl bg-mm-navy px-6 py-8 md:px-10 md:py-10 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="text-center md:text-left">
-                    <h2 className="text-lg md:text-xl font-bold text-white">Підписка на оновлення MultiMart</h2>
+                    <h2 className="text-lg md:text-xl font-bold text-white">{t('newsletterWidget.heading')}</h2>
                     <p className="text-white/70 text-sm mt-1 max-w-md">
-                        Дізнавайтесь першими про нові функції та релізи.
+                        {t('newsletterWidget.description')}
                     </p>
                 </div>
                 <form onSubmit={handleSubmit} className="w-full md:w-auto flex flex-col gap-2">
@@ -110,7 +112,7 @@ const ReleaseSubscriptionWidget: React.FC = () => {
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="Ваш email"
+                                placeholder={t('newsletterWidget.emailPlaceholder')}
                                 className="w-full sm:w-72 h-11 pl-9 pr-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-1 focus:ring-mm-orange focus:border-mm-orange transition-colors"
                             />
                         </div>
@@ -119,7 +121,7 @@ const ReleaseSubscriptionWidget: React.FC = () => {
                             disabled={submitting}
                             className="h-11 px-6 rounded-lg bg-mm-orange hover:bg-orange-500 text-white font-bold text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                         >
-                            {submitting ? "Зачекайте..." : "Підписатися"}
+                            {submitting ? t('newsletterWidget.submitting') : t('newsletterWidget.subscribeButton')}
                         </button>
                     </div>
                     {error && <p className="text-red-300 text-xs">{error}</p>}

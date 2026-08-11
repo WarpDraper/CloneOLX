@@ -1,5 +1,9 @@
 import './App.css'
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Routes, Route, Navigate } from "react-router-dom";
+import type { RootState } from "./store";
+import { syncCartOwner } from "./store/cartSlice";
 import LoginPage from "./pages/account/LoginPage";
 import RegisterPage from "./pages/account/RegisterPage";
 import ForgotPasswordPage from "./pages/account/ForgotPasswordPage";
@@ -11,7 +15,13 @@ import MainLayout from "./layout/main/MainLayout";
 import AdminLayout from "./layout/admin/AdminLayout";
 import UsersPage from "./pages/admin/UsersPage";
 import ReportsPage from "./pages/admin/ReportsPage";
-import UpdateProfilePage from "./pages/account/EditAccountPage";
+import OverviewPage from "./pages/admin/OverviewPage";
+import AdminOrdersPage from "./pages/admin/OrdersPage";
+import AdminProductsPage from "./pages/admin/ProductsPage";
+import AdminCategoriesPage from "./pages/admin/CategoriesPage";
+import SellersPage from "./pages/admin/SellersPage";
+import AdminChatsPage from "./pages/admin/ChatsPage";
+import ComingSoonPage from "./pages/admin/ComingSoonPage";
 import AdvertDetailsPage from "./pages/advert/AdvertDetailsPage";
 import SoldAdvertPage from "./pages/advert/SoldAdvertPage";
 import SellerProfilePage from "./pages/profile/SellerProfilePage";
@@ -29,17 +39,37 @@ import HelpCenterPage from "./pages/info/HelpCenterPage";
 import AboutPage from "./pages/info/AboutPage";
 import TermsPage from "./pages/info/TermsPage";
 import AppComingSoonPage from "./pages/app/AppComingSoonPage";
+import ScrollToTop from "./components/common/ScrollToTop";
+import RequireAdmin from "./components/common/RequireAdmin";
 
 
 function App() {
+    const dispatch = useDispatch();
+    const userId = useSelector((state: RootState) => (state.auth.isAuth ? state.auth.user?.id ?? null : null));
+
+    // Keeps the local cart scoped to whoever is currently signed in. Runs on every auth change
+    // (login, register, Google auth, logout) and drops any leftover cart items from a previous
+    // account on this browser so a newly registered/logged-in user always starts with [].
+    useEffect(() => {
+        dispatch(syncCartOwner(userId));
+    }, [dispatch, userId]);
 
   return (
     <>
+        <ScrollToTop />
         <Routes>
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<Navigate replace to="/admin/users" />} />
+            <Route path="/admin" element={<RequireAdmin><AdminLayout /></RequireAdmin>}>
+              <Route index element={<OverviewPage />} />
+              <Route path="orders" element={<AdminOrdersPage />} />
+              <Route path="products" element={<AdminProductsPage />} />
+              <Route path="categories" element={<AdminCategoriesPage />} />
               <Route path="users" element={<UsersPage />} />
+              <Route path="sellers" element={<SellersPage />} />
+              <Route path="chats" element={<AdminChatsPage />} />
               <Route path="reports" element={<ReportsPage />} />
+              <Route path="analytics" element={<ComingSoonPage title="Аналітика" />} />
+              <Route path="marketing" element={<ComingSoonPage title="Маркетинг" />} />
+              <Route path="settings" element={<ComingSoonPage title="Налаштування" />} />
             </Route>
 
             <Route element={<MainLayout />}>
@@ -71,7 +101,10 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path={"/update-profile"} element={<UpdateProfilePage />} />
+            {/* Legacy route: EditAccountPage posted JSON to a mismatched /edit/user shape and
+                404'd. Redirect to /settings, which is the correct working profile-edit page
+                (POST /api/account/edit/user as multipart/form-data via useEditUserMutation). */}
+            <Route path={"/update-profile"} element={<Navigate replace to="/settings" />} />
 
             <Route path="*" element={<NotFoundPage />} />
         </Routes>

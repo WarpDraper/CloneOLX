@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { UserOutlined } from "@ant-design/icons";
 import type { ISellerShort } from "../../types/user/ISellerShort";
 import { buildImageUrl, IMAGE_SIZES } from "../../utils/buildImageUrl";
@@ -12,7 +13,8 @@ interface SellerWidgetProps {
 }
 
 const SellerWidget: React.FC<SellerWidgetProps> = ({ seller }) => {
-    const displayName = [seller.firstName, seller.lastName].filter(Boolean).join(" ") || "Продавець";
+    const { t } = useTranslation();
+    const displayName = [seller.firstName, seller.lastName].filter(Boolean).join(" ") || t("sellerWidget.defaultName");
     const avatarUrl = buildImageUrl(seller.photo, IMAGE_SIZES.avatarSmall);
 
     return (
@@ -42,7 +44,7 @@ const SellerWidget: React.FC<SellerWidgetProps> = ({ seller }) => {
                     to={`/profile/${seller.id}`}
                     className="text-xs font-semibold text-mm-purple hover:underline"
                 >
-                    Переглянути профіль
+                    {t("sellerWidget.viewProfile")}
                 </Link>
             </div>
         </div>

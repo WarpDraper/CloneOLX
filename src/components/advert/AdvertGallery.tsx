@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { IAdvertImage } from "../../types/advert/IAdvertImage";
 import { buildImageUrl, IMAGE_SIZES } from "../../utils/buildImageUrl";
 import FallbackImage from "../common/FallbackImage";
@@ -9,6 +10,7 @@ interface AdvertGalleryProps {
 }
 
 const AdvertGallery: React.FC<AdvertGalleryProps> = ({ images, title }) => {
+    const { t } = useTranslation();
     const sorted = [...images].sort((a, b) => a.priority - b.priority);
     const [activeIndex, setActiveIndex] = useState(0);
     const active = sorted[activeIndex];
@@ -16,7 +18,7 @@ const AdvertGallery: React.FC<AdvertGalleryProps> = ({ images, title }) => {
     if (sorted.length === 0) {
         return (
             <div className="aspect-square w-full rounded-xl bg-gray-100 flex items-center justify-center text-gray-400">
-                Немає фото
+                {t("advertGallery.noPhoto")}
             </div>
         );
     }
@@ -52,7 +54,7 @@ const AdvertGallery: React.FC<AdvertGalleryProps> = ({ images, title }) => {
                     alt={title}
                     className="w-full h-full object-cover"
                     placeholder={
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Немає фото</div>
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">{t("advertGallery.noPhoto")}</div>
                     }
                 />
             </div>

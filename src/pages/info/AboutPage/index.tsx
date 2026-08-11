@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
     RocketOutlined,
     SafetyCertificateOutlined,
@@ -9,38 +10,40 @@ import {
     GlobalOutlined,
 } from "@ant-design/icons";
 
-const STATS = [
-    { value: "500+", label: "Активних оголошень" },
-    { value: "100+", label: "Продавців на майданчику" },
-    { value: "25", label: "Категорій товарів" },
-    { value: "24/7", label: "Підтримка користувачів" },
-];
-
-const VALUES = [
-    {
-        icon: SafetyCertificateOutlined,
-        title: "Безпека угод",
-        text: "Перевірені продавці, безпечні способи оплати та доставки — ми дбаємо про спокій кожної угоди.",
-    },
-    {
-        icon: ThunderboltOutlined,
-        title: "Швидкість",
-        text: "Розмістити оголошення чи знайти потрібний товар можна за лічені хвилини.",
-    },
-    {
-        icon: TeamOutlined,
-        title: "Спільнота",
-        text: "Тисячі покупців і продавців по всій Україні щодня знаходять один одного на MultiMart.",
-    },
-    {
-        icon: GlobalOutlined,
-        title: "Доступність",
-        text: "Сервіс працює в усіх регіонах України з локальною доставкою через перевірених партнерів.",
-    },
-];
-
 // /about — "Про нас": rich visual presentation of MultiMart (stats, mission, animated cards).
 const AboutPage: React.FC = () => {
+    const { t } = useTranslation();
+
+    const STATS = [
+        { value: "500+", label: t("about.stats.activeAdverts") },
+        { value: "100+", label: t("about.stats.sellers") },
+        { value: "25", label: t("about.stats.categories") },
+        { value: "24/7", label: t("about.stats.support") },
+    ];
+
+    const VALUES = [
+        {
+            icon: SafetyCertificateOutlined,
+            title: t("about.values.safety.title"),
+            text: t("about.values.safety.text"),
+        },
+        {
+            icon: ThunderboltOutlined,
+            title: t("about.values.speed.title"),
+            text: t("about.values.speed.text"),
+        },
+        {
+            icon: TeamOutlined,
+            title: t("about.values.community.title"),
+            text: t("about.values.community.text"),
+        },
+        {
+            icon: GlobalOutlined,
+            title: t("about.values.accessibility.title"),
+            text: t("about.values.accessibility.text"),
+        },
+    ];
+
     return (
         <div className="bg-white">
             <section className="bg-mm-navy relative overflow-hidden">
@@ -50,11 +53,9 @@ const AboutPage: React.FC = () => {
                 </div>
                 <div className="max-w-[1000px] mx-auto px-4 md:px-6 py-14 text-center relative">
                     <ShopOutlined className="text-5xl text-mm-orange mb-4" />
-                    <h1 className="text-2xl md:text-4xl font-bold text-white mb-4">Про MultiMart</h1>
+                    <h1 className="text-2xl md:text-4xl font-bold text-white mb-4">{t("about.hero.title")}</h1>
                     <p className="text-white/70 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
-                        MultiMart — майданчик оголошень нового покоління, де тисячі продавців і покупців щодня
-                        знаходять один одного. Ми будуємо зручний, швидкий і безпечний простір для торгівлі
-                        товарами та послугами по всій Україні.
+                        {t("about.hero.text")}
                     </p>
                 </div>
             </section>
@@ -76,11 +77,9 @@ const AboutPage: React.FC = () => {
             <section className="max-w-[1000px] mx-auto px-4 md:px-6 py-14">
                 <div className="flex flex-col md:flex-row items-center gap-8 mb-14">
                     <div className="flex-1">
-                        <h2 className="text-xl md:text-2xl font-bold text-mm-navy mb-3">Наша місія</h2>
+                        <h2 className="text-xl md:text-2xl font-bold text-mm-navy mb-3">{t("about.mission.title")}</h2>
                         <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-                            Ми віримо, що купувати й продавати повинно бути просто. MultiMart об'єднує людей,
-                            допомагає речам знаходити нових власників, а бізнесу — нових клієнтів. Кожне
-                            оголошення — це можливість, і наша задача зробити цю можливість доступною для всіх.
+                            {t("about.mission.text")}
                         </p>
                     </div>
                     <div className="flex-1 flex justify-center">
@@ -90,7 +89,7 @@ const AboutPage: React.FC = () => {
                     </div>
                 </div>
 
-                <h2 className="text-xl md:text-2xl font-bold text-mm-navy mb-6 text-center">Чому MultiMart</h2>
+                <h2 className="text-xl md:text-2xl font-bold text-mm-navy mb-6 text-center">{t("about.whyUs")}</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     {VALUES.map((value) => (
                         <div
@@ -109,22 +108,22 @@ const AboutPage: React.FC = () => {
 
             <section className="bg-mm-lavender-light">
                 <div className="max-w-[800px] mx-auto px-4 md:px-6 py-10 text-center">
-                    <h2 className="text-lg md:text-xl font-bold text-mm-navy mb-3">Готові почати?</h2>
+                    <h2 className="text-lg md:text-xl font-bold text-mm-navy mb-3">{t("about.cta.title")}</h2>
                     <p className="text-sm text-gray-600 mb-5">
-                        Розмістіть перше оголошення або перегляньте тисячі пропозицій вже сьогодні.
+                        {t("about.cta.text")}
                     </p>
                     <div className="flex flex-wrap justify-center gap-3">
                         <Link
                             to="/adverts/create"
                             className="bg-mm-orange hover:bg-orange-500 text-white font-bold text-sm px-6 py-2.5 rounded-lg transition-all duration-300 hover:-translate-y-1 shadow-sm"
                         >
-                            Додати оголошення
+                            {t("about.cta.addAdvert")}
                         </Link>
                         <Link
                             to="/search"
                             className="bg-white hover:bg-gray-50 text-mm-navy font-bold text-sm px-6 py-2.5 rounded-lg border border-gray-200 transition-all duration-300 hover:-translate-y-1 shadow-sm"
                         >
-                            Усі товари
+                            {t("about.cta.allProducts")}
                         </Link>
                     </div>
                 </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { useLiveOnlineStatus } from "../../hooks/useLiveOnlineStatus";
 import { formatLastSeen, isUserOnline } from "../../utils/onlineStatus";
 
@@ -16,11 +17,12 @@ interface OnlineStatusBadgeProps {
 // Онлайн ТІЛЬКИ якщо є живе SignalR-з'єднання (isOnline, з IConnectionTracker — див.
 // MessageHub.OnConnectedAsync/OnDisconnectedAsync), інакше — "Був(ла) в мережі {lastSeen}".
 const OnlineStatusBadge: React.FC<OnlineStatusBadgeProps> = ({ userId, isOnline, lastSeen, lastActivity }) => {
+    const { t } = useTranslation();
     const hasRealPresence = isOnline !== undefined;
     const live = useLiveOnlineStatus(userId, isOnline ?? false, lastSeen ?? lastActivity ?? null);
 
     const online = hasRealPresence ? live.isOnline : isUserOnline(lastActivity);
-    const statusText = online ? "Онлайн" : formatLastSeen(hasRealPresence ? live.lastSeen : lastActivity);
+    const statusText = online ? t('onlineStatus.online') : formatLastSeen(hasRealPresence ? live.lastSeen : lastActivity);
 
     return (
         <span className="flex items-center gap-1.5 text-xs font-medium text-gray-500">

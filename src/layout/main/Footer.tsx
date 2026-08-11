@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { FacebookOutlined, TwitterOutlined, InstagramOutlined, YoutubeOutlined } from '@ant-design/icons';
 import { FOOTER_COLUMNS } from '../../data/homePageData';
 
@@ -43,6 +44,7 @@ const LINK_ROUTES: Record<string, string> = {
 };
 
 const Footer: React.FC = () => {
+  const { t } = useTranslation();
   return (
     <footer className="bg-mm-footer text-white">
       <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-12">
@@ -72,7 +74,7 @@ const Footer: React.FC = () => {
           <Link
             to="/app-coming-soon"
             className="flex items-center gap-3 shrink-0 group"
-            aria-label="Скануйте QR-код, щоб дізнатися про застосунок MultiMart"
+            aria-label={t('footer.qrLabel')}
           >
             <div className="w-16 h-16 bg-white rounded-lg p-1.5 shrink-0 shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-lg">
               <svg viewBox="0 0 100 100" className="w-full h-full" aria-hidden="true">
@@ -108,12 +110,12 @@ const Footer: React.FC = () => {
               </svg>
             </div>
             <span className="text-xs text-gray-400 leading-snug max-w-[110px] group-hover:text-white transition-colors">
-              Скануйте, щоб дізнатись про застосунок MultiMart
+              {t('footer.qrLabel')}
             </span>
           </Link>
 
           <div className="flex flex-col items-center gap-3">
-            <span className="text-xs text-gray-400">Спільноти MultiMart в соціальних мережах:</span>
+            <span className="text-xs text-gray-400">{t('footer.socials')}</span>
             <div className="flex gap-3">
               {SOCIAL_LINKS.map(({ icon: Icon, label, href }) => (
                 <a
@@ -131,7 +133,7 @@ const Footer: React.FC = () => {
           </div>
 
           <p className="text-xs text-gray-500 text-center md:text-right max-w-xs">
-            © 2024 Інтернет-магазин «MultiMart». Всі права захищені.
+            {t('footer.copyright')}
           </p>
         </div>
       </div>

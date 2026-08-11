@@ -3,6 +3,7 @@ import type { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
 import { APP_ENV } from "../env";
 import type { RootState } from "../store";
 import { addNotification } from "../store/notificationSlice";
+import { logout } from "../Slice/authSlice";
 
 // Shared base query for every *Service.ts RTK Query slice. Wraps fetchBaseQuery with
 // request/response/error console logging (see debug logging spec): every request is
@@ -53,9 +54,26 @@ export const createBaseQuery = (endpoint: string) => {
                         })
                     );
                 }
+            } else if (result.error.status === 401 || result.error.status === 403) {
+                // Expired/invalid/wrong-scope token: the backend will keep rejecting every
+                // guarded request (chats, favorites, ...) with the same 401/403 until the user
+                // re-authenticates, so retrying or letting each `*Service.ts` slice keep firing
+                // is pointless and just spams the console. Log once, then force a logout — this
+                // clears the dead token/user from the store (and localStorage, see authSlice),
+                // which flips every `skip: !isAuth` / `skip: !token` guard across the app so
+                // those queries stop re-firing instead of looping on 401/403 forever.
+                console.error(`[API ✕] ${endpoint}`, {
+                    request: args,
+                    status: result.error.status,
+                    error: result.error.data ?? result.error,
+                });
+                const state = api.getState() as RootState;
+                if (state.auth.isAuth || state.auth.token) {
+                    api.dispatch(logout());
+                }
             } else {
-                // Covers 4xx/5xx (result.error.status is a number) — genuine responses from a
-                // reachable backend, logged individually as before.
+                // Covers other 4xx/5xx (result.error.status is a number) — genuine responses
+                // from a reachable backend, logged individually as before.
                 console.error(`[API ✕] ${endpoint}`, {
                     request: args,
                     status: result.error.status,

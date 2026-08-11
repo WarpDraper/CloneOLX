@@ -4,7 +4,6 @@ import type { IUserItem } from "../types/account/IUserItem";
 import type { IRegisterUser } from "../types/account/IRegisterUser";
 import type { IUserLogin } from "../types/account/IUserLogin.ts";
 import type { ILoginResult } from "../types/account/ILoginResult.ts";
-import type { IUpdateProfile } from "../types/account/IUpdateProfile.ts";
 import type { IAdvert } from "../types/advert/IAdvert";
 import type { IUserEditResponse } from "../types/account/IUserEditResponse";
 
@@ -39,7 +38,18 @@ export const accountService = createApi({
             },
         }),
 
-        // 3. ЗАБУЛИ ПАРОЛЬ:
+        // 2b. ГУГЛ-ЛОГІН: POST /login/google?googleAccessToken=... — приймає OAuth2 access token
+        // (не id_token/credential), отриманий через @react-oauth/google's implicit flow, і віддає
+        // ті самі accessToken/refreshToken, що й звичайний /login.
+        googleLogin: builder.mutation<ILoginResult, string>({
+            query: (googleAccessToken) => ({
+                url: "/login/google",
+                method: "POST",
+                params: { googleAccessToken },
+            }),
+        }),
+
+        // 3. ЗАБУЛИ ПАРОЛЬ: POST /api/account/password/forgot, JSON body { email }.
         forgotPassword: builder.mutation<{ message: string }, { email: string }>({
             query: (body) => ({
                 url: "/password/forgot",
@@ -48,8 +58,10 @@ export const accountService = createApi({
             }),
         }),
 
-        // 4. СКИДАННЯ ПАРОЛЯ:
-        resetPassword: builder.mutation<{ message: string }, { email: string; token: string; newPassword: string }>({
+        // 4. СКИДАННЯ ПАРОЛЯ: точна відповідність Olx.BLL.Models.ResetPasswordModel
+        // (UserId/Token/Password) — userId/token приходять з посилання в листі
+        // ("...?token=...&id=..."), не email.
+        resetPassword: builder.mutation<{ message: string }, { userId: number; token: string; password: string }>({
             query: (body) => ({
                 url: "/password/reset",
                 method: "POST",
@@ -57,21 +69,20 @@ export const accountService = createApi({
             }),
         }),
 
-        // 5. ОНОВЛЕННЯ ПРОФІЛЮ:
-        updateProfile: builder.mutation<void, IUpdateProfile>({
-            query: (body) => ({
-                url: "/edit/user",
+        // 5. НАДІСЛАТИ КОД ПІДТВЕРДЖЕННЯ EMAIL: POST /api/account/send-verification-code.
+        sendVerificationCode: builder.mutation<void, void>({
+            query: () => ({
+                url: "/send-verification-code",
                 method: "POST",
-                body,
             }),
         }),
 
-        // 6. ЗАВАНТАЖЕННЯ АВАТАРКИ:
-        uploadAvatar: builder.mutation<{ url: string }, FormData>({
-            query: (formData) => ({
-                url: "/edit/user",
+        // 6. ПЕРЕВІРИТИ КОД ПІДТВЕРДЖЕННЯ EMAIL: POST /api/account/verify-email-code.
+        verifyEmailCode: builder.mutation<void, { code: string }>({
+            query: (body) => ({
+                url: "/verify-email-code",
                 method: "POST",
-                body: formData,
+                body,
             }),
         }),
 
@@ -116,10 +127,11 @@ export const accountService = createApi({
 export const {
     useRegisterMutation,
     useLoginMutation,
+    useGoogleLoginMutation,
     useForgotPasswordMutation,
     useResetPasswordMutation,
-    useUpdateProfileMutation,
-    useUploadAvatarMutation,
+    useSendVerificationCodeMutation,
+    useVerifyEmailCodeMutation,
     useGetFavoritesQuery,
     useAddToFavoritesMutation,
     useRemoveFromFavoritesMutation,

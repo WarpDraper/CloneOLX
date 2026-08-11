@@ -3,6 +3,7 @@ import { jwtDecode } from "jwt-decode";
 import type {IUserItem} from "../types/account/IUserItem.ts";
 
 import { APP_ENV } from "../env";
+import { isTokenExpired } from "../utils/tokenUtils";
 
 interface AuthState {
     user: IUserItem | null;
@@ -13,7 +14,16 @@ interface AuthState {
 const getInitialState = (): AuthState => {
     const savedData = localStorage.getItem("auth");
     if (savedData) {
-        return JSON.parse(savedData);
+        const parsed: AuthState = JSON.parse(savedData);
+        // A token left over from a previous session (expired, or signed with an old JWT key
+        // after a backend restart) must not come back as authenticated — otherwise every
+        // guarded query (favorites, SignalR presence hub, ...) fires with a dead token and
+        // logs a 401 on first load. See tokenUtils.ts for the full explanation.
+        if (parsed.token && isTokenExpired(parsed.token)) {
+            localStorage.removeItem("auth");
+            return { user: null, token: null, isAuth: false };
+        }
+        return parsed;
     }
     return { user: null, token: null, isAuth: false };
 };
@@ -40,7 +50,8 @@ const authSlice = createSlice({
                 avatarUrl: fullAvatarUrl,
                 location: decoded.city || "",
                 phoneNumber: decoded.phoneNumber || "",
-                role: decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role || ""
+                role: decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role || "",
+                accountType: decoded.accountType === "Business" ? "Business" : "Individual",
             };
 
             state.token = token;

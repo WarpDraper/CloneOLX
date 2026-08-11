@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Pagination, Slider } from "antd";
 import { AppstoreOutlined, CloseOutlined, SearchOutlined, UnorderedListOutlined } from "@ant-design/icons";
+import { useTranslation } from "react-i18next";
 import { useGetCategoryTreeByIdQuery } from "../../../services/categoryService";
-import { useGetAdvertsPageQuery } from "../../../services/advertService";
+import { useGetAdvertsPageQuery, isRealAdvertId } from "../../../services/advertService";
 import { useGetFiltersByRangeMutation } from "../../../services/filterService";
 import { useAddToFavoritesMutation, useGetFavoritesQuery, useRemoveFromFavoritesMutation } from "../../../services/accountService";
 import { useGetAreasQuery, useGetRegionsByAreaQuery } from "../../../services/newPostService";
@@ -70,6 +71,7 @@ const isRangeFacet = (facet: Pick<IFilter, "values">): boolean => {
 // Frame 234: категорійна сторінка / результати пошуку — сайдбар фільтрів, стрічка підкатегорій,
 // таби сортування, сітка оголошень та пагінація. Обслуговує і /category/:id, і /search?q=...
 const CategoryListingPage: React.FC = () => {
+    const { t } = useTranslation();
     const { id } = useParams<{ id?: string }>();
     const categoryId = id ? Number(id) : undefined;
     const [searchParams, setSearchParams] = useSearchParams();
@@ -321,6 +323,9 @@ const CategoryListingPage: React.FC = () => {
 
     const handleToggleFavorite = (advert: IAdvert) => {
         if (!isAuth) return;
+        // Seed-fallback cards (synthetic negative id) have no real backend record — favoriting
+        // them would 400 the API (see isRealAdvertId).
+        if (!isRealAdvertId(advert.id)) return;
         const isFav = favorites?.some((f) => f.id === advert.id);
         if (isFav) {
             removeFromFavorites(advert.id);
@@ -369,9 +374,9 @@ const CategoryListingPage: React.FC = () => {
     return (
         <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-6">
             <nav className="text-xs text-gray-400 mb-4 flex items-center gap-1.5">
-                <Link to="/" className="hover:text-mm-purple">Головна</Link>
+                <Link to="/" className="hover:text-mm-purple">{t('categoryListing.breadcrumb.home')}</Link>
                 <span>/</span>
-                <Link to="/categories" className="hover:text-mm-purple">Всі категорії</Link>
+                <Link to="/categories" className="hover:text-mm-purple">{t('categoryListing.breadcrumb.allCategories')}</Link>
                 {displayCategory?.parentName && (
                     <>
                         <span>/</span>
@@ -390,8 +395,8 @@ const CategoryListingPage: React.FC = () => {
                 {effectiveCategory
                     ? effectiveCategory.name
                     : searchText
-                    ? `Результати пошуку: «${searchText}»`
-                    : "Всі оголошення"}
+                    ? t('categoryListing.searchResults', { query: searchText })
+                    : t('categoryListing.allAdverts')}
             </h1>
 
             {displayCategory && displayCategory.childs.length > 0 && (
@@ -421,21 +426,21 @@ const CategoryListingPage: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 <aside className="lg:col-span-1 flex flex-col gap-6">
                     <div>
-                        <h3 className="text-sm font-bold text-mm-navy mb-3">Пошук</h3>
+                        <h3 className="text-sm font-bold text-mm-navy mb-3">{t('categoryListing.filters.search')}</h3>
                         {/* Filtering only happens on Enter or a click on the search icon button —
                             no per-keystroke query/filtering. */}
                         <div className="relative">
                             <button
                                 type="button"
                                 onClick={applySearch}
-                                aria-label="Пошук"
+                                aria-label={t('categoryListing.filters.search')}
                                 className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-mm-purple text-sm"
                             >
                                 <SearchOutlined />
                             </button>
                             <input
                                 type="text"
-                                placeholder="Назва, опис, категорія..."
+                                placeholder={t('categoryListing.filters.searchPlaceholder')}
                                 value={searchDraft}
                                 onChange={(e) => setSearchDraft(e.target.value)}
                                 onKeyDown={(e) => e.key === "Enter" && applySearch()}
@@ -445,11 +450,11 @@ const CategoryListingPage: React.FC = () => {
                     </div>
 
                     <div>
-                        <h3 className="text-sm font-bold text-mm-navy mb-3">Ціна, ₴</h3>
+                        <h3 className="text-sm font-bold text-mm-navy mb-3">{t('categoryListing.filters.price')}</h3>
                         <div className="flex items-center gap-2">
                             <input
                                 type="number"
-                                placeholder="від"
+                                placeholder={t('categoryListing.filters.priceFrom')}
                                 value={priceFrom}
                                 onChange={(e) => setPriceFrom(e.target.value)}
                                 className="w-full border border-gray-200 rounded-md px-2 py-1.5 text-sm outline-none focus:border-mm-purple"
@@ -457,7 +462,7 @@ const CategoryListingPage: React.FC = () => {
                             <span className="text-gray-300">—</span>
                             <input
                                 type="number"
-                                placeholder="до"
+                                placeholder={t('categoryListing.filters.priceTo')}
                                 value={priceTo}
                                 onChange={(e) => setPriceTo(e.target.value)}
                                 className="w-full border border-gray-200 rounded-md px-2 py-1.5 text-sm outline-none focus:border-mm-purple"
@@ -468,18 +473,18 @@ const CategoryListingPage: React.FC = () => {
                             onClick={applyPriceRange}
                             className="mt-2 w-full bg-mm-navy text-white text-xs font-semibold py-2 rounded-md hover:bg-mm-navy/90 transition-colors"
                         >
-                            Застосувати
+                            {t('categoryListing.filters.apply')}
                         </button>
                     </div>
 
                     <div>
-                        <h3 className="text-sm font-bold text-mm-navy mb-3">Місто</h3>
+                        <h3 className="text-sm font-bold text-mm-navy mb-3">{t('categoryListing.filters.city')}</h3>
                         <select
                             value={city ?? ""}
                             onChange={(e) => setCity(e.target.value || undefined)}
                             className="w-full border border-gray-200 rounded-md px-2 py-1.5 text-sm outline-none focus:border-mm-purple bg-white"
                         >
-                            <option value="">Всі міста</option>
+                            <option value="">{t('categoryListing.filters.allCities')}</option>
                             {UA_CITIES.map((c) => (
                                 <option key={c} value={c}>{c}</option>
                             ))}
@@ -487,14 +492,14 @@ const CategoryListingPage: React.FC = () => {
                     </div>
 
                     <div>
-                        <h3 className="text-sm font-bold text-mm-navy mb-3">Область і радіус, км</h3>
+                        <h3 className="text-sm font-bold text-mm-navy mb-3">{t('categoryListing.filters.areaAndRadius')}</h3>
                         <div className="flex flex-col gap-2">
                             <select
                                 value={areaRef ?? ""}
                                 onChange={(e) => setArea(e.target.value || undefined)}
                                 className="w-full border border-gray-200 rounded-md px-2 py-1.5 text-sm outline-none focus:border-mm-purple bg-white"
                             >
-                                <option value="">Будь-яка область</option>
+                                <option value="">{t('categoryListing.filters.anyArea')}</option>
                                 {npAreas.map((a) => (
                                     <option key={a.ref} value={a.ref}>{a.description}</option>
                                 ))}
@@ -505,15 +510,15 @@ const CategoryListingPage: React.FC = () => {
                                 disabled={!areaRef}
                                 className="w-full border border-gray-200 rounded-md px-2 py-1.5 text-sm outline-none focus:border-mm-purple bg-white disabled:bg-gray-50 disabled:text-gray-400"
                             >
-                                <option value="">Будь-який район</option>
+                                <option value="">{t('categoryListing.filters.anyRegion')}</option>
                                 {npRegions.map((r) => (
                                     <option key={r.ref} value={r.ref}>{r.description}</option>
                                 ))}
                             </select>
                             <div className={!areaRef ? "opacity-50 pointer-events-none" : undefined}>
                                 <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                                    <span>Радіус пошуку</span>
-                                    <span className="font-semibold text-mm-navy">{radiusKm} км</span>
+                                    <span>{t('categoryListing.filters.searchRadius')}</span>
+                                    <span className="font-semibold text-mm-navy">{t('categoryListing.filters.radiusKm', { count: radiusKm })}</span>
                                 </div>
                                 <Slider
                                     min={0}
@@ -531,7 +536,7 @@ const CategoryListingPage: React.FC = () => {
                                     onClick={clearLocationFilter}
                                     className="text-xs text-gray-400 hover:text-mm-purple self-start"
                                 >
-                                    Скинути область
+                                    {t('categoryListing.filters.resetArea')}
                                 </button>
                             )}
                         </div>
@@ -595,37 +600,37 @@ const CategoryListingPage: React.FC = () => {
                                 onClick={() => { setSort("newest"); setPage(1); }}
                                 className={`px-4 py-1.5 transition-colors ${sort === "newest" ? "bg-mm-purple text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
                             >
-                                Найновіші
+                                {t('categoryListing.sort.newest')}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => { setSort("cheap"); setPage(1); }}
                                 className={`px-4 py-1.5 transition-colors border-l border-gray-200 ${sort === "cheap" ? "bg-mm-purple text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
                             >
-                                Від дешевших до дорогих
+                                {t('categoryListing.sort.cheapFirst')}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => { setSort("expensive"); setPage(1); }}
                                 className={`px-4 py-1.5 transition-colors border-l border-gray-200 ${sort === "expensive" ? "bg-mm-purple text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
                             >
-                                Від дорогих до дешевших
+                                {t('categoryListing.sort.expensiveFirst')}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => { setSort("popularity"); setPage(1); }}
                                 className={`px-4 py-1.5 transition-colors border-l border-gray-200 ${sort === "popularity" ? "bg-mm-purple text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
                             >
-                                За популярністю
+                                {t('categoryListing.sort.popularity')}
                             </button>
                         </div>
                         <div className="flex items-center gap-3">
-                            <span className="text-xs text-gray-400">{total} оголошень</span>
+                            <span className="text-xs text-gray-400">{t('categoryListing.advertsCount', { count: total })}</span>
                             <div className="flex items-center rounded-lg overflow-hidden border border-gray-200">
                                 <button
                                     type="button"
                                     onClick={() => setViewMode("grid")}
-                                    aria-label="Сітка"
+                                    aria-label={t('categoryListing.viewMode.grid')}
                                     aria-pressed={viewMode === "grid"}
                                     className={`w-8 h-8 flex items-center justify-center transition-colors ${viewMode === "grid" ? "bg-mm-purple text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
                                 >
@@ -634,7 +639,7 @@ const CategoryListingPage: React.FC = () => {
                                 <button
                                     type="button"
                                     onClick={() => setViewMode("list")}
-                                    aria-label="Список"
+                                    aria-label={t('categoryListing.viewMode.list')}
                                     aria-pressed={viewMode === "list"}
                                     className={`w-8 h-8 flex items-center justify-center transition-colors border-l border-gray-200 ${viewMode === "list" ? "bg-mm-purple text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
                                 >
@@ -679,11 +684,11 @@ const CategoryListingPage: React.FC = () => {
                                     onClick={clearLocationFilter}
                                     className="flex items-center gap-1.5 bg-mm-lavender text-mm-purple text-xs font-medium px-3 py-1.5 rounded-full hover:bg-purple-100"
                                 >
-                                    {npAreas.find((a) => a.ref === areaRef)?.description ?? "Область"}
+                                    {npAreas.find((a) => a.ref === areaRef)?.description ?? t('categoryListing.filters.area')}
                                     {regionRef && radiusKm < RADIUS_REGION_THRESHOLD_KM
                                         ? ` · ${npRegions.find((r) => r.ref === regionRef)?.description ?? ""}`
                                         : ""}
-                                    {" "}({radiusKm} км) <CloseOutlined className="text-[10px]" />
+                                    {" "}({radiusKm} {t('categoryListing.filters.km')}) <CloseOutlined className="text-[10px]" />
                                 </button>
                             )}
                             {Object.entries(selectedFacets).flatMap(([filterId, valueIds]) =>
@@ -711,7 +716,7 @@ const CategoryListingPage: React.FC = () => {
                             <CubeLoader />
                         </div>
                     ) : adverts.length === 0 ? (
-                        <p className="text-center text-gray-400 py-16">Нічого не знайдено.</p>
+                        <p className="text-center text-gray-400 py-16">{t('categoryListing.noResults')}</p>
                     ) : viewMode === "grid" ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 items-start">
                             {adverts.map((advert) => (
@@ -751,19 +756,32 @@ const CategoryListingPage: React.FC = () => {
                         <div className="mt-10">
                             <div className="flex items-center gap-3 mb-5">
                                 <div className="h-px flex-1 bg-gray-200" />
-                                <span className="text-sm font-semibold text-gray-400 shrink-0">Схожі товари</span>
+                                <span className="text-sm font-semibold text-gray-400 shrink-0">{t('categoryListing.similarProducts')}</span>
                                 <div className="h-px flex-1 bg-gray-200" />
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 items-start">
-                                {fallbackRecommendations.map((advert) => (
-                                    <AdvertCard
-                                        key={advert.id}
-                                        advert={advert}
-                                        onToggleFavorite={handleToggleFavorite}
-                                        isFavorite={favorites?.some((f) => f.id === advert.id) ?? false}
-                                    />
-                                ))}
-                            </div>
+                            {viewMode === "grid" ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 items-start">
+                                    {fallbackRecommendations.map((advert) => (
+                                        <AdvertCard
+                                            key={advert.id}
+                                            advert={advert}
+                                            onToggleFavorite={handleToggleFavorite}
+                                            isFavorite={favorites?.some((f) => f.id === advert.id) ?? false}
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex flex-col gap-3">
+                                    {fallbackRecommendations.map((advert) => (
+                                        <AdvertListItem
+                                            key={advert.id}
+                                            advert={advert}
+                                            onToggleFavorite={handleToggleFavorite}
+                                            isFavorite={favorites?.some((f) => f.id === advert.id) ?? false}
+                                        />
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

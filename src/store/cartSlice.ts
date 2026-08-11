@@ -13,6 +13,11 @@ export interface CartItem {
 
 interface CartState {
     items: CartItem[];
+    // Id of the user the persisted `items` belong to (or null for a signed-out/guest cart).
+    // Lets us detect "a different account is now using this browser" and drop the stale
+    // cart instead of leaking one user's items into another user's freshly created/logged-in
+    // session (see syncCartOwner below).
+    ownerId: string | null;
 }
 
 const CART_STORAGE_KEY = "cart";
@@ -21,12 +26,13 @@ const getInitialState = (): CartState => {
     const saved = localStorage.getItem(CART_STORAGE_KEY);
     if (saved) {
         try {
-            return JSON.parse(saved);
+            const parsed = JSON.parse(saved);
+            return { items: parsed.items ?? [], ownerId: parsed.ownerId ?? null };
         } catch {
-            return { items: [] };
+            return { items: [], ownerId: null };
         }
     }
-    return { items: [] };
+    return { items: [], ownerId: null };
 };
 
 const persist = (state: CartState) => {
@@ -37,6 +43,17 @@ const cartSlice = createSlice({
     name: "cart",
     initialState: getInitialState(),
     reducers: {
+        // Called whenever the active account changes (login, register, logout). If the cart
+        // in storage belonged to a different user (or no one), it's stale/foreign data —
+        // reset to an empty cart for the new owner instead of showing it. This is what
+        // guarantees a newly registered or newly logged-in user always starts from [].
+        syncCartOwner: (state, action: PayloadAction<string | null>) => {
+            if (state.ownerId !== action.payload) {
+                state.items = [];
+                state.ownerId = action.payload;
+                persist(state);
+            }
+        },
         addToCart: (state, action: PayloadAction<Omit<CartItem, "quantity"> & { quantity?: number }>) => {
             const existing = state.items.find((i) => i.advertId === action.payload.advertId);
             if (existing) {
@@ -64,5 +81,5 @@ const cartSlice = createSlice({
     },
 });
 
-export const { addToCart, setQuantity, removeFromCart, clearCart } = cartSlice.actions;
+export const { syncCartOwner, addToCart, setQuantity, removeFromCart, clearCart } = cartSlice.actions;
 export default cartSlice.reducer;

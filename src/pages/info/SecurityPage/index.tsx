@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
     SafetyCertificateOutlined,
     LockOutlined,
@@ -19,63 +20,64 @@ interface RuleCard {
     text: string;
 }
 
-const BUYER_RULES: RuleCard[] = [
-    {
-        icon: EnvironmentOutlined,
-        title: "Зустрічайтесь у людних місцях",
-        text: "Для особистих зустрічей обирайте людні, добре освітлені місця — торгові центри, відділення пошти, людні вулиці. Уникайте зустрічей наодинці у під'їздах чи безлюдних місцях.",
-    },
-    {
-        icon: DollarCircleOutlined,
-        title: "Оплачуйте після перевірки товару",
-        text: "Перевіряйте товар особисто перед оплатою. Якщо оплата онлайн — користуйтеся лише «OLX Доставкою» з перевіркою при отриманні, а не прямими переказами незнайомцям.",
-    },
-    {
-        icon: EyeInvisibleOutlined,
-        title: "Не діліться зайвими даними",
-        text: "Продавцю для угоди ніколи не потрібні дані вашої картки, CVV-код, SMS-коди підтвердження чи пароль від додатку банку. Якщо просять — це шахрайство.",
-    },
-    {
-        icon: SafetyCertificateOutlined,
-        title: "Перевіряйте продавця",
-        text: "Дивіться рейтинг і кількість відгуків, дату реєстрації акаунта, наявність підтвердженого номера телефону. Новий акаунт без історії — привід бути уважнішим.",
-    },
-];
-
-const RED_FLAGS: string[] = [
-    "Ціна значно нижча за ринкову «щоб швидше продати»",
-    "Продавець наполягає на передоплаті на карту до огляду товару",
-    "Прохання зателефонувати/написати «в іншому месенджері» одразу, оминаючи чат MultiMart",
-    "Посилання на «перевірку» чи «розморозку рахунку» поза офіційним сайтом",
-    "Прохання назвати код з SMS або CVV-код картки",
-    "Оголошення без фото товару або з фото, «вкраденими» з інтернету",
-];
-
-const SAFE_STEPS: { title: string; text: string }[] = [
-    { title: "Спілкуйтеся в чаті MultiMart", text: "Уся переписка та історія домовленостей зберігається — це ваш захист у разі спору." },
-    { title: "Перевірте оголошення та профіль", text: "Рейтинг, відгуки, дата реєстрації — попереджають про потенційно ризиковані угоди." },
-    { title: "Огляньте товар перед оплатою", text: "За можливості — особисто або через відділення доставки з опцією перевірки вкладення." },
-    { title: "Використовуйте безпечні способи оплати", text: "«OLX Доставка» з післяплатою або оплата карткою через офіційний застосунок — ніколи не поза платформою." },
-    { title: "Повідомляйте про підозріле", text: "Поскаржтесь на оголошення чи користувача — команда підтримки MultiMart перевірить сигнал." },
-];
-
 const SecurityPage: React.FC = () => {
+    const { t } = useTranslation();
+
+    const BUYER_RULES: RuleCard[] = [
+        {
+            icon: EnvironmentOutlined,
+            title: t("security.buyerRules.meetInPublic.title"),
+            text: t("security.buyerRules.meetInPublic.text"),
+        },
+        {
+            icon: DollarCircleOutlined,
+            title: t("security.buyerRules.payAfterCheck.title"),
+            text: t("security.buyerRules.payAfterCheck.text"),
+        },
+        {
+            icon: EyeInvisibleOutlined,
+            title: t("security.buyerRules.dontShareData.title"),
+            text: t("security.buyerRules.dontShareData.text"),
+        },
+        {
+            icon: SafetyCertificateOutlined,
+            title: t("security.buyerRules.checkSeller.title"),
+            text: t("security.buyerRules.checkSeller.text"),
+        },
+    ];
+
+    const RED_FLAGS: string[] = [
+        t("security.redFlags.0"),
+        t("security.redFlags.1"),
+        t("security.redFlags.2"),
+        t("security.redFlags.3"),
+        t("security.redFlags.4"),
+        t("security.redFlags.5"),
+    ];
+
+    const SAFE_STEPS: { title: string; text: string }[] = [
+        { title: t("security.safeSteps.0.title"), text: t("security.safeSteps.0.text") },
+        { title: t("security.safeSteps.1.title"), text: t("security.safeSteps.1.text") },
+        { title: t("security.safeSteps.2.title"), text: t("security.safeSteps.2.text") },
+        { title: t("security.safeSteps.3.title"), text: t("security.safeSteps.3.text") },
+        { title: t("security.safeSteps.4.title"), text: t("security.safeSteps.4.text") },
+    ];
+
     return (
         <div className="bg-white">
             <section className="bg-mm-navy">
                 <div className="max-w-[1000px] mx-auto px-4 md:px-6 py-10 text-center">
                     <SafetyCertificateOutlined className="text-4xl text-mm-orange mb-3" />
-                    <h1 className="text-2xl md:text-3xl font-bold text-white mb-3">Безпека на MultiMart</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-white mb-3">{t("security.title")}</h1>
                     <p className="text-white/70 text-sm md:text-base max-w-2xl mx-auto">
-                        Поради, які допоможуть безпечно купувати та продавати — розпізнавати шахрайство,
-                        захищати особисті дані та впевнено домовлятися з іншими користувачами.
+                        {t("security.subtitle")}
                     </p>
                 </div>
             </section>
 
             <div className="max-w-[1000px] mx-auto px-4 md:px-6 py-10">
                 <section className="mb-12">
-                    <h2 className="text-xl font-bold text-mm-navy mb-5">Основні правила безпечної угоди</h2>
+                    <h2 className="text-xl font-bold text-mm-navy mb-5">{t("security.buyerRulesHeading")}</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {BUYER_RULES.map((rule) => (
                             <div key={rule.title} className="flex gap-3 bg-mm-lavender-light border border-purple-100 rounded-xl p-4">
@@ -92,7 +94,7 @@ const SecurityPage: React.FC = () => {
                 </section>
 
                 <section className="mb-12">
-                    <h2 className="text-xl font-bold text-mm-navy mb-5">5 кроків до безпечної угоди</h2>
+                    <h2 className="text-xl font-bold text-mm-navy mb-5">{t("security.safeStepsHeading")}</h2>
                     <div className="flex flex-col gap-3">
                         {SAFE_STEPS.map((step, index) => (
                             <div key={step.title} className="flex items-start gap-4 bg-white border border-gray-100 rounded-xl p-4">
@@ -110,7 +112,7 @@ const SecurityPage: React.FC = () => {
 
                 <section className="mb-12">
                     <h2 className="text-xl font-bold text-mm-navy mb-5 flex items-center gap-2">
-                        <WarningOutlined className="text-mm-orange" /> Ознаки шахрайства
+                        <WarningOutlined className="text-mm-orange" /> {t("security.redFlagsHeading")}
                     </h2>
                     <div className="bg-orange-50 border border-orange-100 rounded-xl p-5">
                         <ul className="flex flex-col gap-2.5">
@@ -126,18 +128,14 @@ const SecurityPage: React.FC = () => {
 
                 <section className="mb-12">
                     <h2 className="text-xl font-bold text-mm-navy mb-5 flex items-center gap-2">
-                        <LockOutlined className="text-mm-purple" /> Захист персональних даних
+                        <LockOutlined className="text-mm-purple" /> {t("security.personalDataHeading")}
                     </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600">
                         <p className="bg-white border border-gray-100 rounded-xl p-4 leading-relaxed">
-                            Не публікуйте в оголошеннях паспортні дані, повну домашню адресу чи реквізити картки.
-                            Для доставки достатньо населеного пункту та відділення — точна адреса передається
-                            лише службі доставки, а не іншому користувачу напряму.
+                            {t("security.personalData.paragraph1")}
                         </p>
                         <p className="bg-white border border-gray-100 rounded-xl p-4 leading-relaxed">
-                            MultiMart ніколи не просить пароль, код з SMS чи повний номер картки в листах,
-                            дзвінках або чаті. Будь-яке таке прохання — це фішинг, навіть якщо співрозмовник
-                            представляється «службою підтримки».
+                            {t("security.personalData.paragraph2")}
                         </p>
                     </div>
                 </section>
@@ -145,11 +143,10 @@ const SecurityPage: React.FC = () => {
                 <section className="bg-mm-navy rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div>
                         <h2 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                            <CheckCircleOutlined className="text-green-400" /> Помітили щось підозріле?
+                            <CheckCircleOutlined className="text-green-400" /> {t("security.reportHeading")}
                         </h2>
                         <p className="text-white/70 text-sm max-w-lg">
-                            Поскаржтесь на оголошення чи користувача, або зверніться до підтримки — ми перевіримо
-                            звернення та вживемо заходів.
+                            {t("security.reportText")}
                         </p>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-3 shrink-0">
@@ -157,7 +154,7 @@ const SecurityPage: React.FC = () => {
                             to="/chat"
                             className="flex items-center justify-center gap-2 bg-mm-purple hover:bg-mm-purple-dark text-white font-bold text-sm px-5 py-2.5 rounded-lg transition-colors"
                         >
-                            <MessageOutlined /> Написати в підтримку
+                            <MessageOutlined /> {t("security.contactSupport")}
                         </Link>
                         <a
                             href="tel:0800123456"
@@ -169,10 +166,10 @@ const SecurityPage: React.FC = () => {
                 </section>
 
                 <p className="text-xs text-gray-400 text-center mt-8">
-                    Також перегляньте{" "}
-                    <Link to="/delivery-safety" className="text-mm-purple hover:underline">безпеку доставки</Link>{" "}
-                    та{" "}
-                    <Link to="/delivery-rules" className="text-mm-purple hover:underline">правила доставки Новою поштою</Link>.
+                    {t("security.footerPrefix")}{" "}
+                    <Link to="/delivery-safety" className="text-mm-purple hover:underline">{t("security.footerDeliverySafetyLink")}</Link>{" "}
+                    {t("security.footerMiddle")}{" "}
+                    <Link to="/delivery-rules" className="text-mm-purple hover:underline">{t("security.footerDeliveryRulesLink")}</Link>.
                 </p>
             </div>
         </div>

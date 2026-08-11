@@ -1,0 +1,1307 @@
+{
+  "header": {
+    "aboutUs": "About Us",
+    "terms": "Terms of Use",
+    "langUk": "Ukr",
+    "langEn": "Eng",
+    "nav": {
+      "chats": "Chats",
+      "notifications": "Notifications",
+      "cart": "Cart",
+      "favorites": "Favorites",
+      "profile": "Account"
+    },
+    "notificationsPanel": {
+      "title": "Notifications",
+      "markAllRead": "Mark all as read",
+      "empty": "No new notifications"
+    },
+    "adminPanel": "Admin Panel",
+    "addAdvert": "Post an Ad"
+  },
+  "footer": {
+    "socials": "MultiMart communities on social media:",
+    "qrLabel": "Scan to learn about the MultiMart app",
+    "copyright": "© 2024 MultiMart Online Store. All rights reserved."
+  },
+  "home": {
+    "catalog": "Catalog",
+    "searchPlaceholder": "I'm looking for...",
+    "wholeCountry": "All Ukraine",
+    "search": "Search",
+    "topQueries": "Top searches:",
+    "categories": "Categories",
+    "allCategories": "All Categories",
+    "allProducts": "All Products",
+    "recommendations": "Recommended for You",
+    "appTitle": "MultiMart App",
+    "appDescription": "Buy and sell conveniently from your smartphone — the app is already in development.",
+    "appStore": "App Store",
+    "googlePlay": "Google Play",
+    "more": "Learn more",
+    "popularSellers": "Popular Sellers",
+    "showMore": "Show more",
+    "collapse": "Collapse",
+    "prevSlide": "Previous slide",
+    "nextSlide": "Next slide",
+    "slideLabel": "Slide {{number}}"
+  },
+  "common": {
+    "loading": "Loading...",
+    "logout": "Log Out",
+    "edit": "Edit",
+    "save": "Save Changes",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "currency": "UAH",
+    "negotiable": "Negotiable",
+    "noPhoto": "No photo"
+  },
+  "forgotPassword": {
+    "errors": {
+      "emailRequired": "Please enter your Email!",
+      "generic": "An error occurred. Please try again later."
+    },
+    "success": {
+      "default": "Recovery email sent!"
+    },
+    "closeAriaLabel": "Close",
+    "heading": "Password Recovery",
+    "subheading": "Enter your Email and we'll send you a link to reset your password",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Enter your Email",
+    "sending": "Sending...",
+    "submit": "Send link",
+    "rememberedPassword": "Remembered your password?",
+    "login": "Log In"
+  },
+  "login": {
+    "closeAriaLabel": "Close",
+    "heading": "Sign in to your account",
+    "subheading": "Glad to see you again! Sign in to continue",
+    "orContinueWith": "Or sign in with:",
+    "noAccount": "Don't have an account yet?",
+    "register": "Sign Up",
+    "emailOrPhone": "Email or phone",
+    "emailPlaceholder": "Enter your email or phone number",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "submit": "Log In",
+    "errors": {
+      "emailRequired": "Enter your email or phone number",
+      "passwordRequired": "Enter your password",
+      "captchaLoading": "Bot protection is loading. Please try again in a moment.",
+      "generic": "Login error. Please check your details."
+    }
+  },
+  "register": {
+    "closeAriaLabel": "Close",
+    "heading": "Create an account",
+    "subheading": "Join us! Create an account to get started",
+    "orContinueWith": "Or sign up with:",
+    "haveAccount": "Already have an account?",
+    "login": "Log In",
+    "firstName": "First name",
+    "firstNamePlaceholder": "Enter your first name",
+    "lastName": "Last name",
+    "lastNamePlaceholder": "Enter your last name",
+    "emailOrPhone": "Email or phone",
+    "emailPlaceholder": "Enter your email or phone number",
+    "phoneNumber": "Phone number",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "passwordConfirmation": "Confirm password",
+    "passwordConfirmationPlaceholder": "Repeat your password",
+    "imageRequired": "An image is required",
+    "submit": "Sign Up",
+    "errors": {
+      "firstNameRequired": "Enter your first name",
+      "lastNameRequired": "Enter your last name",
+      "emailRequired": "Enter your email or phone number",
+      "phoneRequired": "Enter your phone number",
+      "passwordRequired": "Enter your password",
+      "passwordConfirmationRequired": "Confirm your password",
+      "passwordMismatch": "Passwords do not match!",
+      "captchaLoading": "Bot protection is loading. Please try again in a moment.",
+      "generic": "Registration error"
+    }
+  },
+  "resetPassword": {
+    "closeAriaLabel": "Close",
+    "heading": "Set a new password",
+    "subheading": "Come up with a strong password for your account",
+    "successRedirecting": "Redirecting to the login page...",
+    "invalidLink": "The link is invalid or broken. Please try again.",
+    "newPasswordLabel": "New password",
+    "newPasswordPlaceholder": "At least 6 characters",
+    "confirmPasswordLabel": "Confirm new password",
+    "confirmPasswordPlaceholder": "Repeat your password",
+    "submit": "Save new password",
+    "backTo": "Back to",
+    "login": "Log In",
+    "errors": {
+      "invalidLink": "The link is invalid or broken.",
+      "passwordRequired": "Please enter a new password!",
+      "passwordTooShort": "Password must be at least 6 characters!",
+      "passwordMismatch": "Passwords do not match!",
+      "generic": "Failed to change password. The link may have expired."
+    },
+    "success": {
+      "default": "Password changed successfully!"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "avatar": {
+      "changePhoto": "Change photo",
+      "allowedFormats": "Allowed formats: JPG, PNG, GIF, WEBP.",
+      "maxSize": "Photo size must not exceed 2MB."
+    },
+    "email": {
+      "label": "Email",
+      "confirmed": "Confirmed",
+      "confirm": "Confirm email",
+      "sending": "Sending..."
+    },
+    "firstName": "First name",
+    "lastName": "Last name",
+    "phoneNumber": "Phone number",
+    "phoneFormatHint": "Format: +380 (XX) XXX-XX-XX",
+    "city": "City",
+    "errors": {
+      "nameLength": "2 to 100 characters",
+      "saveFailed": "Failed to save changes.",
+      "codeLength": "Enter the 6-digit code.",
+      "codeInvalid": "Invalid or expired code."
+    },
+    "toasts": {
+      "saved": "Settings saved!",
+      "codeSent": "Confirmation code sent to your email.",
+      "codeSendFailed": "Failed to send code. Please try again later.",
+      "emailConfirmed": "Email confirmed!"
+    },
+    "modal": {
+      "title": "Email confirmation",
+      "description": "We sent a 6-digit code to {{email}}. Enter it below.",
+      "confirm": "Confirm",
+      "checking": "Checking...",
+      "resend": "Resend code"
+    }
+  },
+  "googleAuth": {
+    "errors": {
+      "loginFailed": "Failed to sign in with Google. Please try again.",
+      "popupFailed": "Failed to open the Google window. Check your popup blocker."
+    },
+    "notConfigured": "Google sign-in is temporarily unavailable: VITE_GOOGLE_CLIENT_ID is not set in .env",
+    "ariaLabel": "Sign in with Google"
+  },
+  "accountSidebar": {
+    "nav": {
+      "profile": "Profile",
+      "favorites": "Favorites",
+      "chats": "Chats",
+      "settings": "Settings"
+    },
+    "defaultUserName": "User"
+  },
+  "admin": {
+    "common": {
+      "categoryPlaceholder": "Category",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "categories": {
+      "title": "Categories",
+      "empty": "No categories found",
+      "table": {
+        "id": "ID",
+        "name": "Name",
+        "parent": "Parent category",
+        "filters": "Filters"
+      }
+    },
+    "chats": {
+      "title": "Chats"
+    },
+    "comingSoon": {
+      "subtitle": "This admin panel section is still under development."
+    },
+    "orders": {
+      "tabs": {
+        "all": "All orders",
+        "paid": "Paid",
+        "processing": "Processing",
+        "shipped": "Shipped",
+        "cancelled": "Cancelled"
+      },
+      "export": {
+        "headers": {
+          "id": "ID",
+          "customer": "Customer",
+          "product": "Product",
+          "price": "Price",
+          "status": "Status",
+          "date": "Date"
+        }
+      },
+      "share": {
+        "copied": "Link copied to clipboard",
+        "copyFailed": "Failed to copy the link"
+      },
+      "table": {
+        "id": "Order ID",
+        "customer": "Customer name",
+        "product": "Product name",
+        "price": "Price",
+        "status": "Status",
+        "date": "Date"
+      },
+      "actions": {
+        "share": "Share",
+        "export": "Export"
+      },
+      "empty": "No orders found",
+      "productsPanel": {
+        "title": "Products"
+      }
+    },
+    "overview": {
+      "periods": {
+        "week": "Week",
+        "month": "Month",
+        "year": "Year"
+      },
+      "table": {
+        "id": "ID",
+        "customer": "Customer",
+        "product": "Product",
+        "price": "Price",
+        "status": "Status",
+        "date": "Date"
+      },
+      "metrics": {
+        "totalSold": "Total sold",
+        "orders": "Orders",
+        "users": "Users",
+        "sellers": "Sellers"
+      },
+      "salesDynamics": {
+        "title": "Sales dynamics"
+      },
+      "orderStatus": {
+        "title": "Order status"
+      },
+      "recentOrders": {
+        "title": "Recent orders",
+        "empty": "No orders yet"
+      },
+      "popularProducts": {
+        "title": "Popular products",
+        "empty": "No data",
+        "stats": "{{sales}} sales · {{favorites}} favorited"
+      },
+      "usersTable": {
+        "title": "Users",
+        "columns": {
+          "name": "Name",
+          "email": "Email",
+          "registerDate": "Registered",
+          "status": "Status"
+        }
+      },
+      "chats": {
+        "empty": "No messages"
+      }
+    },
+    "products": {
+      "title": "Products",
+      "searchPlaceholder": "Search products...",
+      "addButton": "Add product",
+      "empty": "No products found",
+      "status": {
+        "active": "Active",
+        "sold": "Sold",
+        "pending": "Pending moderation",
+        "blocked": "Blocked"
+      },
+      "table": {
+        "id": "ID",
+        "title": "Product",
+        "category": "Category",
+        "price": "Price",
+        "salesCount": "Sales",
+        "status": "Status"
+      }
+    },
+    "reports": {
+      "title": "Report handling",
+      "messages": {
+        "statusChanged": "Report {{id}} marked as {{status}}",
+        "updateError": "Error updating status. Check your API connection.",
+        "blockSuccess": "User {{targetId}} has been blocked.",
+        "blockError": "Error blocking user. Check your API connection."
+      },
+      "statusVerb": {
+        "resolved": "resolved",
+        "dismissed": "dismissed"
+      },
+      "notifications": {
+        "blockTitle": "Blocking",
+        "blockMessage": "User {{targetId}} was blocked based on a report."
+      },
+      "table": {
+        "id": "Report ID",
+        "reporter": "Reported by",
+        "target": "Target",
+        "reason": "Reason",
+        "date": "Date",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "targetType": {
+        "ad": "Listing",
+        "user": "User"
+      },
+      "status": {
+        "pending": "Pending",
+        "resolved": "Resolved",
+        "dismissed": "Dismissed"
+      },
+      "actions": {
+        "confirm": "Confirm",
+        "dismiss": "Dismiss",
+        "block": "Block"
+      },
+      "blockConfirm": {
+        "title": "Block this user?",
+        "description": "Are you sure you want to block the offender?"
+      }
+    },
+    "sellers": {
+      "title": "Sellers",
+      "empty": "No sellers found",
+      "table": {
+        "id": "ID",
+        "name": "Name",
+        "email": "Email",
+        "productsCount": "Products",
+        "salesCount": "Sales",
+        "rating": "Rating"
+      }
+    },
+    "users": {
+      "title": "User management",
+      "messages": {
+        "statusChanged": "User {{name}} was successfully {{action}}",
+        "statusError": "Error changing status. Check your API connection.",
+        "sendSuccess": "Message successfully sent to user {{name}}"
+      },
+      "actionVerb": {
+        "blocked": "blocked",
+        "unblocked": "unblocked"
+      },
+      "notifications": {
+        "title": "Message from moderator"
+      },
+      "table": {
+        "id": "ID",
+        "name": "Name",
+        "email": "Email",
+        "registerDate": "Registration date",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "blocked": "Blocked"
+      },
+      "actions": {
+        "block": "Block",
+        "unblock": "Unblock",
+        "message": "Message"
+      },
+      "modal": {
+        "title": "Send message: {{name}}",
+        "subjectLabel": "Subject",
+        "subjectRequired": "Please enter a subject",
+        "subjectPlaceholder": "E.g.: Warning about rule violation",
+        "messageLabel": "Message text",
+        "messageRequired": "Please enter the message text",
+        "messagePlaceholder": "Enter text...",
+        "send": "Send"
+      }
+    },
+    "layout": {
+      "sidebar": {
+        "home": "Home",
+        "orders": "Orders",
+        "products": "Products",
+        "categories": "Categories",
+        "users": "Users",
+        "sellers": "Sellers",
+        "chats": "Chats",
+        "reports": "Reports",
+        "analytics": "Analytics",
+        "marketing": "Marketing",
+        "settings": "Settings"
+      },
+      "profileMenu": {
+        "site": "Back to site"
+      },
+      "searchPlaceholder": "Search...",
+      "promo": {
+        "title": "Working at full capacity!",
+        "subtitle": "MultiMart Admin"
+      },
+      "logoAlt": "MultiMart",
+      "defaultAdminName": "Administrator",
+      "roleLabel": "Admin"
+    },
+    "chatPanel": {
+      "emptyThreads": "No messages from users",
+      "replySubject": "Reply from administration",
+      "sendSuccess": "Message sent",
+      "sendError": "Failed to send the message",
+      "replyPlaceholder": "Write a reply...",
+      "selectThread": "Select a conversation"
+    },
+    "orderStatus": {
+      "paid": "Paid",
+      "processing": "Processing",
+      "shipped": "Shipped",
+      "cancelled": "Cancelled"
+    }
+  },
+  "cart": {
+    "addedTitle": "Added to cart",
+    "addToCart": "Add to cart",
+    "removeFromCart": "Remove from cart",
+    "buy": "Buy",
+    "inCart": "In cart",
+    "title": "Cart",
+    "empty": "Your cart is empty.",
+    "goToCatalog": "Go to catalog",
+    "noPhoto": "No photo",
+    "deliveryMethod": "Delivery method",
+    "delivery": {
+      "novaPoshta": "Nova Poshta Delivery",
+      "selfPickup": "Self pickup",
+      "courier": "Courier delivery"
+    },
+    "settlement": "Settlement",
+    "warehouse": "Branch",
+    "warehouseListView": "Branch list",
+    "warehouseMapView": "Branch map",
+    "warehousePlaceholder": "Choose a Nova Poshta / Ukrposhta branch",
+    "mapHint": "Click a pin to select a branch.",
+    "selfPickupHint": "Self pickup from the seller's store — you'll agree on the address with the seller after checkout.",
+    "deliveryAddress": "Delivery address",
+    "deliveryAddressPlaceholder": "City, street, building, apartment",
+    "paymentMethod": "Payment method",
+    "payment": {
+      "cardOnline": "Pay online by card",
+      "cashOnDelivery": "Cash on delivery"
+    },
+    "recipient": "Recipient",
+    "recipientNamePlaceholder": "First and last name",
+    "recipientPhonePlaceholder": "Phone number",
+    "total": "Total",
+    "currency": "UAH",
+    "submitting": "Placing order...",
+    "placeOrder": "Place order",
+    "orderPlaced": "Order placed!",
+    "orderNumber": "Order number #{{id}}",
+    "backToHome": "Back to home",
+    "errors": {
+      "recipientRequired": "Enter the recipient's name and phone number.",
+      "deliveryLocationRequired": "Select a settlement and a branch for delivery.",
+      "courierAddressRequired": "Enter the address for courier delivery.",
+      "orderFailed": "Failed to place the order. Please try again."
+    }
+  },
+  "favorites": {
+    "add": "Add to favorites",
+    "remove": "Remove from favorites",
+    "loading": "Loading favorites...",
+    "empty": "You haven't added any listings to favorites yet.",
+    "comingSoon": "{{label}} — feature coming soon.",
+    "title": "Favorites",
+    "tabs": {
+      "adverts": "Listings ({{count}})",
+      "searches": "Searches",
+      "sellers": "Sellers"
+    },
+    "savedSearches": "Saved searches",
+    "favoriteSellers": "Favorite sellers"
+  },
+  "advertDetails": {
+    "notFound": "Advert not found.",
+    "demoUnavailable": {
+      "title": "Unavailable",
+      "message": "This action is not available for a demo advert"
+    },
+    "purchase": {
+      "successTitle": "Purchase completed"
+    },
+    "unknownCharacteristic": "Characteristic #{{id}}",
+    "buy": {
+      "processing": "Processing..."
+    },
+    "loginPrompt": {
+      "text": "Log in to your MultiMart profile or create a new one to contact the seller.",
+      "link": "Log in or create a profile"
+    },
+    "contactSeller": "Contact the seller:",
+    "messageButton": "Message",
+    "showPhone": "Phone",
+    "notProvided": "not provided",
+    "locationLabel": "LOCATION",
+    "specsTitle": "Specifications and description",
+    "hideSpecs": "Hide description and specifications",
+    "showSpecs": "Show description and specifications",
+    "deliveryTitle": "Delivery and payment",
+    "relatedTitle": "You may also be interested in",
+    "sellerItemsTitle": "Seller's items",
+    "paymentInfo": {
+      "label": "Payment.",
+      "text": "Cash on delivery, Apple Pay, Google Pay, Visa/MasterCard payment (MultiMart), payment to the seller's account."
+    },
+    "delivery": {
+      "free": "Free",
+      "carrierRate": "Carrier rate",
+      "options": {
+        "pickupStore": {
+          "label": "Pickup from MultiMart stores",
+          "note": "Average delivery time 3 days"
+        },
+        "pickupNovaPoshta": {
+          "label": "Pickup from Nova Poshta",
+          "note": "Average delivery time 2 days"
+        },
+        "pickupNovaPoshtaLockers": {
+          "label": "Pickup from Nova Poshta lockers",
+          "note": "Average delivery time 2 days"
+        },
+        "courierNovaPoshta": {
+          "label": "Nova Poshta courier"
+        }
+      }
+    }
+  },
+  "createAdvert": {
+    "pageTitle": "Post an advert",
+    "sections": {
+      "mainInfo": "Basic information",
+      "priceAndLocation": "Price and location",
+      "contactInfo": "Contact information",
+      "photos": "Photos"
+    },
+    "fields": {
+      "category": "Category",
+      "categoryPlaceholder": "Select a category",
+      "title": "Advert title",
+      "titlePlaceholder": "e.g. iPhone 13 Pro 128GB",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe the condition, package contents and other details",
+      "notSpecified": "Not specified",
+      "price": "Price, ₴",
+      "contactPerson": "Contact person",
+      "email": "Email",
+      "phone": "Phone"
+    },
+    "errors": {
+      "required": "Required field",
+      "titleMaxLength": "Maximum 256 characters",
+      "descriptionMaxLength": "Maximum 5000 characters",
+      "invalidPrice": "Enter a valid price",
+      "selectCategory": "Select a category",
+      "selectSettlement": "Select a settlement",
+      "invalidEmail": "Enter a valid email",
+      "invalidPhoneFormat": "Format: +38 (0XX) XXX-XX-XX",
+      "imagesRequired": "Add at least one photo"
+    },
+    "messages": {
+      "publishSuccess": "Advert published!",
+      "publishError": "Failed to publish the advert."
+    },
+    "submit": {
+      "publish": "Publish advert",
+      "publishing": "Publishing..."
+    }
+  },
+  "soldAdvert": {
+    "advertNumber": "Advert #{{id}}",
+    "title": "This item has already been sold",
+    "description": "Thanks for your interest! This advert is closed and the item is no longer available for purchase. Browse other active adverts on MultiMart.",
+    "backToHome": "Back to home"
+  },
+  "advertCard": {
+    "noPhoto": "No photo",
+    "top": "TOP",
+    "carousel": {
+      "prevItems": "Previous items",
+      "nextItems": "Next items"
+    }
+  },
+  "advertGallery": {
+    "noPhoto": "No photo"
+  },
+  "sellerWidget": {
+    "defaultName": "Seller",
+    "viewProfile": "View profile"
+  },
+  "imageUploader": {
+    "addPhoto": "Add photo",
+    "hint": "Up to {{maxCount}} photos, JPG/PNG/GIF/WEBP, up to {{maxSize}}MB each.",
+    "upload": "+ Upload",
+    "errors": {
+      "allowedFormats": "Allowed formats: JPG, PNG, GIF, WEBP.",
+      "maxSize": "Photo size cannot exceed {{size}}MB."
+    }
+  },
+  "chat": {
+    "page": {
+      "pickAdvertPrompt": "Choose an advert to write to {{name}}",
+      "defaultSellerName": "the seller",
+      "loadingAdverts": "Loading adverts...",
+      "noActiveAdverts": "This seller has no active adverts."
+    },
+    "common": {
+      "negotiablePrice": "Negotiable",
+      "priceValue": "{{price}} UAH"
+    },
+    "sidebar": {
+      "emptyState": "User details will appear once you select a chat",
+      "fallbackUser": "User",
+      "blockConfirmTitle": "Block {{name}}?",
+      "blockConfirmContent": "This user will no longer be able to send you messages.",
+      "blockConfirmOk": "Block",
+      "blockSuccess": "{{name}} has been blocked.",
+      "reportConfirmTitle": "Report {{name}}?",
+      "reportConfirmContent": "Moderators will review the report shortly.",
+      "reportConfirmOk": "Report",
+      "reportSuccess": "Report sent.",
+      "memberSince": "Member since {{date}}",
+      "advertsCount": "Adverts: {{count}}",
+      "viewProfile": "View profile",
+      "goToAdvert": "Go to advert →",
+      "blockUser": "Block user",
+      "reportUser": "Report user"
+    },
+    "threadList": {
+      "tabs": {
+        "all": "All",
+        "unread": "Unread",
+        "important": "Important"
+      },
+      "searchPlaceholder": "Search chats...",
+      "emptyState": "You don't have any chats yet.",
+      "noResults": "Nothing found.",
+      "unstarAria": "Remove from important",
+      "starAria": "Mark as important",
+      "prevPage": "Previous page",
+      "nextPage": "Next page"
+    },
+    "window": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "selectChatPrompt": "Select a chat from the list",
+      "toggleInfo": "Show info",
+      "loadingMessages": "Loading messages...",
+      "firstMessagePrompt": "Write the first message to start a conversation about this advert.",
+      "attachmentsSoon": "Attachment support is coming soon",
+      "photosSoon": "Photo support is coming soon",
+      "addFile": "Add file",
+      "addPhoto": "Add photo",
+      "messagePlaceholder": "Write a message...",
+      "send": "Send"
+    }
+  },
+  "categories": {
+    "title": "All categories",
+    "allProducts": "All products"
+  },
+  "categoryListing": {
+    "breadcrumb": {
+      "home": "Home",
+      "allCategories": "All categories"
+    },
+    "searchResults": "Search results: \"{{query}}\"",
+    "allAdverts": "All listings",
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Title, description, category...",
+      "price": "Price, UAH",
+      "priceFrom": "from",
+      "priceTo": "to",
+      "apply": "Apply",
+      "city": "City",
+      "allCities": "All cities",
+      "areaAndRadius": "Region and radius, km",
+      "anyArea": "Any region",
+      "anyRegion": "Any district",
+      "searchRadius": "Search radius",
+      "radiusKm": "{{count}} km",
+      "resetArea": "Reset region",
+      "area": "Region",
+      "km": "km"
+    },
+    "sort": {
+      "newest": "Newest",
+      "cheapFirst": "Cheapest first",
+      "expensiveFirst": "Most expensive first",
+      "popularity": "By popularity"
+    },
+    "advertsCount": "{{count}} listings",
+    "viewMode": {
+      "grid": "Grid",
+      "list": "List"
+    },
+    "noResults": "Nothing found.",
+    "similarProducts": "Similar products"
+  },
+  "about": {
+    "hero": {
+      "title": "About MultiMart",
+      "text": "MultiMart is a next-generation classifieds platform where thousands of sellers and buyers find each other every day. We're building a convenient, fast, and safe space to trade goods and services across Ukraine."
+    },
+    "stats": {
+      "activeAdverts": "Active listings",
+      "sellers": "Sellers on the platform",
+      "categories": "Product categories",
+      "support": "User support"
+    },
+    "mission": {
+      "title": "Our mission",
+      "text": "We believe buying and selling should be simple. MultiMart connects people, helps items find new owners, and helps businesses find new customers. Every listing is an opportunity, and our job is to make that opportunity accessible to everyone."
+    },
+    "whyUs": "Why MultiMart",
+    "values": {
+      "safety": {
+        "title": "Deal safety",
+        "text": "Verified sellers, safe payment and delivery methods — we care about the peace of mind of every deal."
+      },
+      "speed": {
+        "title": "Speed",
+        "text": "Post a listing or find the item you need in just a few minutes."
+      },
+      "community": {
+        "title": "Community",
+        "text": "Thousands of buyers and sellers across Ukraine find each other on MultiMart every day."
+      },
+      "accessibility": {
+        "title": "Accessibility",
+        "text": "The service operates in every region of Ukraine with local delivery through trusted partners."
+      }
+    },
+    "cta": {
+      "title": "Ready to get started?",
+      "text": "Post your first listing or browse thousands of offers today.",
+      "addAdvert": "Add a listing",
+      "allProducts": "All products"
+    }
+  },
+  "deliveryRules": {
+    "title": "Delivery rules",
+    "subtitle": "Delivery and payment methods, timeframes, packaging requirements, and Nova Poshta's policy — everything you need to know before checkout.",
+    "deliveryMethodsHeading": "Delivery methods",
+    "methods": {
+      "novaPoshta": {
+        "title": "OLX Delivery (Nova Poshta)",
+        "text": "The seller ships the parcel to the branch or parcel locker you choose. You can track the status by the tracking number in the order chat."
+      },
+      "selfPickup": {
+        "title": "Self pickup",
+        "text": "You pick up the item directly from the seller. The address and time are agreed in the chat after checkout."
+      },
+      "courier": {
+        "title": "Courier delivery",
+        "text": "A courier delivers the order to the specified address. Availability depends on the seller's and buyer's location."
+      }
+    },
+    "paymentMethodsHeading": "Payment methods",
+    "payment": {
+      "cardOnline": {
+        "title": "Pay online by card",
+        "text": "Funds are charged immediately at checkout and held until the item's receipt is confirmed."
+      },
+      "cashOnDelivery": {
+        "title": "Cash on delivery",
+        "text": "Payment on pickup at a Nova Poshta branch. The cash-on-delivery fee is paid by the recipient per the carrier's rates."
+      }
+    },
+    "timeframesHeading": "Estimated delivery times",
+    "timeframes": {
+      "sameCity": "Within one city",
+      "sameCityValue": "1 business day",
+      "betweenCities": "Between regional centers",
+      "betweenCitiesValue": "1–2 business days",
+      "remote": "To remote settlements",
+      "remoteValue": "2–4 business days"
+    },
+    "timeframesNote": "Timeframes are estimates and may vary depending on Nova Poshta branch workload and the actual handover date to the carrier.",
+    "packagingHeading": "Packaging requirements",
+    "packagingRules": {
+      "0": "The item must be packaged according to its weight, size, and fragility — a box or packaging that can withstand transport.",
+      "1": "Fragile and electronic items must be additionally wrapped in cushioning material (bubble wrap, foam).",
+      "2": "The parcel must have the correct tracking number and the recipient's contact details.",
+      "3": "Liquids, pressurized substances, and carrier-restricted items must be packaged per Nova Poshta's rules."
+    },
+    "prohibitedHeading": "Prohibited for shipping",
+    "prohibitedItems": {
+      "0": "Weapons, ammunition, and explosives",
+      "1": "Narcotic and psychotropic substances",
+      "2": "Cash, bank cards, securities",
+      "3": "Perishable products without special packaging",
+      "4": "Items prohibited for shipping under Ukrainian law"
+    },
+    "prohibitedNote": "The full list of restrictions is determined by Nova Poshta JSC's current carriage rules.",
+    "footerPrefix": "Preparing a parcel for shipping? Check out",
+    "footerSafetyLink": "safe pickup rules",
+    "footerMiddle": "and tips on",
+    "footerSecurityLink": "safe deals"
+  },
+  "deliverySafety": {
+    "title": "Delivery safety",
+    "subtitle": "How to safely receive a Nova Poshta parcel and recognize delivery-related fraud.",
+    "pickupHeading": "Checking the parcel on pickup",
+    "steps": {
+      "0": {
+        "title": "Verify the tracking number",
+        "text": "Compare the tracking number on the parcel with the one in the order chat / Nova Poshta SMS — they must match exactly."
+      },
+      "1": {
+        "title": "Inspect the packaging before accepting",
+        "text": "Check the box/packaging integrity at the branch: tears, dents, signs of opening or repackaging are grounds for a damage report."
+      },
+      "2": {
+        "title": "Open it in front of the branch staff",
+        "text": "You have the right to open the parcel at the branch before signing any documents, to check the contents match the order."
+      },
+      "3": {
+        "title": "File a report if damaged",
+        "text": "If the contents are damaged or don't match the description — don't sign for receipt without a damage report filed by branch staff."
+      },
+      "4": {
+        "title": "Keep confirmations",
+        "text": "Unboxing photos/video and the cash-on-delivery payment receipt will be useful if you need to contact support."
+      }
+    },
+    "cards": {
+      "checkEn": {
+        "title": "Verify the tracking number",
+        "text": "The waybill number must match the one in the order chat."
+      },
+      "filmUnboxing": {
+        "title": "Film the unboxing",
+        "text": "Video will serve as evidence in case of a content dispute."
+      },
+      "dontShareCodes": {
+        "title": "Don't share codes",
+        "text": "The SMS code is meant only for you."
+      }
+    },
+    "tipsHeading": "Mail safety recommendations",
+    "tips": {
+      "0": "Never share the SMS confirmation code from Nova Poshta or MultiMart with anyone — it's your personal parcel access code.",
+      "1": "Official parcel status notifications come only directly from Nova Poshta — don't click links in suspicious SMS about \"customs fees.\"",
+      "2": "Don't pay extra \"customs clearance\" or \"insurance\" fees through third-party sites — all shipping fees are paid only at the branch or in the carrier's app.",
+      "3": "Only the person named on the waybill, or a trusted person with ID and a power of attorney, may receive the parcel.",
+      "4": "Make sure the recipient's phone number and full name on the order are your own, not someone you don't trust."
+    },
+    "redFlagsHeading": "Signs of delivery fraud",
+    "redFlags": {
+      "0": "A call/SMS asking you to \"confirm\" a transfer or state the SMS code to \"receive\" a parcel",
+      "1": "A demand to pay extra for delivery to a private card instead of via an official receipt",
+      "2": "A tracking number that can't be found in the official Nova Poshta app/website",
+      "3": "The sender insists you take the parcel without inspecting the contents"
+    },
+    "contact": {
+      "title": "Parcel damaged or lost?",
+      "text": "Contact a Nova Poshta branch to file a report, and notify the seller in the order chat — MultiMart will help resolve the dispute.",
+      "phone": "Nova Poshta: 0 800 500 609"
+    },
+    "footerPrefix": "Learn more about",
+    "footerRulesLink": "delivery rules",
+    "footerMiddle": "and",
+    "footerSecurityLink": "deal safety on MultiMart"
+  },
+  "helpCenter": {
+    "tabs": {
+      "info": {
+        "label": "Information",
+        "heading": "Information about MultiMart",
+        "intro": "Who we are, the terms the platform operates under, and how to reach us.",
+        "sections": {
+          "aboutUs": {
+            "title": "About us",
+            "text": "MultiMart is a classifieds platform where thousands of sellers and buyers find each other every day. We're building a convenient and safe space to trade goods and services across Ukraine."
+          },
+          "terms": {
+            "title": "Terms of use",
+            "text": "By registering on MultiMart, users agree to post only accurate product information, follow chat communication rules, and not violate Ukrainian law. The full terms are available on request from support."
+          },
+          "careers": {
+            "title": "Careers",
+            "text": "The MultiMart team is growing — current open positions are posted in the careers section. Resumes can be sent via the support chat's feedback form."
+          },
+          "contacts": {
+            "title": "Contacts",
+            "text": "Support line: 0 800 123 456 (toll-free within Ukraine), support chat is available from any page of the site after logging in."
+          }
+        }
+      },
+      "help": {
+        "label": "Help",
+        "heading": "Help Center",
+        "intro": "Answers about credit, warranty, returns, and service centers. Delivery and deal safety questions are on separate pages below.",
+        "sections": {
+          "credit": {
+            "title": "Credit",
+            "text": "You can finance a purchase through partner banks right on the checkout page — choose \"Credit\" as the payment method and enter the required details."
+          },
+          "warranty": {
+            "title": "Warranty",
+            "text": "The warranty period is set by the seller on the product page. For warranty service, contact the seller via chat or the nearest service center with proof of purchase."
+          },
+          "returns": {
+            "title": "Returns",
+            "text": "An item of proper quality can be returned within 14 days of receipt if it hasn't been used and retains its original condition. Arrange a return via chat with the seller."
+          },
+          "serviceCenters": {
+            "title": "Service centers",
+            "text": "The list of authorized service centers by product category is provided by the seller on the listing page or by support on request."
+          }
+        }
+      },
+      "services": {
+        "label": "Services",
+        "heading": "MultiMart Services",
+        "intro": "Additional features for buyers and businesses.",
+        "sections": {
+          "bonusAccount": {
+            "title": "Bonus account",
+            "text": "Earn bonuses for purchases and use them to pay for part of future orders. Your balance is shown in your personal account."
+          },
+          "card": {
+            "title": "MultiMart Card",
+            "text": "The partner card gives extended cashback on purchases and access to discounts from the service's partners."
+          },
+          "giftCards": {
+            "title": "Gift cards",
+            "text": "Electronic gift cards of your chosen denomination can be gifted or used as payment for a MultiMart order."
+          },
+          "pharmacyExchange": {
+            "title": "Pharmacy Exchange",
+            "text": "An exchange service for the pharmacy category — arranged directly with the seller in the order chat."
+          },
+          "corporate": {
+            "title": "For corporate clients",
+            "text": "Wholesale terms, VAT invoices, and a personal manager are available for legal entities. Contact support chat with the topic \"For corporate clients.\""
+          }
+        }
+      },
+      "partners": {
+        "label": "For partners",
+        "heading": "MultiMart for Partners",
+        "intro": "Opportunities for sellers, advertisers, and business partners.",
+        "sections": {
+          "sell": {
+            "title": "Sell on MultiMart",
+            "text": "Create your first listing in a few minutes — the \"Add listing\" button is available in the top menu after logging in."
+          },
+          "ads": {
+            "title": "Advertising",
+            "text": "Advertising opportunities on the platform — banners, listing and category promotion. Details and pricing are provided by the support team."
+          },
+          "cooperation": {
+            "title": "Cooperation",
+            "text": "Open to partnerships with brands, delivery services, and other providers. Send proposals via support chat."
+          },
+          "franchise": {
+            "title": "Franchising",
+            "text": "Terms of MultiMart's franchise model for regional partners are provided upon individual request."
+          },
+          "rental": {
+            "title": "Rental",
+            "text": "The rental section for goods and real estate operates under the same listing rules as sales."
+          }
+        }
+      }
+    },
+    "footerPrefix": "Delivery and deal safety questions are on separate pages:",
+    "footerDeliveryRulesLink": "delivery rules",
+    "footerDeliverySafetyLink": "delivery safety",
+    "footerSecurityLink": "deal safety"
+  },
+  "security": {
+    "title": "Safety on MultiMart",
+    "subtitle": "Tips to help you buy and sell safely — recognize fraud, protect your personal data, and negotiate confidently with other users.",
+    "buyerRulesHeading": "Basic rules for a safe deal",
+    "buyerRules": {
+      "meetInPublic": {
+        "title": "Meet in public places",
+        "text": "Choose busy, well-lit locations for in-person meetings — shopping centers, post offices, busy streets. Avoid meeting alone in stairwells or deserted places."
+      },
+      "payAfterCheck": {
+        "title": "Pay after checking the item",
+        "text": "Inspect the item in person before paying. If paying online, use only \"OLX Delivery\" with payment-on-receipt verification, not direct transfers to strangers."
+      },
+      "dontShareData": {
+        "title": "Don't share unnecessary data",
+        "text": "A seller never needs your card details, CVV code, SMS confirmation codes, or banking app password to complete a deal. If asked — it's a scam."
+      },
+      "checkSeller": {
+        "title": "Check the seller",
+        "text": "Look at the rating and number of reviews, account registration date, and whether the phone number is verified. A new account with no history is a reason to be more careful."
+      }
+    },
+    "safeStepsHeading": "5 steps to a safe deal",
+    "safeSteps": {
+      "0": {
+        "title": "Communicate in MultiMart chat",
+        "text": "The entire conversation and history of agreements are saved — this protects you in case of a dispute."
+      },
+      "1": {
+        "title": "Check the listing and profile",
+        "text": "Rating, reviews, registration date — these warn of potentially risky deals."
+      },
+      "2": {
+        "title": "Inspect the item before paying",
+        "text": "Whenever possible, in person or via a delivery branch with content-inspection option."
+      },
+      "3": {
+        "title": "Use safe payment methods",
+        "text": "\"OLX Delivery\" with cash on delivery, or card payment through the official app — never off-platform."
+      },
+      "4": {
+        "title": "Report anything suspicious",
+        "text": "Report a listing or user — the MultiMart support team will review the report."
+      }
+    },
+    "redFlagsHeading": "Signs of fraud",
+    "redFlags": {
+      "0": "A price far below market value \"to sell quickly\"",
+      "1": "The seller insists on prepayment to a card before you can inspect the item",
+      "2": "A request to call/message \"in another messenger\" right away, bypassing MultiMart chat",
+      "3": "Links to \"verify\" or \"unfreeze an account\" outside the official website",
+      "4": "A request for your SMS code or card CVV",
+      "5": "Listings with no product photos, or with photos \"stolen\" from the internet"
+    },
+    "personalDataHeading": "Personal data protection",
+    "personalData": {
+      "paragraph1": "Don't post passport details, your full home address, or card details in listings. For delivery, the settlement and branch are enough — the exact address is shared only with the delivery service, not directly with another user.",
+      "paragraph2": "MultiMart never asks for your password, SMS code, or full card number by email, phone, or chat. Any such request is phishing, even if the sender claims to be \"support.\""
+    },
+    "reportHeading": "Noticed something suspicious?",
+    "reportText": "Report the listing or user, or contact support — we'll review the report and take action.",
+    "contactSupport": "Contact support",
+    "footerPrefix": "Also check out",
+    "footerDeliverySafetyLink": "delivery safety",
+    "footerMiddle": "and",
+    "footerDeliveryRulesLink": "Nova Poshta delivery rules"
+  },
+  "terms": {
+    "title": "Terms of Use",
+    "subtitle": "Rules for using the MultiMart platform for buyers and sellers.",
+    "sections": {
+      "general": {
+        "title": "1. General provisions",
+        "text": "By using MultiMart, the user agrees to these terms of use. If you disagree with any provision, please refrain from using the service. We may update these terms; the current version is always available on this page."
+      },
+      "account": {
+        "title": "2. Registration and account",
+        "text": "Posting listings requires registration with a valid email address and phone number. The user is responsible for keeping their account credentials confidential and for all actions taken under their account."
+      },
+      "content": {
+        "title": "3. Posting listings",
+        "text": "Listings must contain accurate information about the item or service, correct photos, and a real price. Posting listings for items prohibited under Ukrainian law, as well as misleading or offensive content, is forbidden."
+      },
+      "communication": {
+        "title": "4. Communication and deals",
+        "text": "Communication between buyer and seller takes place through the platform's chat. MultiMart is not a party to the deal between users and does not guarantee product quality — we recommend inspecting the item in person before payment."
+      },
+      "payments": {
+        "title": "5. Payment and delivery",
+        "text": "Payment and delivery are arranged directly between the buyer and seller. For safe transactions, we recommend using verified delivery services with cash on delivery."
+      },
+      "liability": {
+        "title": "6. Liability of the parties",
+        "text": "MultiMart makes efforts to maintain a safe environment but is not liable for users' actions, product quality, or fulfillment of obligations under deals between buyer and seller."
+      },
+      "privacy": {
+        "title": "7. Privacy",
+        "text": "Users' personal data is processed in accordance with current Ukrainian personal data protection law and is used solely to operate the service."
+      },
+      "termination": {
+        "title": "8. Suspension of access",
+        "text": "MultiMart reserves the right to restrict or suspend account access in the event of a violation of these terms, including fraud, spam, or posting prohibited content."
+      }
+    },
+    "lastUpdated": "Last updated: 08/10/2026. For questions about the terms of use, please contact support."
+  },
+  "notFound": {
+    "title": "Oops! Page not found",
+    "description": "The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.",
+    "backHome": "Back to Home",
+    "goBack": "Go Back"
+  },
+  "appComingSoon": {
+    "title": "The MultiMart app is coming soon",
+    "description": "We're working on a mobile app for iOS and Android to make buying and selling on MultiMart even easier. Stay tuned — release is coming soon.",
+    "appStoreSoon": "App Store · coming soon",
+    "googlePlaySoon": "Google Play · coming soon",
+    "notifyMe": "Notify me on release",
+    "backToHome": "Back to home"
+  },
+  "userProfile": {
+    "title": "Profile",
+    "wallet": {
+      "balanceLabel": "Your account:",
+      "availableBalanceLabel": "Available balance:",
+      "zeroBonuses": "0 bonuses"
+    },
+    "amountCurrency": "{{amount}} UAH",
+    "topUpButton": "Top up wallet",
+    "buyPackageButton": "Buy package",
+    "learnMore": "Learn more",
+    "tabs": {
+      "ads": "Listings",
+      "chat": "Chat",
+      "payments": "Payments and OLX account",
+      "rating": "Rating",
+      "job": "Looking for a job",
+      "profile": "Profile",
+      "settings": "Settings",
+      "delivery": "Nova Poshta Delivery"
+    },
+    "avatarAlt": "User profile photo",
+    "editProfileHeading": "Edit profile",
+    "viewAsOthers": "See how others view my profile",
+    "mainInfoHeading": "MAIN INFORMATION",
+    "fields": {
+      "name": "Name",
+      "userFallback": "User",
+      "location": "Location",
+      "notSpecified": "Not specified",
+      "phoneNumber": "Phone number"
+    },
+    "accountType": {
+      "heading": "Choose account type",
+      "description": "In accordance with Ukrainian law, you must specify your status when using OLX — as an individual or a company.",
+      "selectButton": "Select account type",
+      "currentType": "Current type: {{type}}"
+    },
+    "accountTypeLabels": {
+      "individual": "Individual",
+      "business": "Business"
+    },
+    "payments": {
+      "walletBalanceLabel": "Wallet balance",
+      "bonusesLabel": "Bonuses",
+      "zeroValue": "0",
+      "historyComingSoon": "Payment history will appear here soon."
+    },
+    "job": {
+      "description": "Enable this option so employers can see you're looking for a job and contact you directly.",
+      "comingSoon": "This feature will appear here soon."
+    },
+    "novaPoshta": {
+      "description": "Choose the settlement and Nova Poshta branch that's convenient for you to receive parcels.",
+      "selectSettlementFirst": "First choose a settlement to see branches on the map.",
+      "loadingWarehouses": "Loading branches...",
+      "noWarehousesFound": "No branches found.",
+      "selectedWarehousePrefix": "Selected branch:"
+    },
+    "accountTypeModal": {
+      "saveSuccess": "Account type saved!",
+      "saveError": "Failed to save account type.",
+      "okText": "Save",
+      "loadingProfile": "Loading profile data..."
+    },
+    "walletTopUp": {
+      "amountRequired": "Please specify a top-up amount.",
+      "stepAmount": "Amount",
+      "stepPayment": "Payment",
+      "stepDone": "Done",
+      "presetAmount": "{{amount}} UAH",
+      "customAmountLabel": "Or your own amount (UAH)",
+      "bankCard": "Bank card",
+      "payButton": "Top up by {{amount}} UAH",
+      "processing": "Processing payment...",
+      "successMessage": "Wallet topped up by {{amount}} UAH!"
+    }
+  },
+  "sellerProfile": {
+    "sold": {
+      "badge": "Sold"
+    },
+    "amountCurrency": "{{amount}} UAH",
+    "notFound": "Profile not found.",
+    "defaultName": "Seller",
+    "memberSince": "Member since {{date}}",
+    "activeAdvertsCount": "Active listings: {{count}}",
+    "messageSeller": "Message seller",
+    "reviews": {
+      "heading": "Buyer reviews",
+      "basedOnPrefix": "Based on",
+      "reviewWordSingular": "review",
+      "reviewWordPlural": "reviews",
+      "byBuyersSuffix": "from MultiMart buyers.",
+      "detailsComingSoon": "Detailed review text will appear here soon.",
+      "noReviews": "This seller has no buyer reviews yet."
+    },
+    "activeListings": {
+      "heading": "Active listings",
+      "loading": "Loading listings...",
+      "empty": "This seller has no active listings."
+    },
+    "completedListings": {
+      "heading": "Completed listings"
+    },
+    "backToHome": "← Back to home"
+  },
+  "megaMenu": {
+    "noCategories": "No categories available.",
+    "viewCategory": "View \"{{name}}\""
+  },
+  "onlineStatus": {
+    "online": "Online"
+  },
+  "newsletterWidget": {
+    "notificationTitle": "Subscription completed",
+    "notificationMessage": "We'll send MultiMart update news to {{email}}.",
+    "invalidEmail": "Enter a valid email.",
+    "thankYouTitle": "Thanks for subscribing!",
+    "thankYouDescription": "You'll be the first to receive MultiMart update news.",
+    "heading": "Subscribe to MultiMart updates",
+    "description": "Be the first to know about new features and releases.",
+    "emailPlaceholder": "Your email",
+    "submitting": "Please wait...",
+    "subscribeButton": "Subscribe"
+  },
+  "welcomeModal": {
+    "title": "Welcome!",
+    "subtitle": "Your account has been successfully created.",
+    "thanks": "Thank you for choosing MultiMart!",
+    "shopButton": "Go shopping",
+    "profileLink": "Go to my account"
+  },
+  "phoneInput": {
+    "placeholder": "+380 (XX) XXX-XX-XX"
+  },
+  "settlementPicker": {
+    "defaultLabel": "Settlement",
+    "notSpecified": "Not specified",
+    "change": "Change",
+    "areaPlaceholder": "Region",
+    "regionPlaceholder": "District",
+    "settlementPlaceholder": "City / village"
+  },
+  "warehouseMapPicker": {
+    "ariaLabel": "Map of Nova Poshta branches"
+  }
+}

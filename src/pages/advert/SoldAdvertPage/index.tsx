@@ -1,12 +1,14 @@
 import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { InboxOutlined } from "@ant-design/icons";
+import { useTranslation } from "react-i18next";
 import { useGetAdvertByIdQuery } from "../../../services/advertService";
 
 // /advert/sold/:id — dedicated view for completed/sold listings, linked from the seller
 // profile's "Завершені оголошення" section (SellerProfilePage). Shows a vector illustration,
 // a clear "already sold" notice, and a way back to the home page — no purchase actions.
 const SoldAdvertPage: React.FC = () => {
+    const { t } = useTranslation();
     const { id } = useParams<{ id: string }>();
     const advertId = Number(id);
     const { data: advert } = useGetAdvertByIdQuery(advertId, { skip: !advertId });
@@ -30,20 +32,19 @@ const SoldAdvertPage: React.FC = () => {
 
             <div className="flex items-center gap-2 text-gray-400 mb-2">
                 <InboxOutlined />
-                <span className="text-xs">Оголошення №{advertId || "—"}</span>
+                <span className="text-xs">{t("soldAdvert.advertNumber", { id: advertId || "—" })}</span>
             </div>
 
-            <h1 className="text-xl md:text-2xl font-bold text-mm-navy mb-3">Цей товар вже продано</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-mm-navy mb-3">{t("soldAdvert.title")}</h1>
             <p className="text-sm text-gray-500 max-w-md mb-8">
-                Дякуємо за інтерес! Це оголошення завершене, і товар більше не доступний для покупки.
-                Перегляньте інші активні оголошення на MultiMart.
+                {t("soldAdvert.description")}
             </p>
 
             <Link
                 to="/"
                 className="bg-mm-purple hover:bg-mm-purple-dark text-white font-bold text-sm px-6 py-2.5 rounded-lg transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-xl"
             >
-                Повернутися на головну
+                {t("soldAdvert.backToHome")}
             </Link>
         </div>
     );

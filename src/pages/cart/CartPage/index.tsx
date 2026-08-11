@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Modal, Select } from "antd";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import {
     ShoppingCartOutlined,
     MinusOutlined,
@@ -17,42 +19,48 @@ import {
 } from "@ant-design/icons";
 import type { RootState } from "../../../store";
 import { setQuantity, removeFromCart, clearCart } from "../../../store/cartSlice";
+import FallbackImage from "../../../components/common/FallbackImage";
 import { useCreateOrderMutation } from "../../../services/orderService";
 import { useGetWarehousesBySettlementQuery } from "../../../services/newPostService";
 import SettlementPicker from "../../../components/location/SettlementPicker";
 import WarehouseMapPicker from "../../../components/location/WarehouseMapPicker";
 import { DeliveryType, PaymentMethod, type IOrder } from "../../../types/order/IOrder";
 
-const DELIVERY_OPTIONS: { value: DeliveryType; label: string; icon: React.ComponentType }[] = [
-    { value: DeliveryType.OlxDelivery, label: "OLX Доставка", icon: CarOutlined },
-    { value: DeliveryType.SelfPickup, label: "Самовивіз", icon: ShopOutlined },
-    { value: DeliveryType.Courier, label: "Кур'єрська доставка", icon: HomeOutlined },
+const getDeliveryOptions = (t: TFunction): { value: DeliveryType; label: string; icon: React.ComponentType }[] => [
+    { value: DeliveryType.OlxDelivery, label: t("cart.delivery.novaPoshta"), icon: CarOutlined },
+    { value: DeliveryType.SelfPickup, label: t("cart.delivery.selfPickup"), icon: ShopOutlined },
+    { value: DeliveryType.Courier, label: t("cart.delivery.courier"), icon: HomeOutlined },
 ];
 
-const PAYMENT_OPTIONS: { value: PaymentMethod; label: string }[] = [
-    { value: PaymentMethod.CardOnline, label: "Оплата карткою онлайн" },
-    { value: PaymentMethod.CashOnDelivery, label: "Оплата при отриманні (Накладений платіж)" },
+const getPaymentOptions = (t: TFunction): { value: PaymentMethod; label: string }[] => [
+    { value: PaymentMethod.CardOnline, label: t("cart.payment.cardOnline") },
+    { value: PaymentMethod.CashOnDelivery, label: t("cart.payment.cashOnDelivery") },
 ];
 
-const DELIVERY_LABELS: Record<DeliveryType, string> = {
-    [DeliveryType.OlxDelivery]: "OLX Доставка",
-    [DeliveryType.SelfPickup]: "Самовивіз",
-    [DeliveryType.Courier]: "Кур'єрська доставка",
-};
+const getDeliveryLabels = (t: TFunction): Record<DeliveryType, string> => ({
+    [DeliveryType.OlxDelivery]: t("cart.delivery.novaPoshta"),
+    [DeliveryType.SelfPickup]: t("cart.delivery.selfPickup"),
+    [DeliveryType.Courier]: t("cart.delivery.courier"),
+});
 
-const PAYMENT_LABELS: Record<PaymentMethod, string> = {
-    [PaymentMethod.CardOnline]: "Оплата карткою онлайн",
-    [PaymentMethod.CashOnDelivery]: "Оплата при отриманні (Накладений платіж)",
-};
+const getPaymentLabels = (t: TFunction): Record<PaymentMethod, string> => ({
+    [PaymentMethod.CardOnline]: t("cart.payment.cardOnline"),
+    [PaymentMethod.CashOnDelivery]: t("cart.payment.cashOnDelivery"),
+});
 
 // Кошик + оформлення замовлення в один потік: список позицій, вибір доставки/оплати,
 // підтвердження замовлення. Кошик — лише для авторизованих (додати товар без входу неможливо,
 // AdvertCard/RecommendationCard ведуть на /login), тому сторінка гейтиться так само як обране.
 const CartPage: React.FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { isAuth, user } = useSelector((state: RootState) => state.auth);
     const items = useSelector((state: RootState) => state.cart.items);
+    const DELIVERY_OPTIONS = getDeliveryOptions(t);
+    const PAYMENT_OPTIONS = getPaymentOptions(t);
+    const DELIVERY_LABELS = getDeliveryLabels(t);
+    const PAYMENT_LABELS = getPaymentLabels(t);
 
     useEffect(() => {
         if (!isAuth) navigate("/login", { replace: true });
@@ -89,15 +97,15 @@ const CartPage: React.FC = () => {
         setFormError(null);
 
         if (!recipientName.trim() || !recipientPhone.trim()) {
-            setFormError("Вкажіть ім'я та телефон отримувача.");
+            setFormError(t("cart.errors.recipientRequired"));
             return;
         }
         if (deliveryType === DeliveryType.OlxDelivery && (!settlementRef || !warehouseRef)) {
-            setFormError("Оберіть населений пункт і відділення для доставки.");
+            setFormError(t("cart.errors.deliveryLocationRequired"));
             return;
         }
         if (deliveryType === DeliveryType.Courier && !address.trim()) {
-            setFormError("Вкажіть адресу для кур'єрської доставки.");
+            setFormError(t("cart.errors.courierAddressRequired"));
             return;
         }
 
@@ -120,20 +128,20 @@ const CartPage: React.FC = () => {
             setCompletedOrder(order);
             dispatch(clearCart());
         } catch (err: any) {
-            setFormError(err?.data?.message || "Не вдалося оформити замовлення. Спробуйте ще раз.");
+            setFormError(err?.data?.message || t("cart.errors.orderFailed"));
         }
     };
 
     return (
         <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-6">
-            <h1 className="text-2xl font-bold text-mm-navy mb-6">Кошик</h1>
+            <h1 className="text-2xl font-bold text-mm-navy mb-6">{t("cart.title")}</h1>
 
             {items.length === 0 ? (
                 <div className="text-center text-gray-400 py-16">
                     <ShoppingCartOutlined className="text-3xl mb-3 block" />
-                    Кошик порожній.{" "}
+                    {t("cart.empty")}{" "}
                     <Link to="/" className="text-mm-purple font-semibold hover:underline">
-                        Перейти до каталогу
+                        {t("cart.goToCatalog")}
                     </Link>
                 </div>
             ) : (
@@ -142,17 +150,20 @@ const CartPage: React.FC = () => {
                         {items.map((item) => (
                             <div key={item.advertId} className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3">
                                 <Link to={`/advert/${item.advertId}`} className="shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gray-100">
-                                    {item.image ? (
-                                        <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-[10px]">Немає фото</div>
-                                    )}
+                                    <FallbackImage
+                                        src={item.image}
+                                        alt={item.title}
+                                        className="w-full h-full object-cover"
+                                        placeholder={
+                                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-[10px]">{t("cart.noPhoto")}</div>
+                                        }
+                                    />
                                 </Link>
                                 <div className="flex-1 min-w-0">
                                     <Link to={`/advert/${item.advertId}`} className="text-sm font-semibold text-mm-navy hover:text-mm-purple line-clamp-2">
                                         {item.title}
                                     </Link>
-                                    <p className="text-sm font-bold text-mm-navy mt-1">{item.price.toLocaleString("uk-UA")} грн.</p>
+                                    <p className="text-sm font-bold text-mm-navy mt-1">{item.price.toLocaleString("uk-UA")} {t("cart.currency")}</p>
                                 </div>
                                 <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden shrink-0">
                                     <button
@@ -174,7 +185,7 @@ const CartPage: React.FC = () => {
                                 <button
                                     type="button"
                                     onClick={() => dispatch(removeFromCart(item.advertId))}
-                                    aria-label="Видалити з кошика"
+                                    aria-label={t("cart.removeFromCart")}
                                     className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50"
                                 >
                                     <DeleteOutlined />
@@ -185,7 +196,7 @@ const CartPage: React.FC = () => {
 
                     <div className="flex flex-col gap-5 bg-white border border-gray-100 rounded-xl p-5 h-fit">
                         <div>
-                            <h3 className="text-sm font-bold text-mm-navy mb-3">Спосіб доставки</h3>
+                            <h3 className="text-sm font-bold text-mm-navy mb-3">{t("cart.deliveryMethod")}</h3>
                             <div className="flex flex-col gap-2">
                                 {DELIVERY_OPTIONS.map((option) => (
                                     <button
@@ -209,17 +220,17 @@ const CartPage: React.FC = () => {
                                         value={settlementRef}
                                         displayValue={settlementDescription || null}
                                         onChange={handleSettlementChange}
-                                        label="Населений пункт"
+                                        label={t("cart.settlement")}
                                     />
                                     <div className="flex flex-col gap-1">
                                         <div className="flex items-center justify-between">
-                                            <label className="text-sm font-medium text-mm-navy">Відділення</label>
+                                            <label className="text-sm font-medium text-mm-navy">{t("cart.warehouse")}</label>
                                             <div className="flex items-center rounded-lg overflow-hidden border border-gray-200 shrink-0">
                                                 <button
                                                     type="button"
                                                     onClick={() => setWarehousePickerMode("list")}
                                                     aria-pressed={warehousePickerMode === "list"}
-                                                    aria-label="Список відділень"
+                                                    aria-label={t("cart.warehouseListView")}
                                                     className={`w-7 h-7 flex items-center justify-center text-xs transition-colors ${warehousePickerMode === "list" ? "bg-mm-purple text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
                                                 >
                                                     <UnorderedListOutlined />
@@ -228,7 +239,7 @@ const CartPage: React.FC = () => {
                                                     type="button"
                                                     onClick={() => setWarehousePickerMode("map")}
                                                     aria-pressed={warehousePickerMode === "map"}
-                                                    aria-label="Карта відділень"
+                                                    aria-label={t("cart.warehouseMapView")}
                                                     disabled={!settlementRef}
                                                     className={`w-7 h-7 flex items-center justify-center text-xs border-l border-gray-200 transition-colors disabled:opacity-40 ${warehousePickerMode === "map" ? "bg-mm-purple text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
                                                 >
@@ -240,7 +251,7 @@ const CartPage: React.FC = () => {
                                         {warehousePickerMode === "list" ? (
                                             <Select
                                                 showSearch
-                                                placeholder="Оберіть відділення Нової пошти / Укрпошти"
+                                                placeholder={t("cart.warehousePlaceholder")}
                                                 loading={isWarehousesLoading}
                                                 disabled={!settlementRef}
                                                 value={warehouseRef || undefined}
@@ -255,7 +266,7 @@ const CartPage: React.FC = () => {
                                                     value={warehouseRef}
                                                     onChange={setWarehouseRef}
                                                 />
-                                                <p className="text-xs text-gray-400 mt-1">Натисніть на мітку, щоб обрати відділення.</p>
+                                                <p className="text-xs text-gray-400 mt-1">{t("cart.mapHint")}</p>
                                             </>
                                         )}
                                     </div>
@@ -263,17 +274,17 @@ const CartPage: React.FC = () => {
                             )}
 
                             {deliveryType === DeliveryType.SelfPickup && (
-                                <p className="mt-3 text-xs text-gray-500">Самовивіз з магазину продавця — адресу узгодите з продавцем після оформлення.</p>
+                                <p className="mt-3 text-xs text-gray-500">{t("cart.selfPickupHint")}</p>
                             )}
 
                             {deliveryType === DeliveryType.Courier && (
                                 <div className="mt-3">
-                                    <label className="text-sm font-medium text-mm-navy">Адреса доставки</label>
+                                    <label className="text-sm font-medium text-mm-navy">{t("cart.deliveryAddress")}</label>
                                     <textarea
                                         value={address}
                                         onChange={(e) => setAddress(e.target.value)}
                                         rows={2}
-                                        placeholder="Місто, вулиця, будинок, квартира"
+                                        placeholder={t("cart.deliveryAddressPlaceholder")}
                                         className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-mm-purple resize-none"
                                     />
                                 </div>
@@ -281,7 +292,7 @@ const CartPage: React.FC = () => {
                         </div>
 
                         <div>
-                            <h3 className="text-sm font-bold text-mm-navy mb-3">Спосіб оплати</h3>
+                            <h3 className="text-sm font-bold text-mm-navy mb-3">{t("cart.paymentMethod")}</h3>
                             <div className="flex flex-col gap-2">
                                 {PAYMENT_OPTIONS.map((option) => (
                                     <button
@@ -301,17 +312,17 @@ const CartPage: React.FC = () => {
                         </div>
 
                         <div className="flex flex-col gap-2">
-                            <h3 className="text-sm font-bold text-mm-navy">Отримувач</h3>
+                            <h3 className="text-sm font-bold text-mm-navy">{t("cart.recipient")}</h3>
                             <input
                                 type="text"
-                                placeholder="Ім'я та прізвище"
+                                placeholder={t("cart.recipientNamePlaceholder")}
                                 value={recipientName}
                                 onChange={(e) => setRecipientName(e.target.value)}
                                 className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-mm-purple"
                             />
                             <input
                                 type="tel"
-                                placeholder="Номер телефону"
+                                placeholder={t("cart.recipientPhonePlaceholder")}
                                 value={recipientPhone}
                                 onChange={(e) => setRecipientPhone(e.target.value)}
                                 className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-mm-purple"
@@ -319,8 +330,8 @@ const CartPage: React.FC = () => {
                         </div>
 
                         <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-                            <span className="text-sm text-gray-500">Разом</span>
-                            <span className="text-lg font-black text-mm-navy">{total.toLocaleString("uk-UA")} грн.</span>
+                            <span className="text-sm text-gray-500">{t("cart.total")}</span>
+                            <span className="text-lg font-black text-mm-navy">{total.toLocaleString("uk-UA")} {t("cart.currency")}</span>
                         </div>
 
                         {formError && <p className="text-red-500 text-xs">{formError}</p>}
@@ -331,7 +342,7 @@ const CartPage: React.FC = () => {
                             disabled={isSubmitting}
                             className="w-full bg-mm-purple hover:bg-mm-purple-dark text-white font-bold text-sm py-2.5 rounded-lg transition-colors disabled:opacity-50"
                         >
-                            {isSubmitting ? "Оформлення..." : "Оформити замовлення"}
+                            {isSubmitting ? t("cart.submitting") : t("cart.placeOrder")}
                         </button>
                     </div>
                 </div>
@@ -347,14 +358,14 @@ const CartPage: React.FC = () => {
                 {completedOrder && (
                     <div className="flex flex-col items-center text-center gap-3 py-2">
                         <CheckCircleFilled className="text-4xl text-green-500" />
-                        <h2 className="text-lg font-bold text-mm-navy">Замовлення оформлено!</h2>
-                        <p className="text-sm text-gray-500">Номер замовлення №{completedOrder.id}</p>
+                        <h2 className="text-lg font-bold text-mm-navy">{t("cart.orderPlaced")}</h2>
+                        <p className="text-sm text-gray-500">{t("cart.orderNumber", { id: completedOrder.id })}</p>
 
                         <div className="w-full text-left border-t border-gray-100 mt-2 pt-3 flex flex-col gap-1.5">
                             {completedOrder.items.map((item) => (
                                 <div key={item.id} className="flex justify-between text-sm">
                                     <span className="text-gray-600 truncate pr-2">{item.title} × {item.quantity}</span>
-                                    <span className="text-mm-navy font-medium shrink-0">{(item.price * item.quantity).toLocaleString("uk-UA")} грн.</span>
+                                    <span className="text-mm-navy font-medium shrink-0">{(item.price * item.quantity).toLocaleString("uk-UA")} {t("cart.currency")}</span>
                                 </div>
                             ))}
                         </div>
@@ -365,8 +376,8 @@ const CartPage: React.FC = () => {
                         </div>
 
                         <div className="w-full flex justify-between pt-1">
-                            <span className="text-sm font-semibold text-mm-navy">Разом</span>
-                            <span className="text-lg font-black text-mm-navy">{completedOrder.totalPrice.toLocaleString("uk-UA")} грн.</span>
+                            <span className="text-sm font-semibold text-mm-navy">{t("cart.total")}</span>
+                            <span className="text-lg font-black text-mm-navy">{completedOrder.totalPrice.toLocaleString("uk-UA")} {t("cart.currency")}</span>
                         </div>
 
                         <button
@@ -374,7 +385,7 @@ const CartPage: React.FC = () => {
                             onClick={() => navigate("/")}
                             className="w-full mt-2 bg-mm-navy hover:bg-mm-navy/90 text-white font-bold text-sm py-2.5 rounded-lg transition-colors"
                         >
-                            На головну
+                            {t("cart.backToHome")}
                         </button>
                     </div>
                 )}

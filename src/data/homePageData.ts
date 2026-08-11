@@ -16,27 +16,34 @@ export const QUICK_SEARCH_TAGS = [
 // Minimalist dark-themed hero slides — no remote/Unsplash imagery (matches the
 // no-online-fallback policy in buildImageUrl.ts/FallbackImage.tsx); each slide renders as a
 // CSS gradient + inline decorative graphic keyed off `theme`, see UserHomePage/index.tsx.
+// `to` is the CTA's target route; all three are auth-gated the same way (see handleHeroCta in
+// UserHomePage) — signed-in users go straight there, signed-out users are sent to /login first
+// and returned to `to` afterwards (saveReturnUrl/consumeReturnUrl, same flow AdvertCard's
+// "add to cart"/favorite gates already use).
 export const HERO_SLIDES = [
   {
     id: 1,
     title: 'Ласкаво просимо на MultiMart',
     subtitle: 'Мільйони активних оголошень від людей по всій Україні',
-    cta: 'Почати зараз',
+    cta: 'Перейти до каталогу',
     theme: 'navy' as const,
+    to: '/categories',
   },
   {
     id: 2,
-    title: 'Продавайте швидко та вигідно',
-    subtitle: 'Розмістіть оголошення за кілька хвилин і знайдіть покупця вже сьогодні',
-    cta: 'Подати оголошення',
-    theme: 'purple' as const,
+    title: 'Знижки до -50%',
+    subtitle: 'Щодня нові вигідні пропозиції — обирайте товари зі знижками просто зараз',
+    cta: 'Переглянути знижки',
+    theme: 'gold' as const,
+    to: '/categories?discount=true',
   },
   {
     id: 3,
-    title: 'MultiMart завжди під рукою',
-    subtitle: 'Слідкуйте за новими пропозиціями та повідомленнями у зручному форматі',
-    cta: 'Дізнатися більше',
-    theme: 'orange' as const,
+    title: 'VIP-розміщення та послуги',
+    subtitle: 'Підійміть оголошення в ТОП або скористайтеся преміум-послугами платформи',
+    cta: 'Подати оголошення',
+    theme: 'purple' as const,
+    to: '/adverts/create',
   },
 ];
 

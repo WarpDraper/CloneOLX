@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Upload, Image, message } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
+import { useTranslation } from "react-i18next";
 import type { UploadFile, UploadProps, GetProp } from "antd";
 
 type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
@@ -20,6 +21,7 @@ interface AdvertImageDropzoneProps {
 // Мультизавантаження фото оголошення (Frame 331) — AdvertCreationModel.ImageFiles: ICollection<IFormFile>,
 // тож на відміну від ImageUploader (аватар, 1 файл + кроп) тут дозволено декілька зображень без кропу.
 const AdvertImageDropzone: React.FC<AdvertImageDropzoneProps> = ({ fileList, setFileList, error }) => {
+    const { t } = useTranslation();
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewImage, setPreviewImage] = useState("");
 
@@ -41,11 +43,11 @@ const AdvertImageDropzone: React.FC<AdvertImageDropzoneProps> = ({ fileList, set
 
     const beforeUpload = (file: FileType) => {
         if (!ALLOWED_TYPES.includes(file.type)) {
-            message.error("Дозволені формати: JPG, PNG, GIF, WEBP.");
+            message.error(t("imageUploader.errors.allowedFormats"));
             return Upload.LIST_IGNORE;
         }
         if (file.size / 1024 / 1024 > MAX_SIZE_MB) {
-            message.error(`Розмір фото не може перевищувати ${MAX_SIZE_MB}MB.`);
+            message.error(t("imageUploader.errors.maxSize", { size: MAX_SIZE_MB }));
             return Upload.LIST_IGNORE;
         }
         return false; // не завантажуємо одразу — файли йдуть у FormData при сабміті форми
@@ -66,11 +68,11 @@ const AdvertImageDropzone: React.FC<AdvertImageDropzoneProps> = ({ fileList, set
                 {fileList.length < MAX_COUNT && (
                     <div>
                         <PlusOutlined />
-                        <div className="mt-1 text-xs">Додати фото</div>
+                        <div className="mt-1 text-xs">{t("imageUploader.addPhoto")}</div>
                     </div>
                 )}
             </Upload>
-            <p className="text-xs text-gray-400 mt-1">До {MAX_COUNT} фото, JPG/PNG/GIF/WEBP, до {MAX_SIZE_MB}MB кожне.</p>
+            <p className="text-xs text-gray-400 mt-1">{t("imageUploader.hint", { maxCount: MAX_COUNT, maxSize: MAX_SIZE_MB })}</p>
             {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
 
             {previewImage && (

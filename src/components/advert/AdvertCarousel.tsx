@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import { useTranslation } from "react-i18next";
 import type { IAdvert } from "../../types/advert/IAdvert";
 import AdvertCard from "./AdvertCard";
 
@@ -13,6 +14,7 @@ interface AdvertCarouselProps {
 // зацікавити" and "Товари продавця" — paginates through `adverts` in groups of `itemsPerPage`
 // (default 4) via left/right arrow controls instead of one long scroll/grid.
 const AdvertCarousel: React.FC<AdvertCarouselProps> = ({ title, adverts, itemsPerPage = 4 }) => {
+    const { t } = useTranslation();
     const [page, setPage] = useState(0);
 
     if (adverts.length === 0) return null;
@@ -32,7 +34,7 @@ const AdvertCarousel: React.FC<AdvertCarouselProps> = ({ title, adverts, itemsPe
                     <div className="flex items-center gap-2">
                         <button
                             type="button"
-                            aria-label="Попередні товари"
+                            aria-label={t("advertCard.carousel.prevItems")}
                             disabled={!canPrev}
                             onClick={() => setPage((p) => Math.max(0, p - 1))}
                             className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-mm-navy hover:bg-mm-lavender transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
@@ -41,7 +43,7 @@ const AdvertCarousel: React.FC<AdvertCarouselProps> = ({ title, adverts, itemsPe
                         </button>
                         <button
                             type="button"
-                            aria-label="Наступні товари"
+                            aria-label={t("advertCard.carousel.nextItems")}
                             disabled={!canNext}
                             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                             className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-mm-navy hover:bg-mm-lavender transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"

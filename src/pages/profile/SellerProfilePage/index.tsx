@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { UserOutlined, MessageOutlined, CalendarOutlined, StarFilled, CommentOutlined } from "@ant-design/icons";
 import { useGetSellerProfileQuery, isRealUserId } from "../../../services/profileService";
 import { useGetAdvertsByRangeMutation } from "../../../services/advertService";
@@ -15,6 +16,7 @@ import AdvertCard from "../../../components/advert/AdvertCard";
 // Completed/sold listing tile — same information as AdvertCard but rendered in a distinct
 // grayscale style and routed to the dedicated "Sold" view instead of the live advert page.
 const SoldListingTile: React.FC<{ advert: IAdvert }> = ({ advert }) => {
+    const { t } = useTranslation();
     const cover = [...advert.images].sort((a, b) => a.priority - b.priority)[0];
     const imageUrl = buildImageUrl(cover?.name, IMAGE_SIZES.card);
 
@@ -25,7 +27,7 @@ const SoldListingTile: React.FC<{ advert: IAdvert }> = ({ advert }) => {
             style={{ filter: "grayscale(100%) opacity(0.65)" }}
         >
             <span className="absolute top-2 left-2 z-10 text-[10px] font-semibold px-2 py-1 rounded-full bg-mm-navy text-white">
-                Продано
+                {t('sellerProfile.sold.badge')}
             </span>
             <div className="h-[180px] w-full overflow-hidden bg-gray-100 shrink-0">
                 <FallbackImage
@@ -35,14 +37,14 @@ const SoldListingTile: React.FC<{ advert: IAdvert }> = ({ advert }) => {
                     alt={advert.title}
                     className="w-full h-full object-cover"
                     placeholder={
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Немає фото</div>
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">{t('common.noPhoto')}</div>
                     }
                 />
             </div>
             <div className="p-3 flex flex-col flex-1">
                 <h3 className="text-sm font-semibold text-mm-navy line-clamp-2 mb-1 leading-snug min-h-[2.5rem]">{advert.title}</h3>
                 <p className="text-sm font-bold text-mm-navy mt-auto pt-1.5">
-                    {advert.price.toLocaleString("uk-UA")} грн.
+                    {t('sellerProfile.amountCurrency', { amount: advert.price.toLocaleString("uk-UA") })}
                 </p>
             </div>
         </Link>
@@ -50,6 +52,7 @@ const SoldListingTile: React.FC<{ advert: IAdvert }> = ({ advert }) => {
 };
 
 const SellerProfilePage: React.FC = () => {
+    const { t } = useTranslation();
     const { sellerId } = useParams<{ sellerId: string }>();
     const id = Number(sellerId);
     const navigate = useNavigate();
@@ -71,6 +74,7 @@ const SellerProfilePage: React.FC = () => {
         settlementRef: null,
         adverts: [],
         favoriteAdverts: [],
+        accountType: "Individual" as const,
     });
 
     const [getAdvertsByRange, { data: adverts, isLoading: isAdvertsLoading }] = useGetAdvertsByRangeMutation();
@@ -82,14 +86,14 @@ const SellerProfilePage: React.FC = () => {
     }, [seller, getAdvertsByRange]);
 
     if (isLoading && isValidApiId) {
-        return <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-16 text-center text-gray-400">Завантаження...</div>;
+        return <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-16 text-center text-gray-400">{t('common.loading')}</div>;
     }
 
     if (isError || !seller) {
-        return <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-16 text-center text-gray-400">Профіль не знайдено.</div>;
+        return <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-16 text-center text-gray-400">{t('sellerProfile.notFound')}</div>;
     }
 
-    const displayName = [seller.firstName, seller.lastName].filter(Boolean).join(" ") || "Продавець";
+    const displayName = [seller.firstName, seller.lastName].filter(Boolean).join(" ") || t('sellerProfile.defaultName');
     const avatarUrl = buildImageUrl(seller.photo, IMAGE_SIZES.avatarLarge);
     const activeAdverts = (adverts ?? []).filter((a) => a.approved && !a.blocked && !a.completed);
     const completedAdverts = (adverts ?? []).filter((a) => a.completed && !a.blocked);
@@ -118,9 +122,9 @@ const SellerProfilePage: React.FC = () => {
                     </div>
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                         <span className="flex items-center gap-1.5">
-                            <CalendarOutlined /> На сайті з {registeredDate}
+                            <CalendarOutlined /> {t('sellerProfile.memberSince', { date: registeredDate })}
                         </span>
-                        <span>Активних оголошень: {activeAdverts.length}</span>
+                        <span>{t('sellerProfile.activeAdvertsCount', { count: activeAdverts.length })}</span>
                         {seller.settlementDescrption && <span>{seller.settlementDescrption}</span>}
                     </div>
                 </div>
@@ -130,14 +134,14 @@ const SellerProfilePage: React.FC = () => {
                     onClick={() => navigate(`/chat?sellerId=${seller.id}`)}
                     className="flex items-center justify-center gap-2 bg-mm-purple hover:bg-mm-purple-dark text-white font-bold text-sm px-6 py-2.5 rounded-lg transition-all duration-300 hover:-translate-y-1 shrink-0"
                 >
-                    <MessageOutlined /> Написати продавцю
+                    <MessageOutlined /> {t('sellerProfile.messageSeller')}
                 </button>
             </div>
 
             {/* 1. Buyer reviews — summarized from the seller's real rating/reviewsCount fields
                 (no fabricated per-review text: the backend has no reviews endpoint yet). */}
             <section className="mb-10">
-                <h2 className="text-lg font-bold text-mm-navy mb-4">Відгуки покупців</h2>
+                <h2 className="text-lg font-bold text-mm-navy mb-4">{t('sellerProfile.reviews.heading')}</h2>
                 <div className="bg-mm-lavender-light border border-purple-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300">
                     {seller.reviewsCount > 0 ? (
                         <div className="flex flex-col sm:flex-row sm:items-center gap-6">
@@ -147,15 +151,15 @@ const SellerProfilePage: React.FC = () => {
                             </div>
                             <div className="flex-1 text-sm text-gray-600 leading-relaxed">
                                 <StarFilled className="text-mm-orange mr-1.5" />
-                                На основі {seller.reviewsCount}{" "}
-                                {seller.reviewsCount === 1 ? "відгуку" : "відгуків"} покупців MultiMart.
-                                Детальні тексти відгуків з'являться тут найближчим часом.
+                                {t('sellerProfile.reviews.basedOnPrefix')} {seller.reviewsCount}{" "}
+                                {seller.reviewsCount === 1 ? t('sellerProfile.reviews.reviewWordSingular') : t('sellerProfile.reviews.reviewWordPlural')} {t('sellerProfile.reviews.byBuyersSuffix')}
+                                {" "}{t('sellerProfile.reviews.detailsComingSoon')}
                             </div>
                         </div>
                     ) : (
                         <div className="flex items-center gap-3 text-sm text-gray-500">
                             <CommentOutlined className="text-xl text-mm-purple" />
-                            У цього продавця ще немає відгуків покупців.
+                            {t('sellerProfile.reviews.noReviews')}
                         </div>
                     )}
                 </div>
@@ -163,11 +167,11 @@ const SellerProfilePage: React.FC = () => {
 
             {/* 2. Active listings */}
             <section className="mb-10">
-                <h2 className="text-lg font-bold text-mm-navy mb-4">Активні оголошення</h2>
+                <h2 className="text-lg font-bold text-mm-navy mb-4">{t('sellerProfile.activeListings.heading')}</h2>
                 {isAdvertsLoading ? (
-                    <div className="text-center text-gray-400 py-10">Завантаження оголошень...</div>
+                    <div className="text-center text-gray-400 py-10">{t('sellerProfile.activeListings.loading')}</div>
                 ) : activeAdverts.length === 0 ? (
-                    <div className="text-center text-gray-400 py-10">У продавця немає активних оголошень.</div>
+                    <div className="text-center text-gray-400 py-10">{t('sellerProfile.activeListings.empty')}</div>
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-stretch">
                         {activeAdverts.map((advert) => (
@@ -180,7 +184,7 @@ const SellerProfilePage: React.FC = () => {
             {/* 3. Completed/sold listings — grayscale tiles routed to the dedicated "Sold" view. */}
             {!isAdvertsLoading && completedAdverts.length > 0 && (
                 <section className="mb-10">
-                    <h2 className="text-lg font-bold text-mm-navy mb-4">Завершені оголошення</h2>
+                    <h2 className="text-lg font-bold text-mm-navy mb-4">{t('sellerProfile.completedListings.heading')}</h2>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-stretch">
                         {completedAdverts.map((advert) => (
                             <SoldListingTile key={advert.id} advert={advert} />
@@ -191,7 +195,7 @@ const SellerProfilePage: React.FC = () => {
 
             <div className="mt-6">
                 <Link to="/" className="text-sm text-mm-purple hover:underline">
-                    ← На головну
+                    {t('sellerProfile.backToHome')}
                 </Link>
             </div>
         </div>

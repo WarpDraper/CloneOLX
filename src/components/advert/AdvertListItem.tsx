@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { ShoppingCartOutlined, HeartOutlined, HeartFilled, EnvironmentOutlined, CrownFilled } from "@ant-design/icons";
 import type { IAdvert } from "../../types/advert/IAdvert";
 import type { RootState } from "../../store";
@@ -25,6 +26,7 @@ interface AdvertListItemProps {
 // (non-truncated) title, inline short specs, price top-right. Mirrors AdvertCard's data/props
 // so the listing page can swap between grid and list without touching its data-fetching logic.
 const AdvertListItem: React.FC<AdvertListItemProps> = ({ advert, onQuickAdd, onToggleFavorite, isFavorite, filterNameById }) => {
+    const { t } = useTranslation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
@@ -53,7 +55,7 @@ const AdvertListItem: React.FC<AdvertListItemProps> = ({ advert, onQuickAdd, onT
         }
 
         dispatch(addToCart({ advertId: advert.id, title: advert.title, price: advert.price, image: imageUrl }));
-        dispatch(addNotification({ type: "success", title: "Додано в кошик", message: advert.title }));
+        dispatch(addNotification({ type: "success", title: t("cart.addedTitle"), message: advert.title }));
         onQuickAdd?.(advert);
     };
 
@@ -77,12 +79,12 @@ const AdvertListItem: React.FC<AdvertListItemProps> = ({ advert, onQuickAdd, onT
                     alt={advert.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     placeholder={
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Немає фото</div>
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">{t("advertCard.noPhoto")}</div>
                     }
                 />
                 {advert.isTop && (
                     <span className="absolute bottom-2 left-2 z-10 flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 text-mm-navy shadow">
-                        <CrownFilled /> ТОП
+                        <CrownFilled /> {t("advertCard.top")}
                     </span>
                 )}
             </div>
@@ -92,8 +94,8 @@ const AdvertListItem: React.FC<AdvertListItemProps> = ({ advert, onQuickAdd, onT
                     <h3 className="text-sm font-semibold text-mm-navy leading-snug">{advert.title}</h3>
                     <div className="shrink-0 flex items-center gap-2">
                         <p className="text-base font-bold text-mm-navy whitespace-nowrap">
-                            {advert.price.toLocaleString("uk-UA")} грн.
-                            {advert.isContractPrice && <span className="ml-1.5 text-xs font-semibold text-mm-purple">Договірна</span>}
+                            {advert.price.toLocaleString("uk-UA")} {t("common.currency")}
+                            {advert.isContractPrice && <span className="ml-1.5 text-xs font-semibold text-mm-purple">{t("common.negotiable")}</span>}
                         </p>
                         {onToggleFavorite && (
                             <button
@@ -105,7 +107,7 @@ const AdvertListItem: React.FC<AdvertListItemProps> = ({ advert, onQuickAdd, onT
                                     setHeartPulsing(true);
                                     window.setTimeout(() => setHeartPulsing(false), 200);
                                 }}
-                                aria-label={isFavorite ? "Прибрати з обраного" : "Додати в обране"}
+                                aria-label={isFavorite ? t("favorites.remove") : t("favorites.add")}
                                 className={`w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-mm-lavender ${
                                     isFavorite ? "text-red-500" : "text-mm-purple"
                                 }`}
@@ -144,7 +146,7 @@ const AdvertListItem: React.FC<AdvertListItemProps> = ({ advert, onQuickAdd, onT
                                 isInCart ? "bg-mm-purple text-white hover:bg-mm-purple-dark" : "bg-mm-navy text-white hover:bg-mm-navy/90"
                             }`}
                         >
-                            <ShoppingCartOutlined /> {isInCart ? "У кошику" : "Купити"}
+                            <ShoppingCartOutlined /> {isInCart ? t("cart.inCart") : t("cart.buy")}
                         </button>
                     )}
                 </div>

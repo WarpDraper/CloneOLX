@@ -1,6 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { Select } from 'antd';
+import type { RootState } from '../../../store';
+import { saveReturnUrl } from '../../../utils/returnUrl';
 import {
   SearchOutlined,
   EnvironmentOutlined,
@@ -39,6 +43,8 @@ const SELLERS_EXPANDED_COUNT = 6;
 
 const UserHomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { isAuth } = useSelector((state: RootState) => state.auth);
   const [activeSlide, setActiveSlide] = useState(0);
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
@@ -64,6 +70,19 @@ const UserHomePage: React.FC = () => {
     if (trimmed) params.set('q', trimmed);
     if (city) params.set('city', city);
     navigate(`/search?${params.toString()}`);
+  };
+
+  // Hero carousel CTA — every slide's button is auth-gated the same way: signed-in users go
+  // straight to the slide's target route, signed-out users are sent to /login first and
+  // returned to that same target right after (saveReturnUrl/consumeReturnUrl — the same flow
+  // AdvertCard already uses for its "add to cart"/favorite guest gates).
+  const handleHeroCta = (to: string) => {
+    if (isAuth) {
+      navigate(to);
+      return;
+    }
+    saveReturnUrl(to);
+    navigate('/login');
   };
 
   // Категорії верхнього рівня — GET /api/Category/get (публічний).
@@ -125,13 +144,13 @@ const UserHomePage: React.FC = () => {
               className={`hidden lg:flex items-center gap-2 px-5 font-semibold text-sm text-white transition-colors shrink-0 ${isCatalogOpen ? 'bg-mm-purple-dark' : 'bg-mm-purple hover:bg-mm-purple-dark'}`}
             >
               <AppstoreOutlined className="text-base" />
-              Каталог
+              {t('home.catalog')}
             </button>
             <div className="flex-[2] flex items-center bg-white/10 border-b lg:border-b-0 lg:border-r border-white/10 px-4 py-3">
               <SearchOutlined className="text-white/70 text-lg mr-3" />
               <input
                 type="text"
-                placeholder="Я шукаю..."
+                placeholder={t('home.searchPlaceholder')}
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && goToSearch(searchText)}
@@ -142,7 +161,7 @@ const UserHomePage: React.FC = () => {
               <EnvironmentOutlined className="text-white/70 text-lg mr-3 shrink-0" />
               <Select
                 variant="borderless"
-                placeholder="Вся Україна"
+                placeholder={t('home.wholeCountry')}
                 allowClear
                 value={city}
                 onChange={(value) => setCity(value)}
@@ -156,7 +175,7 @@ const UserHomePage: React.FC = () => {
               onClick={() => goToSearch(searchText)}
               className="bg-mm-purple hover:bg-mm-purple-dark text-white font-bold text-sm px-8 py-3.5 transition-colors"
             >
-              Пошук
+              {t('home.search')}
             </button>
           </div>
 
@@ -165,7 +184,7 @@ const UserHomePage: React.FC = () => {
           )}
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 pb-1 text-sm">
-            <span className="text-white/60 font-medium">Топ запити:</span>
+            <span className="text-white/60 font-medium">{t('home.topQueries')}</span>
             {QUICK_SEARCH_TAGS.map((tag, index) => (
               <React.Fragment key={tag}>
                 <button
@@ -189,7 +208,7 @@ const UserHomePage: React.FC = () => {
           className={`relative rounded-2xl overflow-hidden min-h-[220px] md:min-h-[260px] transition-colors duration-500 ${
             slide.theme === 'purple'
               ? 'bg-gradient-to-br from-mm-navy to-mm-purple-dark'
-              : slide.theme === 'orange'
+              : slide.theme === 'gold'
                 ? 'bg-gradient-to-br from-mm-footer via-mm-navy to-mm-footer'
                 : 'bg-gradient-to-br from-mm-navy to-mm-footer'
           }`}
@@ -198,14 +217,14 @@ const UserHomePage: React.FC = () => {
           <div className="absolute inset-0 opacity-20 pointer-events-none">
             <div
               className={`absolute -top-10 -right-10 w-56 h-56 rounded-full blur-3xl ${
-                slide.theme === 'orange' ? 'bg-mm-orange' : 'bg-mm-purple'
+                slide.theme === 'gold' ? 'bg-mm-orange' : 'bg-mm-purple'
               }`}
             />
           </div>
 
           <button
             type="button"
-            aria-label="Попередній слайд"
+            aria-label={t('home.prevSlide')}
             className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 shadow flex items-center justify-center text-white transition-all duration-300 hover:scale-105"
             onClick={() => setActiveSlide((prev) => (prev === 0 ? HERO_SLIDES.length - 1 : prev - 1))}
           >
@@ -213,7 +232,7 @@ const UserHomePage: React.FC = () => {
           </button>
           <button
             type="button"
-            aria-label="Наступний слайд"
+            aria-label={t('home.nextSlide')}
             className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 shadow flex items-center justify-center text-white transition-all duration-300 hover:scale-105"
             onClick={() => setActiveSlide((prev) => (prev === HERO_SLIDES.length - 1 ? 0 : prev + 1))}
           >
@@ -224,7 +243,15 @@ const UserHomePage: React.FC = () => {
               nav arrows (~48px reach) so title/description/CTA never sit flush against them. */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-12 md:px-16 py-8 md:py-10 relative">
             <div className="flex-1 z-[1]">
-              <h1 className="text-2xl md:text-3xl font-bold text-white mb-3 leading-tight">
+              <h1
+                className={`text-2xl md:text-3xl font-bold mb-3 leading-tight ${
+                  slide.theme === 'gold'
+                    ? 'text-amber-400'
+                    : slide.theme === 'purple'
+                      ? 'text-purple-300'
+                      : 'text-white'
+                }`}
+              >
                 {slide.title}
               </h1>
               <p className="text-white/70 text-sm md:text-base mb-6 max-w-md leading-relaxed">
@@ -232,6 +259,7 @@ const UserHomePage: React.FC = () => {
               </p>
               <button
                 type="button"
+                onClick={() => handleHeroCta(slide.to)}
                 className="bg-mm-orange hover:bg-orange-500 text-white font-bold text-sm px-6 py-2.5 rounded-lg transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-xl"
               >
                 {slide.cta}
@@ -261,7 +289,7 @@ const UserHomePage: React.FC = () => {
               <button
                 key={index}
                 type="button"
-                aria-label={`Слайд ${index + 1}`}
+                aria-label={t('home.slideLabel', { number: index + 1 })}
                 onClick={() => setActiveSlide(index)}
                 className={`h-2 rounded-full transition-all duration-300 ${index === activeSlide ? 'bg-mm-orange w-6' : 'bg-white/30 w-2 hover:bg-white/50'}`}
               />
@@ -271,7 +299,7 @@ const UserHomePage: React.FC = () => {
       </section>
 
       <section className="max-w-[1280px] mx-auto px-4 md:px-6 pb-8">
-        <h2 className="text-xl font-bold text-mm-navy mb-5">Категорії</h2>
+        <h2 className="text-xl font-bold text-mm-navy mb-5">{t('home.categories')}</h2>
         {/* pt-3 + overflow-y-visible: the CategoryAvatar/pinned-tile hover lift
             (hover:-translate-y-1) needs breathing room above the row and an unconstrained
             vertical axis, or the card tops get clipped at the container's top edge — setting
@@ -300,7 +328,7 @@ const UserHomePage: React.FC = () => {
               <AppstoreOutlined className="text-2xl text-white/80" />
             </div>
             <span className="text-xs font-medium text-gray-700 text-center leading-tight group-hover:text-mm-purple transition-colors max-w-[90px]">
-              Усі категорії
+              {t('home.allCategories')}
             </span>
           </Link>
           <Link
@@ -311,7 +339,7 @@ const UserHomePage: React.FC = () => {
               <AppstoreOutlined className="text-2xl text-white" />
             </div>
             <span className="text-xs font-medium text-gray-700 text-center leading-tight group-hover:text-mm-purple transition-colors max-w-[90px]">
-              Усі товари
+              {t('home.allProducts')}
             </span>
           </Link>
         </div>
@@ -319,7 +347,7 @@ const UserHomePage: React.FC = () => {
 
       <section className="max-w-[1280px] mx-auto px-4 md:px-6 pb-8">
         <div className="bg-mm-navy rounded-2xl p-5 md:p-6">
-          <h2 className="text-lg font-bold text-white mb-4">Рекомендації для вас</h2>
+          <h2 className="text-lg font-bold text-white mb-4">{t('home.recommendations')}</h2>
           {/* Exactly 12 cards, 2x6 on desktop (lg:grid-cols-6). `items-stretch` (grid default)
               plus each RecommendationCard's `h-full flex flex-col` keeps every card the same
               height per row regardless of title line-wrap. */}
@@ -344,22 +372,22 @@ const UserHomePage: React.FC = () => {
             <QrcodeOutlined className="text-5xl text-mm-navy" />
           </div>
           <div className="flex-1 text-center md:text-left">
-            <h3 className="text-base font-bold text-mm-navy mb-1">Додаток MultiMart</h3>
-            <p className="text-xs md:text-sm text-gray-500">Купуйте та продавайте зручно зі смартфона — застосунок вже в розробці.</p>
+            <h3 className="text-base font-bold text-mm-navy mb-1">{t('home.appTitle')}</h3>
+            <p className="text-xs md:text-sm text-gray-500">{t('home.appDescription')}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <div className="flex items-center gap-1.5 bg-mm-navy text-white text-xs font-bold py-2 px-3 rounded-md">
-              <AppleOutlined /> App Store
+              <AppleOutlined /> {t('home.appStore')}
             </div>
             <div className="flex items-center gap-1.5 bg-mm-navy text-white text-xs font-bold py-2 px-3 rounded-md">
-              <AndroidOutlined /> Google Play
+              <AndroidOutlined /> {t('home.googlePlay')}
             </div>
           </div>
           <Link
             to="/app-coming-soon"
             className="shrink-0 bg-mm-orange hover:bg-orange-500 text-white font-bold text-sm px-6 py-2.5 rounded-lg transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-xl"
           >
-            Детальніше
+            {t('home.more')}
           </Link>
         </div>
       </section>
@@ -367,14 +395,14 @@ const UserHomePage: React.FC = () => {
       {allFeaturedSellers.length > 0 && (
         <section className="max-w-[1280px] mx-auto px-4 md:px-6 pb-12">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-xl font-bold text-mm-navy">Популярні продавці</h2>
+            <h2 className="text-xl font-bold text-mm-navy">{t('home.popularSellers')}</h2>
             {canToggleSellers && (
               <button
                 type="button"
                 onClick={() => setSellersExpanded((prev) => !prev)}
                 className="text-sm font-semibold text-mm-purple hover:underline"
               >
-                {sellersExpanded ? 'Згорнути' : 'Показати ще'}
+                {sellersExpanded ? t('home.collapse') : t('home.showMore')}
               </button>
             )}
           </div>
