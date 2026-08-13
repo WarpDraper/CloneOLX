@@ -1,0 +1,377 @@
+Folder PATH listing for volume Windows 10
+Volume serial number is 02EF-1B82
+C:.
+|   project_structure.txt
+|   README.md
+|   
+\---olx-project
+    |   .gitignore
+    |   turbo.json
+    |   
+    \---apps
+        +---api
+        |   \---WebApplication
+        |       |   WebApplication.slnx
+        |       |   
+        |       +---.vs
+        |       |   |   ProjectSettings.json
+        |       |   |   slnx.sqlite
+        |       |   |   VSWorkspaceState.json
+        |       |   |   
+        |       |   +---WebApplication
+        |       |   |   \---CopilotIndices
+        |       |   |       +---18.5.39187.10602
+        |       |   |       |       CodeChunks.db
+        |       |   |       |       SemanticSymbols.db
+        |       |   |       |       
+        |       |   |       \---18.5.39194.52559
+        |       |   |               CodeChunks.db
+        |       |   |               CodeChunks.db-shm
+        |       |   |               CodeChunks.db-wal
+        |       |   |               SemanticSymbols.db
+        |       |   |               SemanticSymbols.db-shm
+        |       |   |               SemanticSymbols.db-wal
+        |       |   |               
+        |       |   \---WebApplication.slnx
+        |       |       +---copilot-chat
+        |       |       |   \---9de3b69e
+        |       |       |       \---sessions
+        |       |       +---FileContentIndex
+        |       |       |       02c6655c-ef98-4365-9a9e-4d429e84a09a.vsidx
+        |       |       |       
+        |       |       \---v18
+        |       |               DocumentLayout.backup.json
+        |       |               DocumentLayout.json
+        |       |               
+        |       +---BLL
+        |       |   |   BLL.csproj
+        |       |   |   BLL.csproj.lscache
+        |       |   |   
+        |       |   +---AuthService
+        |       |   |       AuthService.cs
+        |       |   |       IAuthService.cs
+        |       |   |       
+        |       |   +---bin
+        |       |   |   +---Debug
+        |       |   |   |   \---net10.0
+        |       |   |   \---Release
+        |       |   |       \---net10.0
+        |       |   +---DTO
+        |       |   |   +---Authorize
+        |       |   |   |       AuthResultDto.cs
+        |       |   |   |       ChangePasswordDto.cs
+        |       |   |   |       ExternalAuthDto.cs
+        |       |   |   |       ForgotPasswordDto.cs
+        |       |   |   |       LoginDto.cs
+        |       |   |   |       RefreshTokenDto.cs
+        |       |   |   |       RegisterDto.cs
+        |       |   |   |       ResetPasswordDto.cs
+        |       |   |   |       UpdateProfileDto.cs
+        |       |   |   |       
+        |       |   |   \---User
+        |       |   |           UserDto.cs
+        |       |   |           
+        |       |   +---EmailService
+        |       |   |       EmailSender.cs
+        |       |   |       IEmailService.cs
+        |       |   |       
+        |       |   +---JwtToken
+        |       |   |       ITokenService.cs
+        |       |   |       TokenService.cs
+        |       |   |       
+        |       |   +---obj
+        |       |   |   |   BLL.csproj.nuget.dgspec.json
+        |       |   |   |   BLL.csproj.nuget.g.props
+        |       |   |   |   BLL.csproj.nuget.g.targets
+        |       |   |   |   project.assets.json
+        |       |   |   |   project.nuget.cache
+        |       |   |   |   
+        |       |   |   +---Debug
+        |       |   |   |   \---net10.0
+        |       |   |   |       |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+        |       |   |   |       |   BLL.AssemblyInfo.cs
+        |       |   |   |       |   BLL.AssemblyInfoInputs.cache
+        |       |   |   |       |   BLL.assets.cache
+        |       |   |   |       |   BLL.csproj.AssemblyReference.cache
+        |       |   |   |       |   BLL.GeneratedMSBuildEditorConfig.editorconfig
+        |       |   |   |       |   BLL.GlobalUsings.g.cs
+        |       |   |   |       |   
+        |       |   |   |       +---ref
+        |       |   |   |       \---refint
+        |       |   |   \---Release
+        |       |   |       \---net10.0
+        |       |   |           |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+        |       |   |           |   BLL.AssemblyInfo.cs
+        |       |   |           |   BLL.AssemblyInfoInputs.cache
+        |       |   |           |   BLL.assets.cache
+        |       |   |           |   BLL.csproj.AssemblyReference.cache
+        |       |   |           |   BLL.GeneratedMSBuildEditorConfig.editorconfig
+        |       |   |           |   BLL.GlobalUsings.g.cs
+        |       |   |           |   
+        |       |   |           +---ref
+        |       |   |           \---refint
+        |       |   \---Properties
+        |       |           launchSettings.json
+        |       |           
+        |       +---DAL
+        |       |   |   DAL.csproj
+        |       |   |   DAL.csproj.lscache
+        |       |   |   IRepository.cs
+        |       |   |   
+        |       |   +---bin
+        |       |   |   +---Debug
+        |       |   |   |   \---net10.0
+        |       |   |   \---Release
+        |       |   |       \---net10.0
+        |       |   +---Context
+        |       |   |       ApplicationContext.cs
+        |       |   |       
+        |       |   +---Migrations
+        |       |   |       20260506181908_AddIdentityTable.cs
+        |       |   |       20260506181908_AddIdentityTable.Designer.cs
+        |       |   |       ApplicationContextModelSnapshot.cs
+        |       |   |       
+        |       |   +---obj
+        |       |   |   |   DAL.csproj.nuget.dgspec.json
+        |       |   |   |   DAL.csproj.nuget.g.props
+        |       |   |   |   DAL.csproj.nuget.g.targets
+        |       |   |   |   project.assets.json
+        |       |   |   |   project.nuget.cache
+        |       |   |   |   
+        |       |   |   +---Debug
+        |       |   |   |   \---net10.0
+        |       |   |   |       |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+        |       |   |   |       |   DAL.AssemblyInfo.cs
+        |       |   |   |       |   DAL.AssemblyInfoInputs.cache
+        |       |   |   |       |   DAL.assets.cache
+        |       |   |   |       |   DAL.csproj.AssemblyReference.cache
+        |       |   |   |       |   DAL.GeneratedMSBuildEditorConfig.editorconfig
+        |       |   |   |       |   DAL.GlobalUsings.g.cs
+        |       |   |   |       |   
+        |       |   |   |       +---ref
+        |       |   |   |       \---refint
+        |       |   |   \---Release
+        |       |   |       \---net10.0
+        |       |   |           |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+        |       |   |           |   DAL.AssemblyInfo.cs
+        |       |   |           |   DAL.AssemblyInfoInputs.cache
+        |       |   |           |   DAL.assets.cache
+        |       |   |           |   DAL.csproj.AssemblyReference.cache
+        |       |   |           |   DAL.GeneratedMSBuildEditorConfig.editorconfig
+        |       |   |           |   DAL.GlobalUsings.g.cs
+        |       |   |           |   
+        |       |   |           +---ref
+        |       |   |           \---refint
+        |       |   \---UnitOfWork
+        |       |           IUnitOfWork.cs
+        |       |           UnitOfWork.cs
+        |       |           
+        |       +---Domain
+        |       |   |   AppRole.cs
+        |       |   |   AppUser.cs
+        |       |   |   AppUserRole.cs
+        |       |   |   Domain.csproj
+        |       |   |   Domain.csproj.lscache
+        |       |   |   EmailSettings.cs
+        |       |   |   
+        |       |   +---bin
+        |       |   |   +---Debug
+        |       |   |   |   \---net10.0
+        |       |   |   \---Release
+        |       |   |       \---net10.0
+        |       |   \---obj
+        |       |       |   Domain.csproj.nuget.dgspec.json
+        |       |       |   Domain.csproj.nuget.g.props
+        |       |       |   Domain.csproj.nuget.g.targets
+        |       |       |   project.assets.json
+        |       |       |   project.nuget.cache
+        |       |       |   
+        |       |       +---Debug
+        |       |       |   \---net10.0
+        |       |       |       |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+        |       |       |       |   Domain.AssemblyInfo.cs
+        |       |       |       |   Domain.AssemblyInfoInputs.cache
+        |       |       |       |   Domain.assets.cache
+        |       |       |       |   Domain.csproj.AssemblyReference.cache
+        |       |       |       |   Domain.GeneratedMSBuildEditorConfig.editorconfig
+        |       |       |       |   Domain.GlobalUsings.g.cs
+        |       |       |       |   
+        |       |       |       +---ref
+        |       |       |       \---refint
+        |       |       \---Release
+        |       |           \---net10.0
+        |       |               |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+        |       |               |   Domain.AssemblyInfo.cs
+        |       |               |   Domain.AssemblyInfoInputs.cache
+        |       |               |   Domain.assets.cache
+        |       |               |   Domain.csproj.AssemblyReference.cache
+        |       |               |   Domain.GeneratedMSBuildEditorConfig.editorconfig
+        |       |               |   Domain.GlobalUsings.g.cs
+        |       |               |   
+        |       |               +---ref
+        |       |               \---refint
+        |       \---WebApplication
+        |           |   appsettings.Development.json
+        |           |   appsettings.json
+        |           |   Program.cs
+        |           |   WebApplication.csproj
+        |           |   WebApplication.csproj.lscache
+        |           |   WebApplication.http
+        |           |   
+        |           +---bin
+        |           |   +---Debug
+        |           |   |   \---net10.0
+        |           |   \---Release
+        |           |       \---net10.0
+        |           +---Configuration
+        |           |   +---Mapping
+        |           |   |       MappingProfile.cs
+        |           |   |       ServiceLocator.cs
+        |           |   |       
+        |           |   \---Role
+        |           |           DbInitializer.cs
+        |           |           
+        |           +---Controllers
+        |           |   |   AdminController.cs
+        |           |   |   AuthorizeController.cs
+        |           |   |   
+        |           |   \---Middleware
+        |           |           ExceptionMiddleware.cs
+        |           |           
+        |           +---obj
+        |           |   |   project.assets.json
+        |           |   |   project.nuget.cache
+        |           |   |   WebApplication.csproj.nuget.dgspec.json
+        |           |   |   WebApplication.csproj.nuget.g.props
+        |           |   |   WebApplication.csproj.nuget.g.targets
+        |           |   |   
+        |           |   +---Debug
+        |           |   |   \---net10.0
+        |           |   |       |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+        |           |   |       |   WebApplication.AssemblyInfo.cs
+        |           |   |       |   WebApplication.AssemblyInfoInputs.cache
+        |           |   |       |   WebApplication.assets.cache
+        |           |   |       |   WebApplication.csproj.AssemblyReference.cache
+        |           |   |       |   WebApplication.GeneratedMSBuildEditorConfig.editorconfig
+        |           |   |       |   WebApplication.GlobalUsings.g.cs
+        |           |   |       |   
+        |           |   |       +---ref
+        |           |   |       \---refint
+        |           |   \---Release
+        |           |       \---net10.0
+        |           |           |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+        |           |           |   WebApplication.AssemblyInfo.cs
+        |           |           |   WebApplication.AssemblyInfoInputs.cache
+        |           |           |   WebApplication.assets.cache
+        |           |           |   WebApplication.csproj.AssemblyReference.cache
+        |           |           |   WebApplication.GeneratedMSBuildEditorConfig.editorconfig
+        |           |           |   WebApplication.GlobalUsings.g.cs
+        |           |           |   
+        |           |           +---ref
+        |           |           \---refint
+        |           \---Properties
+        |                   launchSettings.json
+        |                   
+        \---web
+            \---olx-frontend
+                |   .env.development
+                |   .gitignore
+                |   eslint.config.js
+                |   index.html
+                |   package-lock.json
+                |   package.json
+                |   README.md
+                |   tsconfig.app.json
+                |   tsconfig.json
+                |   tsconfig.node.json
+                |   vite.config.ts
+                |   
+                +---public
+                |       favicon.svg
+                |       icons.svg
+                |       
+                \---src
+                    |   App.css
+                    |   App.tsx
+                    |   index.css
+                    |   main.tsx
+                    |   
+                    +---components
+                    |   +---common
+                    |   |   \---NotificationManager
+                    |   |           index.tsx
+                    |   |           
+                    |   +---form
+                    |   |       LoginForm.tsx
+                    |   |       RegisterForm.tsx
+                    |   |       
+                    |   +---inputs
+                    |   |       BaseButton.tsx
+                    |   |       InputField.tsx
+                    |   |       
+                    |   \---uploaders
+                    |           ImageUploader.tsx
+                    |           
+                    +---env
+                    |       index.ts
+                    |       
+                    +---layout
+                    |   +---admin
+                    |   |       AdminLayout.tsx
+                    |   |       
+                    |   \---main
+                    |           Footer.tsx
+                    |           Header.tsx
+                    |           MainLayout.tsx
+                    |           
+                    +---pages
+                    |   +---account
+                    |   |   +---ForgotPasswordPage
+                    |   |   |       index.tsx
+                    |   |   |       
+                    |   |   +---LoginPage
+                    |   |   |       index.tsx
+                    |   |   |       
+                    |   |   \---RegisterPage
+                    |   |           index.tsx
+                    |   |           
+                    |   +---admin
+                    |   |   +---ReportsPage
+                    |   |   |       index.tsx
+                    |   |   |       
+                    |   |   \---UsersPage
+                    |   |           index.tsx
+                    |   |           
+                    |   +---common
+                    |   |   \---NotFoundPage
+                    |   |           index.tsx
+                    |   |           
+                    |   \---user
+                    |       +---UserHomePage
+                    |       |       index.tsx
+                    |       |       
+                    |       \---UserProfilePage
+                    |               index.tsx
+                    |               
+                    +---services
+                    |       accountService.ts
+                    |       adminService.ts
+                    |       
+                    +---Slice
+                    |       authSlice.ts
+                    |       
+                    +---store
+                    |       index.ts
+                    |       notificationSlice.ts
+                    |       
+                    +---types
+                    |   \---account
+                    |           ILoginResult.ts
+                    |           IRegisterUser.ts
+                    |           IUserItem.ts
+                    |           IUserLogin.ts
+                    |           
+                    \---utils
+                            createBaseQuery.ts
+                            parseServerValidationErrors.ts
+                            

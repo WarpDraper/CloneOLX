@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@theme {
+  --color-mm-purple: #7b3fe4;
+  --color-mm-purple-dark: #5b2d96;
+  --color-mm-orange: #ff8b2d;
+  --color-mm-navy: #1b1b2f;
+  --color-mm-footer: #0d0f1a;
+  --color-mm-lavender: #ede7f6;
+  --color-mm-lavender-light: #f5f0ff;
+}
+
+/* Admin dashboard: dark-card tables/inputs on top of antd's light-theme defaults. */
+.admin-dark-table .ant-table {
+  background: transparent;
+}
+.admin-dark-table .ant-table-thead > tr > th {
+  background: transparent !important;
+  color: #9ca3af;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.admin-dark-table .ant-table-thead > tr > th::before {
+  display: none;
+}
+.admin-dark-table .ant-table-tbody > tr > td {
+  background: transparent !important;
+  color: #e5e7eb;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+.admin-dark-table .ant-table-tbody > tr:hover > td {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+.admin-dark-table .ant-empty-description {
+  color: #9ca3af;
+}
+.admin-dark-table .ant-pagination-item a,
+.admin-dark-table .ant-pagination-prev button,
+.admin-dark-table .ant-pagination-next button {
+  color: #e5e7eb;
+}
+
+.admin-header-search .ant-input,
+.admin-header-search input {
+  background: transparent;
+  color: #fff;
+}
+.admin-header-search.ant-input-affix-wrapper {
+  background: #161923 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+.admin-header-search .ant-input::placeholder {
+  color: #6b7280;
+}

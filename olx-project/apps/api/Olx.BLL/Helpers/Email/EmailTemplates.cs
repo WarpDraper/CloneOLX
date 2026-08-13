@@ -1,0 +1,90 @@
+﻿using System.Net;
+
+namespace Olx.BLL.Helpers.Email
+{
+    internal static class EmailTemplates
+    {
+        private static string _path = Path.Combine(Directory.GetCurrentDirectory(), "Helpers/EmailTemplates");
+
+        public static string GetAdvertBoughtTemplate(string text)
+        {
+            var html = File.ReadAllText(Path.Combine(_path, "AdvertBought.html"));
+            html = html.Replace("[text]", text);
+            return html;
+        }
+        public static string GetAccountRemovedTemplate(string reason)
+        {
+            var html = File.ReadAllText(Path.Combine(_path, "AccountRemoved.html"));
+            html = html.Replace("[reason]", reason);
+            return html;
+        }
+        public static string GetAdvertRemovedTemplate(string reason)
+        {
+            var html = File.ReadAllText(Path.Combine(_path, "AdvertRemoved.html"));
+            html = html.Replace("[reason]", reason);
+            return html;
+        }
+        public static string GetAdvertLockedTemplate( string reason)
+        {
+            var html = File.ReadAllText(Path.Combine(_path, "AdvertLocked.html"));
+            html = html.Replace("[reason]", reason);
+            return html;
+        }
+        public static string GetEmailConfirmationTemplate(string url,string token, int id)
+        {
+            var html = File.ReadAllText(Path.Combine(_path,"EmailConfirmation.html"));
+            html = html.Replace("[token]",WebUtility.UrlEncode(token));
+            html = html.Replace("[id]", id.ToString());
+            html = html.Replace("[url]", url);
+            return html;
+        }
+        public static string GetEmailConfirmedTemplate(string url)
+        {
+            var html = File.ReadAllText(Path.Combine(_path, "EmailConfirmed.html"));
+            html = html.Replace("[url]", url);
+            return html;
+        }
+        public static string GetPasswordResetTemplate(string url, string token, int id)
+        {
+            var html = File.ReadAllText(Path.Combine(_path, "PasswordReset.html"));
+            html = html.Replace("[token]", WebUtility.UrlEncode(token));
+            html = html.Replace("[id]", id.ToString());
+            html = html.Replace("[url]", url);
+            return html;
+        }
+
+        public static string GetAccountBlockedTemplate(string reason, string lockoutEnd)
+        {
+            var html = File.ReadAllText(Path.Combine(_path, "AccountBlocked.html"));
+            html = html.Replace("[reason]",reason);
+            html = html.Replace("[LockoutEnd]", lockoutEnd);
+            return html;
+        }
+
+        public static string GetAccountUnblockedTemplate() => File.ReadAllText(Path.Combine(_path, "AccountUnblocked.html"));
+<<<<<<< HEAD
+
+        // 6-digit code shown in Profile Settings -> "Підтвердити email". Built inline (no
+        // external .html asset) since it's a small transactional message, unlike the templated
+        // registration/reset flows above.
+        public static string GetEmailVerificationCodeTemplate(string code) =>
+            $@"<div style=""font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;padding:32px;text-align:center"">
+                <h2 style=""color:#1a1a2e;margin-bottom:8px"">Підтвердження email</h2>
+                <p style=""color:#555;font-size:14px"">Введіть цей код у формі підтвердження email на MultiMart:</p>
+                <div style=""font-size:34px;font-weight:bold;letter-spacing:10px;color:#6648D2;margin:24px 0"">{code}</div>
+                <p style=""color:#999;font-size:12px"">Код дійсний протягом 10 хвилин. Якщо ви не робили цей запит, просто проігноруйте цей лист.</p>
+            </div>";
+
+        // Sent after a successful password change (via ResetPassword or profile "old password"
+        // change) as a security notification — the user didn't necessarily trigger it themselves.
+        public static string GetPasswordChangedTemplate() =>
+            @"<div style=""font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;padding:32px;text-align:center"">
+                <h2 style=""color:#1a1a2e;margin-bottom:8px"">Пароль змінено</h2>
+                <p style=""color:#555;font-size:14px"">Пароль вашого акаунту MultiMart щойно було успішно змінено.</p>
+                <p style=""color:#999;font-size:12px"">Якщо це були не ви, негайно зв'яжіться з нашою службою підтримки та відновіть доступ до акаунту.</p>
+            </div>";
+=======
+        
+>>>>>>> origin/tobi-nazar
+    }
+}

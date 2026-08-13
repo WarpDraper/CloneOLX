@@ -1,0 +1,1564 @@
+﻿[
+  {
+    "UserId": 28,
+    "PhoneNumber": "+38 (068) 985-65-77",
+    "ContactEmail": "roman.velychko27@gmail.com",
+    "ContactPersone": "Роман Величко",
+    "Title": "BMW X5 2011, 2.0 бензин, механіка",
+    "Description": "Продам BMW X5 2011 року випуску. Двигун 2.0 бензин, коробка передач — механіка, привід повний. Пробіг 220 800 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 451118,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_1.jpg",
+      "/images/mock1/auto_2.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 5,
+    "PhoneNumber": "+38 (050) 533-83-46",
+    "ContactEmail": "maryna.kovalenko4@gmail.com",
+    "ContactPersone": "Марина Коваленко",
+    "Title": "BMW X5 2020, 3.0 дизель, робот",
+    "Description": "Продам BMW X5 2020 року випуску. Двигун 3.0 дизель, коробка передач — робот, привід передній. Пробіг 87 714 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 515899,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_2.jpg",
+      "/images/mock1/auto_3.jpg",
+      "/images/mock1/auto_1.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 42,
+    "PhoneNumber": "+38 (096) 405-90-23",
+    "ContactEmail": "roman.zakharchenko41@gmail.com",
+    "ContactPersone": "Роман Захарченко",
+    "Title": "BMW 3 Series 2019, 3.0 дизель, механіка",
+    "Description": "Продам BMW 3 Series 2019 року випуску. Двигун 3.0 дизель, коробка передач — механіка, привід задній. Пробіг 65 919 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 466744,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_3.jpg",
+      "/images/mock1/auto_1.jpg",
+      "/images/mock1/auto_2.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 44,
+    "PhoneNumber": "+38 (093) 650-24-24",
+    "ContactEmail": "ihor.polishchuk43@gmail.com",
+    "ContactPersone": "Ігор Поліщук",
+    "Title": "Toyota RAV4 2014, 1.4 турбо, робот",
+    "Description": "Продам Toyota RAV4 2014 року випуску. Двигун 1.4 турбо, коробка передач — робот, привід повний. Пробіг 123 948 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 133140,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_1.jpg",
+      "/images/mock1/auto_2.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 80,
+    "PhoneNumber": "+38 (099) 505-58-45",
+    "ContactEmail": "dmytro.prykhodko79@gmail.com",
+    "ContactPersone": "Дмитро Приходько",
+    "Title": "Toyota RAV4 2011, 2.0 бензин, варіатор",
+    "Description": "Продам Toyota RAV4 2011 року випуску. Двигун 2.0 бензин, коробка передач — варіатор, привід задній. Пробіг 160 125 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 233790,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_2.jpg",
+      "/images/mock1/auto_3.jpg",
+      "/images/mock1/auto_1.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 79,
+    "PhoneNumber": "+38 (066) 842-26-93",
+    "ContactEmail": "inna.havryliuk78@gmail.com",
+    "ContactPersone": "Інна Гаврилюк",
+    "Title": "Volkswagen Golf 2022, 2.0 бензин, автомат",
+    "Description": "Продам Volkswagen Golf 2022 року випуску. Двигун 2.0 бензин, коробка передач — автомат, привід передній. Пробіг 53 424 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 386659,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_3.jpg",
+      "/images/mock1/auto_1.jpg",
+      "/images/mock1/auto_2.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 40,
+    "PhoneNumber": "+38 (073) 133-31-53",
+    "ContactEmail": "volodymyr.marchenko39@gmail.com",
+    "ContactPersone": "Володимир Марченко",
+    "Title": "Volkswagen Passat 2011, 2.0 бензин, робот",
+    "Description": "Продам Volkswagen Passat 2011 року випуску. Двигун 2.0 бензин, коробка передач — робот, привід повний. Пробіг 168 795 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 249328,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_1.jpg",
+      "/images/mock1/auto_2.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 96,
+    "PhoneNumber": "+38 (096) 646-69-23",
+    "ContactEmail": "andrii.shevchenko95@gmail.com",
+    "ContactPersone": "Андрій Шевченко",
+    "Title": "Volkswagen Passat 2017, 1.4 турбо, варіатор",
+    "Description": "Продам Volkswagen Passat 2017 року випуску. Двигун 1.4 турбо, коробка передач — варіатор, привід задній. Пробіг 126 468 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 179944,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_2.jpg",
+      "/images/mock1/auto_3.jpg",
+      "/images/mock1/auto_1.jpg"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 77,
+    "PhoneNumber": "+38 (050) 217-82-56",
+    "ContactEmail": "larysa.marchenko76@gmail.com",
+    "ContactPersone": "Лариса Марченко",
+    "Title": "Skoda Octavia 2021, 2.5 гібрид, механіка",
+    "Description": "Продам Skoda Octavia 2021 року випуску. Двигун 2.5 гібрид, коробка передач — механіка, привід передній. Пробіг 61 455 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 392470,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_3.jpg",
+      "/images/mock1/auto_1.jpg",
+      "/images/mock1/auto_2.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 47,
+    "PhoneNumber": "+38 (066) 855-52-76",
+    "ContactEmail": "alina.zaiets46@gmail.com",
+    "ContactPersone": "Аліна Заєць",
+    "Title": "Skoda Octavia 2011, 1.6 бензин, робот",
+    "Description": "Продам Skoda Octavia 2011 року випуску. Двигун 1.6 бензин, коробка передач — робот, привід повний. Пробіг 241 950 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 158111,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_1.jpg",
+      "/images/mock1/auto_2.jpg"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 69,
+    "PhoneNumber": "+38 (093) 657-14-82",
+    "ContactEmail": "oksana.naumenko68@gmail.com",
+    "ContactPersone": "Оксана Науменко",
+    "Title": "Audi A6 2015, 3.0 дизель, автомат",
+    "Description": "Продам Audi A6 2015 року випуску. Двигун 3.0 дизель, коробка передач — автомат, привід передній. Пробіг 178 607 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 436827,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_2.jpg",
+      "/images/mock1/auto_3.jpg",
+      "/images/mock1/auto_1.jpg"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 19,
+    "PhoneNumber": "+38 (093) 745-25-95",
+    "ContactEmail": "valentyna.marchenko18@gmail.com",
+    "ContactPersone": "Валентина Марченко",
+    "Title": "Audi A6 2011, 2.5 гібрид, варіатор",
+    "Description": "Продам Audi A6 2011 року випуску. Двигун 2.5 гібрид, коробка передач — варіатор, привід задній. Пробіг 229 845 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 404404,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_3.jpg",
+      "/images/mock1/auto_1.jpg",
+      "/images/mock1/auto_2.jpg"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 12,
+    "PhoneNumber": "+38 (066) 573-43-29",
+    "ContactEmail": "dmytro.panchenko11@gmail.com",
+    "ContactPersone": "Дмитро Панченко",
+    "Title": "Mercedes-Benz E-Class 2019, 1.4 турбо, робот",
+    "Description": "Продам Mercedes-Benz E-Class 2019 року випуску. Двигун 1.4 турбо, коробка передач — робот, привід повний. Пробіг 85 491 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 821299,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_1.jpg",
+      "/images/mock1/auto_2.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 41,
+    "PhoneNumber": "+38 (063) 571-48-19",
+    "ContactEmail": "halyna.panchenko40@gmail.com",
+    "ContactPersone": "Галина Панченко",
+    "Title": "Nissan Qashqai 2021, 2.5 гібрид, робот",
+    "Description": "Продам Nissan Qashqai 2021 року випуску. Двигун 2.5 гібрид, коробка передач — робот, привід передній. Пробіг 80 920 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 295401,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_2.jpg",
+      "/images/mock1/auto_3.jpg",
+      "/images/mock1/auto_1.jpg"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 82,
+    "PhoneNumber": "+38 (068) 338-90-16",
+    "ContactEmail": "oleksandr.melnyk81@gmail.com",
+    "ContactPersone": "Олександр Мельник",
+    "Title": "Nissan Qashqai 2016, 2.0 дизель, варіатор",
+    "Description": "Продам Nissan Qashqai 2016 року випуску. Двигун 2.0 дизель, коробка передач — варіатор, привід передній. Пробіг 98 580 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 391113,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_3.jpg",
+      "/images/mock1/auto_1.jpg",
+      "/images/mock1/auto_2.jpg"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 31,
+    "PhoneNumber": "+38 (066) 985-84-59",
+    "ContactEmail": "uliana.melnyk30@gmail.com",
+    "ContactPersone": "Уляна Мельник",
+    "Title": "Kia Sportage 2021, 1.6 бензин, робот",
+    "Description": "Продам Kia Sportage 2021 року випуску. Двигун 1.6 бензин, коробка передач — робот, привід повний. Пробіг 87 810 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 513738,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_1.jpg",
+      "/images/mock1/auto_2.jpg"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 38,
+    "PhoneNumber": "+38 (097) 684-63-30",
+    "ContactEmail": "oleh.rudenko37@gmail.com",
+    "ContactPersone": "Олег Руденко",
+    "Title": "Kia Sportage 2013, 2.0 бензин, варіатор",
+    "Description": "Продам Kia Sportage 2013 року випуску. Двигун 2.0 бензин, коробка передач — варіатор, привід задній. Пробіг 213 317 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 293920,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_2.jpg",
+      "/images/mock1/auto_3.jpg",
+      "/images/mock1/auto_1.jpg"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 50,
+    "PhoneNumber": "+38 (099) 509-32-52",
+    "ContactEmail": "dmytro.kravchenko49@gmail.com",
+    "ContactPersone": "Дмитро Кравченко",
+    "Title": "Kia Sportage 2022, 1.6 бензин, варіатор",
+    "Description": "Продам Kia Sportage 2022 року випуску. Двигун 1.6 бензин, коробка передач — варіатор, привід задній. Пробіг 65 728 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 493867,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_3.jpg",
+      "/images/mock1/auto_1.jpg",
+      "/images/mock1/auto_2.jpg"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 35,
+    "PhoneNumber": "+38 (099) 243-50-96",
+    "ContactEmail": "mariia.havryliuk34@gmail.com",
+    "ContactPersone": "Марія Гаврилюк",
+    "Title": "Renault Logan 2011, 1.6 бензин, механіка",
+    "Description": "Продам Renault Logan 2011 року випуску. Двигун 1.6 бензин, коробка передач — механіка, привід повний. Пробіг 233 685 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 251837,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_1.jpg",
+      "/images/mock1/auto_2.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 84,
+    "PhoneNumber": "+38 (063) 188-85-14",
+    "ContactEmail": "denys.panchenko83@gmail.com",
+    "ContactPersone": "Денис Панченко",
+    "Title": "Renault Logan 2022, 3.0 дизель, робот",
+    "Description": "Продам Renault Logan 2022 року випуску. Двигун 3.0 дизель, коробка передач — робот, привід повний. Пробіг 57 600 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 497476,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_2.jpg",
+      "/images/mock1/auto_3.jpg",
+      "/images/mock1/auto_1.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 85,
+    "PhoneNumber": "+38 (097) 739-71-93",
+    "ContactEmail": "halyna.hnatiuk84@gmail.com",
+    "ContactPersone": "Галина Гнатюк",
+    "Title": "Renault Logan 2018, 2.5 гібрид, варіатор",
+    "Description": "Продам Renault Logan 2018 року випуску. Двигун 2.5 гібрид, коробка передач — варіатор, привід передній. Пробіг 99 016 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 371719,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_3.jpg",
+      "/images/mock1/auto_1.jpg",
+      "/images/mock1/auto_2.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 6,
+    "PhoneNumber": "+38 (068) 346-95-58",
+    "ContactEmail": "iurii.shevchenko5@gmail.com",
+    "ContactPersone": "Юрій Шевченко",
+    "Title": "Honda CR-V 2013, 2.5 гібрид, робот",
+    "Description": "Продам Honda CR-V 2013 року випуску. Двигун 2.5 гібрид, коробка передач — робот, привід повний. Пробіг 217 646 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 216715,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_1.jpg",
+      "/images/mock1/auto_2.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 12,
+    "PhoneNumber": "+38 (066) 573-43-29",
+    "ContactEmail": "dmytro.panchenko11@gmail.com",
+    "ContactPersone": "Дмитро Панченко",
+    "Title": "Ford Focus 2014, 2.5 гібрид, механіка",
+    "Description": "Продам Ford Focus 2014 року випуску. Двигун 2.5 гібрид, коробка передач — механіка, привід задній. Пробіг 148 020 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 189526,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_2.jpg",
+      "/images/mock1/auto_3.jpg",
+      "/images/mock1/auto_1.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 48,
+    "PhoneNumber": "+38 (050) 213-78-39",
+    "ContactEmail": "pavlo.savchenko47@gmail.com",
+    "ContactPersone": "Павло Савченко",
+    "Title": "Ford Focus 2015, 3.0 дизель, варіатор",
+    "Description": "Продам Ford Focus 2015 року випуску. Двигун 3.0 дизель, коробка передач — варіатор, привід передній. Пробіг 132 638 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 273927,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_3.jpg",
+      "/images/mock1/auto_1.jpg",
+      "/images/mock1/auto_2.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 17,
+    "PhoneNumber": "+38 (063) 406-59-14",
+    "ContactEmail": "valentyna.diachenko16@gmail.com",
+    "ContactPersone": "Валентина Дяченко",
+    "Title": "Ford Focus 2021, 1.4 турбо, робот",
+    "Description": "Продам Ford Focus 2021 року випуску. Двигун 1.4 турбо, коробка передач — робот, привід повний. Пробіг 47 990 км (офіційний сервісний сервіс-центр). Всі планові ТО пройдені вчасно, не бита, не фарбована, на обліку в Україні. Комплектація: клімат-контроль, підігрів сидінь, парктроніки, мультимедіа з навігацією. Торг можливий при огляді.",
+    "IsContractPrice": false,
+    "Price": 243867,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/auto_1.jpg",
+      "/images/mock1/auto_2.jpg"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Легкові автомобілі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 44,
+    "PhoneNumber": "+38 (093) 650-24-24",
+    "ContactEmail": "ihor.polishchuk43@gmail.com",
+    "ContactPersone": "Ігор Поліщук",
+    "Title": "1-кімнатна квартира, Одеса, з ремонтом",
+    "Description": "Продається затишна 1-кімнатна квартира загальною площею 34 м.кв. Якісний ремонт, нова сантехніка, встановлені лічильники. Будинок після капітального ремонту, поруч школа, садочок, зупинки громадського транспорту, супермаркет.",
+    "IsContractPrice": false,
+    "Price": 871465,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/apartments-sale_1.jpg",
+      "/images/mock1/apartments-sale_2.jpg"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Продаж",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 68,
+    "PhoneNumber": "+38 (068) 557-22-42",
+    "ContactEmail": "artem.hnatiuk67@gmail.com",
+    "ContactPersone": "Артем Гнатюк",
+    "Title": "2-кімнатна квартира, Харків, з ремонтом",
+    "Description": "Продається затишна 2-кімнатна квартира загальною площею 61 м.кв. Якісний ремонт, нова сантехніка, встановлені лічильники. Будинок після капітального ремонту, поруч школа, садочок, зупинки громадського транспорту, супермаркет.",
+    "IsContractPrice": false,
+    "Price": 1771100,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/apartments-sale_2.jpg",
+      "/images/mock1/apartments-sale_3.jpg",
+      "/images/mock1/apartments-sale_1.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Продаж",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 43,
+    "PhoneNumber": "+38 (068) 693-77-59",
+    "ContactEmail": "liudmyla.kovalenko42@gmail.com",
+    "ContactPersone": "Людмила Коваленко",
+    "Title": "3-кімнатна квартира, Харків, з ремонтом",
+    "Description": "Продається затишна 3-кімнатна квартира загальною площею 76 м.кв. Якісний ремонт, нова сантехніка, встановлені лічильники. Будинок після капітального ремонту, поруч школа, садочок, зупинки громадського транспорту, супермаркет.",
+    "IsContractPrice": false,
+    "Price": 2150013,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/apartments-sale_3.jpg",
+      "/images/mock1/apartments-sale_1.jpg",
+      "/images/mock1/apartments-sale_2.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Продаж",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 17,
+    "PhoneNumber": "+38 (063) 406-59-14",
+    "ContactEmail": "valentyna.diachenko16@gmail.com",
+    "ContactPersone": "Валентина Дяченко",
+    "Title": "4-кімнатна квартира, Київ, з ремонтом",
+    "Description": "Продається затишна 4-кімнатна квартира загальною площею 111 м.кв. Якісний ремонт, нова сантехніка, встановлені лічильники. Будинок після капітального ремонту, поруч школа, садочок, зупинки громадського транспорту, супермаркет.",
+    "IsContractPrice": false,
+    "Price": 4080130,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/apartments-sale_1.jpg",
+      "/images/mock1/apartments-sale_2.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Продаж",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 43,
+    "PhoneNumber": "+38 (068) 693-77-59",
+    "ContactEmail": "liudmyla.kovalenko42@gmail.com",
+    "ContactPersone": "Людмила Коваленко",
+    "Title": "Оренда 1-кімнатної квартири, Одеса, довгостроково",
+    "Description": "Здається довгостроково 1-кімнатна квартира, 23 м.кв. Є вся необхідна меблі та побутова техніка: холодильник, пральна машина, плита. Комунальні платежі за домовленістю. Порядність та своєчасна оплата обов'язкові.",
+    "IsContractPrice": false,
+    "Price": 8735,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/apartments-rent_1.jpg",
+      "/images/mock1/apartments-rent_2.jpg"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Довгострокова оренда",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 68,
+    "PhoneNumber": "+38 (068) 557-22-42",
+    "ContactEmail": "artem.hnatiuk67@gmail.com",
+    "ContactPersone": "Артем Гнатюк",
+    "Title": "Оренда 3-кімнатної квартири, Львів, довгостроково",
+    "Description": "Здається довгостроково 3-кімнатна квартира, 58 м.кв. Є вся необхідна меблі та побутова техніка: холодильник, пральна машина, плита. Комунальні платежі за домовленістю. Порядність та своєчасна оплата обов'язкові.",
+    "IsContractPrice": false,
+    "Price": 18891,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/apartments-rent_2.jpg",
+      "/images/mock1/apartments-rent_3.jpg",
+      "/images/mock1/apartments-rent_1.jpg"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Довгострокова оренда",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 87,
+    "PhoneNumber": "+38 (067) 404-33-54",
+    "ContactEmail": "svitlana.savchenko86@gmail.com",
+    "ContactPersone": "Світлана Савченко",
+    "Title": "Будинок 110 м.кв. з ділянкою 7.3 сот., Київ",
+    "Description": "Продається приватний будинок з ділянкою. Автономне опалення, свердловина, господарські будівлі, гараж. Тиха вулиця, розвинена інфраструктура поруч.",
+    "IsContractPrice": false,
+    "Price": 2458602,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/houses_1.jpg",
+      "/images/mock1/houses_2.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Продаж будинків",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 44,
+    "PhoneNumber": "+38 (093) 650-24-24",
+    "ContactEmail": "ihor.polishchuk43@gmail.com",
+    "ContactPersone": "Ігор Поліщук",
+    "Title": "Будинок 225 м.кв. з ділянкою 8.3 сот., Харків",
+    "Description": "Продається приватний будинок з ділянкою. Автономне опалення, свердловина, господарські будівлі, гараж. Тиха вулиця, розвинена інфраструктура поруч.",
+    "IsContractPrice": false,
+    "Price": 5636422,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/houses_2.jpg",
+      "/images/mock1/houses_3.jpg",
+      "/images/mock1/houses_1.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Продаж будинків",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 22,
+    "PhoneNumber": "+38 (063) 313-83-58",
+    "ContactEmail": "dmytro.kushnir21@gmail.com",
+    "ContactPersone": "Дмитро Кушнір",
+    "Title": "Apple iPhone 15 Pro 128 ГБ, новий",
+    "Description": "Продам Apple iPhone 15 Pro (128 ГБ). Стан: новий. Ємність акумулятора 99%. Комплект: коробка, кабель. Всі функції працюють справно, без подряпин на екрані. Можлива перевірка при зустрічі.",
+    "IsContractPrice": false,
+    "Price": 50256,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/phones_1.jpg",
+      "/images/mock1/phones_2.jpg"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Мобільні телефони/смартфони",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 72,
+    "PhoneNumber": "+38 (066) 831-68-30",
+    "ContactEmail": "denys.romaniuk71@gmail.com",
+    "ContactPersone": "Денис Романюк",
+    "Title": "Apple iPhone 15 Pro 512 ГБ, як новий",
+    "Description": "Продам Apple iPhone 15 Pro (512 ГБ). Стан: як новий. Ємність акумулятора 100%. Комплект: коробка, кабель. Всі функції працюють справно, без подряпин на екрані. Можлива перевірка при зустрічі.",
+    "IsContractPrice": false,
+    "Price": 49897,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/phones_2.jpg",
+      "/images/mock1/phones_3.jpg",
+      "/images/mock1/phones_1.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Мобільні телефони/смартфони",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 28,
+    "PhoneNumber": "+38 (068) 985-65-77",
+    "ContactEmail": "roman.velychko27@gmail.com",
+    "ContactPersone": "Роман Величко",
+    "Title": "Apple iPhone 13 128 ГБ, б/в, робочий стан",
+    "Description": "Продам Apple iPhone 13 (128 ГБ). Стан: б/в, робочий стан. Ємність акумулятора 87%. Комплект: коробка, кабель. Всі функції працюють справно, без подряпин на екрані. Можлива перевірка при зустрічі.",
+    "IsContractPrice": false,
+    "Price": 20039,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/phones_3.jpg",
+      "/images/mock1/phones_1.jpg",
+      "/images/mock1/phones_2.jpg"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Мобільні телефони/смартфони",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 30,
+    "PhoneNumber": "+38 (073) 782-81-52",
+    "ContactEmail": "taras.melnyk29@gmail.com",
+    "ContactPersone": "Тарас Мельник",
+    "Title": "Apple iPhone 13 512 ГБ, як новий",
+    "Description": "Продам Apple iPhone 13 (512 ГБ). Стан: як новий. Ємність акумулятора 79%. Комплект: коробка, кабель. Всі функції працюють справно, без подряпин на екрані. Можлива перевірка при зустрічі.",
+    "IsContractPrice": false,
+    "Price": 22467,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/phones_1.jpg",
+      "/images/mock1/phones_2.jpg"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Мобільні телефони/смартфони",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 22,
+    "PhoneNumber": "+38 (063) 313-83-58",
+    "ContactEmail": "dmytro.kushnir21@gmail.com",
+    "ContactPersone": "Дмитро Кушнір",
+    "Title": "Apple iPhone 13 256 ГБ, у хорошому стані",
+    "Description": "Продам Apple iPhone 13 (256 ГБ). Стан: у хорошому стані. Ємність акумулятора 91%. Комплект: коробка, кабель. Всі функції працюють справно, без подряпин на екрані. Можлива перевірка при зустрічі.",
+    "IsContractPrice": false,
+    "Price": 27273,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/phones_2.jpg",
+      "/images/mock1/phones_3.jpg",
+      "/images/mock1/phones_1.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Мобільні телефони/смартфони",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 86,
+    "PhoneNumber": "+38 (068) 474-45-29",
+    "ContactEmail": "roman.lytvyn85@gmail.com",
+    "ContactPersone": "Роман Литвин",
+    "Title": "Samsung Galaxy S24 256 ГБ, у хорошому стані",
+    "Description": "Продам Samsung Galaxy S24 (256 ГБ). Стан: у хорошому стані. Ємність акумулятора 89%. Комплект: коробка, кабель. Всі функції працюють справно, без подряпин на екрані. Можлива перевірка при зустрічі.",
+    "IsContractPrice": false,
+    "Price": 40152,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/phones_3.jpg",
+      "/images/mock1/phones_1.jpg",
+      "/images/mock1/phones_2.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Мобільні телефони/смартфони",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 82,
+    "PhoneNumber": "+38 (068) 338-90-16",
+    "ContactEmail": "oleksandr.melnyk81@gmail.com",
+    "ContactPersone": "Олександр Мельник",
+    "Title": "Samsung Galaxy A54 128 ГБ, б/в, робочий стан",
+    "Description": "Продам Samsung Galaxy A54 (128 ГБ). Стан: б/в, робочий стан. Ємність акумулятора 96%. Комплект: коробка, кабель. Всі функції працюють справно, без подряпин на екрані. Можлива перевірка при зустрічі.",
+    "IsContractPrice": false,
+    "Price": 12272,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/phones_1.jpg",
+      "/images/mock1/phones_2.jpg"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Мобільні телефони/смартфони",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 20,
+    "PhoneNumber": "+38 (068) 454-98-83",
+    "ContactEmail": "nazar.diachenko19@gmail.com",
+    "ContactPersone": "Назар Дяченко",
+    "Title": "Samsung Galaxy A54 256 ГБ, у хорошому стані",
+    "Description": "Продам Samsung Galaxy A54 (256 ГБ). Стан: у хорошому стані. Ємність акумулятора 99%. Комплект: коробка, кабель. Всі функції працюють справно, без подряпин на екрані. Можлива перевірка при зустрічі.",
+    "IsContractPrice": false,
+    "Price": 10043,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/phones_2.jpg",
+      "/images/mock1/phones_3.jpg",
+      "/images/mock1/phones_1.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Мобільні телефони/смартфони",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 72,
+    "PhoneNumber": "+38 (066) 831-68-30",
+    "ContactEmail": "denys.romaniuk71@gmail.com",
+    "ContactPersone": "Денис Романюк",
+    "Title": "Xiaomi Redmi Note 13 256 ГБ, як новий",
+    "Description": "Продам Xiaomi Redmi Note 13 (256 ГБ). Стан: як новий. Ємність акумулятора 90%. Комплект: коробка, кабель. Всі функції працюють справно, без подряпин на екрані. Можлива перевірка при зустрічі.",
+    "IsContractPrice": false,
+    "Price": 7381,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/phones_3.jpg",
+      "/images/mock1/phones_1.jpg",
+      "/images/mock1/phones_2.jpg"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Мобільні телефони/смартфони",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 42,
+    "PhoneNumber": "+38 (096) 405-90-23",
+    "ContactEmail": "roman.zakharchenko41@gmail.com",
+    "ContactPersone": "Роман Захарченко",
+    "Title": "Google Pixel 8 256 ГБ, як новий",
+    "Description": "Продам Google Pixel 8 (256 ГБ). Стан: як новий. Ємність акумулятора 100%. Комплект: коробка, кабель. Всі функції працюють справно, без подряпин на екрані. Можлива перевірка при зустрічі.",
+    "IsContractPrice": false,
+    "Price": 22614,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/phones_1.jpg",
+      "/images/mock1/phones_2.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Мобільні телефони/смартфони",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 2,
+    "PhoneNumber": "+38 (093) 708-63-22",
+    "ContactEmail": "viktor.bondarenko1@gmail.com",
+    "ContactPersone": "Віктор Бондаренко",
+    "Title": "Google Pixel 8 128 ГБ, новий",
+    "Description": "Продам Google Pixel 8 (128 ГБ). Стан: новий. Ємність акумулятора 85%. Комплект: коробка, кабель. Всі функції працюють справно, без подряпин на екрані. Можлива перевірка при зустрічі.",
+    "IsContractPrice": false,
+    "Price": 23549,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/phones_2.jpg",
+      "/images/mock1/phones_3.jpg",
+      "/images/mock1/phones_1.jpg"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Мобільні телефони/смартфони",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 47,
+    "PhoneNumber": "+38 (066) 855-52-76",
+    "ContactEmail": "alina.zaiets46@gmail.com",
+    "ContactPersone": "Аліна Заєць",
+    "Title": "Google Pixel 8 128 ГБ, як новий",
+    "Description": "Продам Google Pixel 8 (128 ГБ). Стан: як новий. Ємність акумулятора 94%. Комплект: коробка, кабель. Всі функції працюють справно, без подряпин на екрані. Можлива перевірка при зустрічі.",
+    "IsContractPrice": false,
+    "Price": 22437,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/phones_3.jpg",
+      "/images/mock1/phones_1.jpg",
+      "/images/mock1/phones_2.jpg"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Мобільні телефони/смартфони",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 76,
+    "PhoneNumber": "+38 (099) 678-79-99",
+    "ContactEmail": "pavlo.lytvyn75@gmail.com",
+    "ContactPersone": "Павло Литвин",
+    "Title": "Apple MacBook Air M2, 16 ГБ / 1 ТБ SSD",
+    "Description": "Ноутбук Apple MacBook Air M2, оперативна пам'ять 16 ГБ, накопичувач 1 ТБ SSD. Стан: новий. Батарея тримає заряд добре, корпус без пошкоджень. Ідеально підходить для роботи, навчання та легких ігор.",
+    "IsContractPrice": false,
+    "Price": 31293,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/laptops_1.jpg",
+      "/images/mock1/laptops_2.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Ноутбуки",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 13,
+    "PhoneNumber": "+38 (097) 569-70-67",
+    "ContactEmail": "oksana.kravchenko12@gmail.com",
+    "ContactPersone": "Оксана Кравченко",
+    "Title": "Apple MacBook Pro 14, 32 ГБ / 256 ГБ SSD",
+    "Description": "Ноутбук Apple MacBook Pro 14, оперативна пам'ять 32 ГБ, накопичувач 256 ГБ SSD. Стан: б/в, робочий стан. Батарея тримає заряд добре, корпус без пошкоджень. Ідеально підходить для роботи, навчання та легких ігор.",
+    "IsContractPrice": false,
+    "Price": 53146,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/laptops_2.jpg",
+      "/images/mock1/laptops_3.jpg",
+      "/images/mock1/laptops_1.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Ноутбуки",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 42,
+    "PhoneNumber": "+38 (096) 405-90-23",
+    "ContactEmail": "roman.zakharchenko41@gmail.com",
+    "ContactPersone": "Роман Захарченко",
+    "Title": "Apple MacBook Pro 14, 8 ГБ / 512 ГБ SSD",
+    "Description": "Ноутбук Apple MacBook Pro 14, оперативна пам'ять 8 ГБ, накопичувач 512 ГБ SSD. Стан: у хорошому стані. Батарея тримає заряд добре, корпус без пошкоджень. Ідеально підходить для роботи, навчання та легких ігор.",
+    "IsContractPrice": false,
+    "Price": 65951,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/laptops_3.jpg",
+      "/images/mock1/laptops_1.jpg",
+      "/images/mock1/laptops_2.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Ноутбуки",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 7,
+    "PhoneNumber": "+38 (068) 611-98-50",
+    "ContactEmail": "kateryna.marchenko6@gmail.com",
+    "ContactPersone": "Катерина Марченко",
+    "Title": "Apple MacBook Pro 14, 32 ГБ / 512 ГБ SSD",
+    "Description": "Ноутбук Apple MacBook Pro 14, оперативна пам'ять 32 ГБ, накопичувач 512 ГБ SSD. Стан: б/в, робочий стан. Батарея тримає заряд добре, корпус без пошкоджень. Ідеально підходить для роботи, навчання та легких ігор.",
+    "IsContractPrice": false,
+    "Price": 59334,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/laptops_1.jpg",
+      "/images/mock1/laptops_2.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Ноутбуки",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 85,
+    "PhoneNumber": "+38 (097) 739-71-93",
+    "ContactEmail": "halyna.hnatiuk84@gmail.com",
+    "ContactPersone": "Галина Гнатюк",
+    "Title": "Lenovo ThinkPad X1, 16 ГБ / 512 ГБ SSD",
+    "Description": "Ноутбук Lenovo ThinkPad X1, оперативна пам'ять 16 ГБ, накопичувач 512 ГБ SSD. Стан: як новий. Батарея тримає заряд добре, корпус без пошкоджень. Ідеально підходить для роботи, навчання та легких ігор.",
+    "IsContractPrice": false,
+    "Price": 35064,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/laptops_2.jpg",
+      "/images/mock1/laptops_3.jpg",
+      "/images/mock1/laptops_1.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Ноутбуки",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 89,
+    "PhoneNumber": "+38 (068) 459-89-68",
+    "ContactEmail": "mariia.polishchuk88@gmail.com",
+    "ContactPersone": "Марія Поліщук",
+    "Title": "ASUS ROG Strix, 8 ГБ / 512 ГБ SSD",
+    "Description": "Ноутбук ASUS ROG Strix, оперативна пам'ять 8 ГБ, накопичувач 512 ГБ SSD. Стан: б/в, робочий стан. Батарея тримає заряд добре, корпус без пошкоджень. Ідеально підходить для роботи, навчання та легких ігор.",
+    "IsContractPrice": false,
+    "Price": 40418,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/laptops_3.jpg",
+      "/images/mock1/laptops_1.jpg",
+      "/images/mock1/laptops_2.jpg"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Ноутбуки",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 73,
+    "PhoneNumber": "+38 (097) 356-80-64",
+    "ContactEmail": "valentyna.diachenko72@gmail.com",
+    "ContactPersone": "Валентина Дяченко",
+    "Title": "ASUS ROG Strix, 32 ГБ / 256 ГБ SSD",
+    "Description": "Ноутбук ASUS ROG Strix, оперативна пам'ять 32 ГБ, накопичувач 256 ГБ SSD. Стан: б/в, робочий стан. Батарея тримає заряд добре, корпус без пошкоджень. Ідеально підходить для роботи, навчання та легких ігор.",
+    "IsContractPrice": false,
+    "Price": 51235,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/laptops_1.jpg",
+      "/images/mock1/laptops_2.jpg"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Ноутбуки",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 83,
+    "PhoneNumber": "+38 (068) 126-29-63",
+    "ContactEmail": "svitlana.kushnir82@gmail.com",
+    "ContactPersone": "Світлана Кушнір",
+    "Title": "Xbox Series X, б/в, робочий стан",
+    "Description": "Ігрова консоль Xbox Series X у комплекті з одним геймпадом. Стан: б/в, робочий стан. Всі функції перевірені, працює стабільно без перегріву.",
+    "IsContractPrice": false,
+    "Price": 22090,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/consoles_1.jpg",
+      "/images/mock1/consoles_2.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Приставки",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 77,
+    "PhoneNumber": "+38 (050) 217-82-56",
+    "ContactEmail": "larysa.marchenko76@gmail.com",
+    "ContactPersone": "Лариса Марченко",
+    "Title": "Xbox Series X, новий, 4 ігри в комплекті",
+    "Description": "Ігрова консоль Xbox Series X у комплекті з одним геймпадом, та 4 іграми. Стан: новий. Всі функції перевірені, працює стабільно без перегріву.",
+    "IsContractPrice": false,
+    "Price": 18561,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/consoles_2.jpg",
+      "/images/mock1/consoles_3.jpg",
+      "/images/mock1/consoles_1.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Приставки",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 93,
+    "PhoneNumber": "+38 (066) 712-94-45",
+    "ContactEmail": "larysa.polishchuk92@gmail.com",
+    "ContactPersone": "Лариса Поліщук",
+    "Title": "Switch OLED, новий, 3 ігри в комплекті",
+    "Description": "Ігрова консоль Switch OLED у комплекті з одним геймпадом, та 3 іграми. Стан: новий. Всі функції перевірені, працює стабільно без перегріву.",
+    "IsContractPrice": false,
+    "Price": 13858,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/consoles_3.jpg",
+      "/images/mock1/consoles_1.jpg",
+      "/images/mock1/consoles_2.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Приставки",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 77,
+    "PhoneNumber": "+38 (050) 217-82-56",
+    "ContactEmail": "larysa.marchenko76@gmail.com",
+    "ContactPersone": "Лариса Марченко",
+    "Title": "Samsung Smart TV 55\", як новий",
+    "Description": "Телевізор Samsung Smart TV 55\". Стан: як новий, екран без битих пікселів. Підтримка Smart TV, Wi-Fi, HDMI x3. Продаж у зв'язку з переїздом.",
+    "IsContractPrice": false,
+    "Price": 26955,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/tv_1.jpg",
+      "/images/mock1/tv_2.jpg"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Телевізори",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 80,
+    "PhoneNumber": "+38 (099) 505-58-45",
+    "ContactEmail": "dmytro.prykhodko79@gmail.com",
+    "ContactPersone": "Дмитро Приходько",
+    "Title": "LG OLED 65\", новий",
+    "Description": "Телевізор LG OLED 65\". Стан: новий, екран без битих пікселів. Підтримка Smart TV, Wi-Fi, HDMI x3. Продаж у зв'язку з переїздом.",
+    "IsContractPrice": false,
+    "Price": 54240,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/tv_2.jpg",
+      "/images/mock1/tv_3.jpg",
+      "/images/mock1/tv_1.jpg"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Телевізори",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 77,
+    "PhoneNumber": "+38 (050) 217-82-56",
+    "ContactEmail": "larysa.marchenko76@gmail.com",
+    "ContactPersone": "Лариса Марченко",
+    "Title": "Навушники Sony WH-1000XM5, як новий",
+    "Description": "Бездротові навушники Sony WH-1000XM5. Стан: як новий. Активне шумозаглушення, чохол у комплекті.",
+    "IsContractPrice": false,
+    "Price": 8452,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/headphones_1.jpg",
+      "/images/mock1/headphones_2.jpg"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Навушники",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 49,
+    "PhoneNumber": "+38 (099) 793-79-48",
+    "ContactEmail": "viktoriia.bondarenko48@gmail.com",
+    "ContactPersone": "Вікторія Бондаренко",
+    "Title": "Навушники Apple AirPods Pro 2, у хорошому стані",
+    "Description": "Бездротові навушники Apple AirPods Pro 2. Стан: у хорошому стані. Активне шумозаглушення, чохол у комплекті.",
+    "IsContractPrice": false,
+    "Price": 3980,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/headphones_2.jpg",
+      "/images/mock1/headphones_3.jpg",
+      "/images/mock1/headphones_1.jpg"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Навушники",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 96,
+    "PhoneNumber": "+38 (096) 646-69-23",
+    "ContactEmail": "andrii.shevchenko95@gmail.com",
+    "ContactPersone": "Андрій Шевченко",
+    "Title": "iPad Pro 11\" 64 ГБ, новий",
+    "Description": "Планшет iPad Pro 11\", 64 ГБ. Стан: новий. У комплекті чохол та кабель для заряджання.",
+    "IsContractPrice": false,
+    "Price": 16124,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/tablets_1.jpg",
+      "/images/mock1/tablets_2.jpg"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Планшетні комп'ютери",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 46,
+    "PhoneNumber": "+38 (063) 921-23-68",
+    "ContactEmail": "maksym.zaiets45@gmail.com",
+    "ContactPersone": "Максим Заєць",
+    "Title": "Пальто демісезонне LC Waikiki, розмір XS",
+    "Description": "Пальто демісезонне від LC Waikiki, розмір XS. Одягалось кілька разів, стан відмінний, без дефектів.",
+    "IsContractPrice": false,
+    "Price": 322,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/women-clothes_1.jpg",
+      "/images/mock1/women-clothes_2.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Жіночий одяг",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 59,
+    "PhoneNumber": "+38 (098) 910-29-56",
+    "ContactEmail": "valentyna.naumenko58@gmail.com",
+    "ContactPersone": "Валентина Науменко",
+    "Title": "Спідниця міді Zara, розмір XS",
+    "Description": "Спідниця міді від Zara, розмір XS. Одягалось кілька разів, стан відмінний, без дефектів.",
+    "IsContractPrice": false,
+    "Price": 624,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/women-clothes_2.jpg",
+      "/images/mock1/women-clothes_3.jpg",
+      "/images/mock1/women-clothes_1.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Жіночий одяг",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 96,
+    "PhoneNumber": "+38 (096) 646-69-23",
+    "ContactEmail": "andrii.shevchenko95@gmail.com",
+    "ContactPersone": "Андрій Шевченко",
+    "Title": "Светр вовняний Mango, розмір XL",
+    "Description": "Светр вовняний Mango, розмір XL. Хороший стан, без плям і пошкоджень.",
+    "IsContractPrice": false,
+    "Price": 2007,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/men-clothes_1.jpg",
+      "/images/mock1/men-clothes_2.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Чоловічий одяг",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 81,
+    "PhoneNumber": "+38 (098) 334-66-73",
+    "ContactEmail": "alina.kravchenko80@gmail.com",
+    "ContactPersone": "Аліна Кравченко",
+    "Title": "Костюм класичний Mango, розмір L",
+    "Description": "Костюм класичний Mango, розмір L. Хороший стан, без плям і пошкоджень.",
+    "IsContractPrice": false,
+    "Price": 624,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/men-clothes_2.jpg",
+      "/images/mock1/men-clothes_3.jpg",
+      "/images/mock1/men-clothes_1.jpg"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Чоловічий одяг",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 20,
+    "PhoneNumber": "+38 (068) 454-98-83",
+    "ContactEmail": "nazar.diachenko19@gmail.com",
+    "ContactPersone": "Назар Дяченко",
+    "Title": "Босоніжки, розмір 39",
+    "Description": "Босоніжки, розмір 39. Носились акуратно, підошва майже не стерта.",
+    "IsContractPrice": false,
+    "Price": 982,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/women-shoes_1.jpg",
+      "/images/mock1/women-shoes_2.jpg"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Жіноче взуття",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 23,
+    "PhoneNumber": "+38 (097) 960-74-52",
+    "ContactEmail": "alina.melnyk22@gmail.com",
+    "ContactPersone": "Аліна Мельник",
+    "Title": "Кросівки New Balance 574, розмір 40",
+    "Description": "Кросівки New Balance 574, розмір 40. Оригінал, стан хороший, невелике зношення підошви.",
+    "IsContractPrice": false,
+    "Price": 3151,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/men-shoes_1.jpg",
+      "/images/mock1/men-shoes_2.jpg"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Чоловіче взуття",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 15,
+    "PhoneNumber": "+38 (098) 776-26-59",
+    "ContactEmail": "daryna.romaniuk14@gmail.com",
+    "ContactPersone": "Дарина Романюк",
+    "Title": "Наручний годинник Tissot",
+    "Description": "Наручний годинник Tissot. Робочий стан, ремінець без потертостей, є коробка.",
+    "IsContractPrice": false,
+    "Price": 6883,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/watches_1.jpg",
+      "/images/mock1/watches_2.jpg"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Наручні годинники",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 20,
+    "PhoneNumber": "+38 (068) 454-98-83",
+    "ContactEmail": "nazar.diachenko19@gmail.com",
+    "ContactPersone": "Назар Дяченко",
+    "Title": "Шафа-купе, у хорошому стані",
+    "Description": "Шафа-купе у гарному стані. Розбирається для перевезення, самовивіз або доставка за домовленістю.",
+    "IsContractPrice": false,
+    "Price": 2989,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/furniture_1.jpg",
+      "/images/mock1/furniture_2.jpg"
+    ],
+    "SettlementRef": "e71917a2-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Меблі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 20,
+    "PhoneNumber": "+38 (068) 454-98-83",
+    "ContactEmail": "nazar.diachenko19@gmail.com",
+    "ContactPersone": "Назар Дяченко",
+    "Title": "Шафа-купе тристворчата, б/в стан хороший",
+    "Description": "Шафа-купе триствочата, б/в. У гарному стані, без пошкоджень. Розбирається для перевезення, самовивіз або доставка за домовленістю.",
+    "IsContractPrice": false,
+    "Price": 4901,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/furniture_2.jpg",
+      "/images/mock1/furniture_3.jpg",
+      "/images/mock1/furniture_1.jpg"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Меблі",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 73,
+    "PhoneNumber": "+38 (097) 356-80-64",
+    "ContactEmail": "valentyna.diachenko72@gmail.com",
+    "ContactPersone": "Валентина Дяченко",
+    "Title": "Кімнатна рослина Монстера",
+    "Description": "Монстера, здорова, добре розрослась. Продаж у зв'язку з переїздом, самовивіз.",
+    "IsContractPrice": false,
+    "Price": 308,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/plants_1.jpg",
+      "/images/mock1/plants_2.jpg"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Кімнатні рослини",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 36,
+    "PhoneNumber": "+38 (073) 704-71-14",
+    "ContactEmail": "dmytro.velychko35@gmail.com",
+    "ContactPersone": "Дмитро Величко",
+    "Title": "Цуценя Лабрадор, вік 3 місяці",
+    "Description": "Продам цуценя породи Лабрадор, вік 3 місяці. Зроблені перші щеплення, привчене до пелюшки.",
+    "IsContractPrice": false,
+    "Price": 5075,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/dogs_1.jpg",
+      "/images/mock1/dogs_2.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Собаки",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 10,
+    "PhoneNumber": "+38 (097) 859-34-47",
+    "ContactEmail": "ruslan.marchenko9@gmail.com",
+    "ContactPersone": "Руслан Марченко",
+    "Title": "Цуценя Джек-рассел-тер'єр, вік 3 місяці",
+    "Description": "Продам цуценя породи Джек-рассел-тер'єр, вік 3 місяці. Зроблені перші щеплення, привчене до пелюшки.",
+    "IsContractPrice": false,
+    "Price": 1619,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/dogs_2.jpg",
+      "/images/mock1/dogs_3.jpg",
+      "/images/mock1/dogs_1.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Собаки",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 63,
+    "PhoneNumber": "+38 (096) 518-22-88",
+    "ContactEmail": "khrystyna.lytvyn62@gmail.com",
+    "ContactPersone": "Христина Литвин",
+    "Title": "Кошеня Мейн-кун, вік 3 місяці",
+    "Description": "Кошеня породи Мейн-кун, вік 3 місяці. Привчене до лотка, активне та грайливе.",
+    "IsContractPrice": false,
+    "Price": 2153,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/cats_1.jpg",
+      "/images/mock1/cats_2.jpg"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Коти",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 28,
+    "PhoneNumber": "+38 (068) 985-65-77",
+    "ContactEmail": "roman.velychko27@gmail.com",
+    "ContactPersone": "Роман Величко",
+    "Title": "Кошеня Британська короткошерста, вік 1.5 місяця",
+    "Description": "Кошеня породи Британська короткошерста, вік 1.5 місяця. Привчене до лотка, активне та грайливе.",
+    "IsContractPrice": false,
+    "Price": 4658,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/cats_2.jpg",
+      "/images/mock1/cats_3.jpg",
+      "/images/mock1/cats_1.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Коти",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 16,
+    "PhoneNumber": "+38 (098) 242-14-51",
+    "ContactEmail": "taras.honcharenko15@gmail.com",
+    "ContactPersone": "Тарас Гончаренко",
+    "Title": "Велосипед Giant, колеса 27.5\"",
+    "Description": "Гірський велосипед Giant, колеса 27.5\". Дисковi гальма, справний, готовий до сезону.",
+    "IsContractPrice": false,
+    "Price": 18722,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/bikes_1.jpg",
+      "/images/mock1/bikes_2.jpg"
+    ],
+    "SettlementRef": "e7191206-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Вело",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 56,
+    "PhoneNumber": "+38 (066) 347-36-68",
+    "ContactEmail": "kostiantyn.honcharenko55@gmail.com",
+    "ContactPersone": "Костянтин Гончаренко",
+    "Title": "Велосипед Trek, колеса 26\"",
+    "Description": "Гірський велосипед Trek, колеса 26\". Дисковi гальма, справний, готовий до сезону.",
+    "IsContractPrice": false,
+    "Price": 10748,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/bikes_2.jpg",
+      "/images/mock1/bikes_3.jpg",
+      "/images/mock1/bikes_1.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Вело",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 32,
+    "PhoneNumber": "+38 (099) 417-94-14",
+    "ContactEmail": "kyrylo.tkachenko31@gmail.com",
+    "ContactPersone": "Кирило Ткаченко",
+    "Title": "Укулеле, як новий",
+    "Description": "Укулеле. Звук чистий, гриф рівний, у комплекті чохол.",
+    "IsContractPrice": false,
+    "Price": 8782,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/music_1.jpg",
+      "/images/mock1/music_2.jpg"
+    ],
+    "SettlementRef": "e71ae3b4-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Музичні інструменти",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 21,
+    "PhoneNumber": "+38 (068) 494-58-52",
+    "ContactEmail": "liudmyla.havryliuk20@gmail.com",
+    "ContactPersone": "Людмила Гаврилюк",
+    "Title": "Набір книг, бізнес-література, 5 шт.",
+    "Description": "Продам колекцію книг у жанрі «бізнес-література». Всі книги у хорошому стані, без вирваних сторінок.",
+    "IsContractPrice": false,
+    "Price": 278,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/books_1.jpg",
+      "/images/mock1/books_2.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Книги / журнали",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 53,
+    "PhoneNumber": "+38 (093) 364-26-18",
+    "ContactEmail": "tetiana.lytvyn52@gmail.com",
+    "ContactPersone": "Тетяна Литвин",
+    "Title": "LEGO Creator Expert, конструктор",
+    "Description": "Конструктор LEGO Creator Expert, комплект деталей повний, інструкція в наявності.",
+    "IsContractPrice": false,
+    "Price": 5924,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/toys_1.jpg",
+      "/images/mock1/toys_2.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Конструктори",
+    "FilterSelections": {}
+  },
+  {
+    "UserId": 98,
+    "PhoneNumber": "+38 (097) 264-70-16",
+    "ContactEmail": "mykola.panchenko97@gmail.com",
+    "ContactPersone": "Микола Панченко",
+    "Title": "Коляска-трансформер Riko, як новий",
+    "Description": "Коляска-трансформер Riko. Складається компактно, колеса надувні, дощовик та сумка в комплекті.",
+    "IsContractPrice": false,
+    "Price": 4383,
+    "CategoryId": 0,
+    "FilterValueIds": [],
+    "ImagePaths": [
+      "/images/mock1/strollers_1.jpg",
+      "/images/mock1/strollers_2.jpg"
+    ],
+    "SettlementRef": "e718a680-4b33-11e4-ab6d-005056801329",
+    "CategoryName": "Дитячі коляски",
+    "FilterSelections": {}
+  }
+]
