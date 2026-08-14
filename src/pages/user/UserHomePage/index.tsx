@@ -205,22 +205,46 @@ const UserHomePage: React.FC = () => {
 
       <section className="max-w-[1280px] mx-auto px-4 md:px-6 py-6">
         <div
-          className={`relative rounded-2xl overflow-hidden min-h-[220px] md:min-h-[260px] transition-colors duration-500 ${
-            slide.theme === 'purple'
+          className={`relative rounded-2xl overflow-hidden min-h-[300px] md:min-h-[380px] transition-colors duration-500 ${slide.theme === 'purple'
               ? 'bg-gradient-to-br from-mm-navy to-mm-purple-dark'
               : slide.theme === 'gold'
                 ? 'bg-gradient-to-br from-mm-footer via-mm-navy to-mm-footer'
                 : 'bg-gradient-to-br from-mm-navy to-mm-footer'
-          }`}
+            }`}
         >
+          {/* All 3 background photos are stacked on top of each other; the active slide's
+              photo is opaque while the rest fade out, so autoplay + arrows rotate them in a
+              smooth circular crossfade loop (1 → 2 → 3 → 1 …). object-top keeps the models'
+              heads in frame (photo looks slightly "further away"). */}
+          {HERO_SLIDES.map((s, index) => (
+            <img
+              key={s.id}
+              src={s.image}
+              alt=""
+              aria-hidden
+              className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ${
+                index === activeSlide ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+          ))}
+          {/* Dark scrim so title / subtitle / CTA stay readable over any photo. */}
+          <div
+            className={`absolute inset-0 pointer-events-none ${slide.theme === 'purple'
+                ? 'bg-gradient-to-r from-mm-navy/80 via-mm-navy/45 to-transparent'
+                : slide.theme === 'gold'
+                  ? 'bg-gradient-to-r from-mm-footer/80 via-mm-navy/45 to-transparent'
+                  : 'bg-gradient-to-r from-mm-navy/80 via-mm-navy/45 to-transparent'
+              }`}
+          />
+
           {/* Minimalist dark decorative glow, colored per slide theme. */}
           <div className="absolute inset-0 opacity-20 pointer-events-none">
             <div
-              className={`absolute -top-10 -right-10 w-56 h-56 rounded-full blur-3xl ${
-                slide.theme === 'gold' ? 'bg-mm-orange' : 'bg-mm-purple'
-              }`}
+              className={`absolute -top-10 -right-10 w-56 h-56 rounded-full blur-3xl ${slide.theme === 'gold' ? 'bg-mm-orange' : 'bg-mm-purple'
+                }`}
             />
           </div>
+
 
           <button
             type="button"
@@ -244,13 +268,12 @@ const UserHomePage: React.FC = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-12 md:px-16 py-8 md:py-10 relative">
             <div className="flex-1 z-[1]">
               <h1
-                className={`text-2xl md:text-3xl font-bold mb-3 leading-tight ${
-                  slide.theme === 'gold'
+                className={`text-2xl md:text-3xl font-bold mb-3 leading-tight ${slide.theme === 'gold'
                     ? 'text-amber-400'
                     : slide.theme === 'purple'
                       ? 'text-purple-300'
                       : 'text-white'
-                }`}
+                  }`}
               >
                 {slide.title}
               </h1>
@@ -265,23 +288,7 @@ const UserHomePage: React.FC = () => {
                 {slide.cta}
               </button>
             </div>
-            <div className="flex-1 flex justify-center md:justify-end z-[1]">
-              {/* Local, static decorative mark — no remote imagery (matches the no-online-image
-                  policy in buildImageUrl.ts). */}
-              <div className="w-40 h-40 md:w-48 md:h-48 rounded-3xl bg-white/10 border border-white/20 shadow-lg flex items-center justify-center">
-                <svg viewBox="0 0 100 100" className="w-24 h-24 md:w-28 md:h-28" aria-hidden="true">
-                  <rect x="10" y="10" width="16" height="16" rx="3" fill="#ffffff" opacity="0.9" />
-                  <rect x="34" y="10" width="16" height="16" rx="3" fill="#FF8B2D" />
-                  <rect x="58" y="10" width="16" height="16" rx="3" fill="#ffffff" opacity="0.5" />
-                  <rect x="10" y="34" width="16" height="16" rx="3" fill="#ffffff" opacity="0.5" />
-                  <rect x="34" y="34" width="16" height="16" rx="3" fill="#ffffff" opacity="0.9" />
-                  <rect x="58" y="34" width="16" height="16" rx="3" fill="#ffffff" opacity="0.9" />
-                  <rect x="10" y="58" width="16" height="16" rx="3" fill="#FF8B2D" />
-                  <rect x="34" y="58" width="16" height="16" rx="3" fill="#ffffff" opacity="0.5" />
-                  <rect x="58" y="58" width="16" height="16" rx="3" fill="#ffffff" opacity="0.9" />
-                </svg>
-              </div>
-            </div>
+            
           </div>
 
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
