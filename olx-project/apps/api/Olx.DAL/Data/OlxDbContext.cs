@@ -19,7 +19,11 @@ namespace Olx.DAL.Data
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+<<<<<<< HEAD
             var connectionString = ToNpgsqlConnectionString(configuration.GetConnectionString("DefaultConnection")!);
+=======
+            var connectionString = configuration.GetConnectionString("DefaultConnection")!;
+>>>>>>> origin/tobi-nazar
 
             // Enforced programmatically (not just via the appsettings connection string text)
             // so every environment gets these regardless of how DefaultConnection was set —
@@ -45,6 +49,7 @@ namespace Olx.DAL.Data
 
             optionsBuilder.UseNpgsql(builder.ConnectionString);
         }
+<<<<<<< HEAD
 
         // Neon, Supabase, Render and Heroku all hand out credentials as a URI
         // (postgresql://user:pass@host/db?sslmode=require), but Npgsql only understands
@@ -73,5 +78,7 @@ namespace Olx.DAL.Data
 
             return builder.ConnectionString;
         }
+=======
+>>>>>>> origin/tobi-nazar
     }
 }

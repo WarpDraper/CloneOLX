@@ -577,6 +577,7 @@ namespace Olx.DAL.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
+<<<<<<< HEAD
                     b.Property<string>("AccountType")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -585,6 +586,8 @@ namespace Olx.DAL.Migrations
                         .HasColumnType("character varying(20)")
                         .HasDefaultValue("Individual");
 
+=======
+>>>>>>> origin/tobi-nazar
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");

@@ -98,6 +98,7 @@ namespace OLX.API.Controllers
         }
 
         // Ініціює процес відновлення пароля для користувача.
+<<<<<<< HEAD
         // Приймає адресу з тіла запиту (JSON { email }) — раніше очікувався query-параметр,
         // тоді як фронтенд завжди надсилав JSON body, через що запит ніколи не доходив до сервісу.
         [HttpPost("password/forgot")]
@@ -105,6 +106,13 @@ namespace OLX.API.Controllers
         {
             await accountService.FogotPasswordAsync(model.Email);
             return Ok(new { message = "Лист для відновлення паролю надіслано, якщо такий email зареєстрований." });
+=======
+        [HttpPost("password/fogot")]
+        public async Task<IActionResult> FogotPassword([FromQuery] string email)
+        {
+            await accountService.FogotPasswordAsync(email);
+            return Ok();
+>>>>>>> origin/tobi-nazar
         }
 
         // Задає новий пароль після відновлення доступу.
@@ -112,6 +120,7 @@ namespace OLX.API.Controllers
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel resetPasswordModel)
         {
             await accountService.ResetPasswordAsync(resetPasswordModel);
+<<<<<<< HEAD
             return Ok(new { message = "Пароль успішно змінено." });
         }
 
@@ -130,6 +139,8 @@ namespace OLX.API.Controllers
         public async Task<IActionResult> VerifyEmailCode([FromBody] VerifyEmailCodeModel model)
         {
             await accountService.VerifyEmailCodeAsync(model.Code);
+=======
+>>>>>>> origin/tobi-nazar
             return Ok();
         }
 

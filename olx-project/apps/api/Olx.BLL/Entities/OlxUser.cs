@@ -31,12 +31,15 @@ namespace Olx.BLL.Entities
         public double Rating { get; set; } = 5.0;
         public int ReviewsCount { get; set; } = 0;
 
+<<<<<<< HEAD
         // "Individual" (Приватна особа) or "Business" (Бізнес) — OLX-required account type
         // declaration (Profile page -> "Виберіть тип облікового запису").
         [StringLength(20)]
         [Unicode(false)]
         public string AccountType { get; set; } = "Individual";
 
+=======
+>>>>>>> origin/tobi-nazar
         [StringLength(36)]
         [Unicode(false)]
         public string? SettlementRef { get; set; }

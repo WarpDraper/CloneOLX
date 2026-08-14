@@ -2,7 +2,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Olx.BLL.Entities;
+<<<<<<< HEAD
 using Olx.BLL.Entities.NewPost;
+=======
+>>>>>>> origin/tobi-nazar
 using Olx.BLL.Exceptions;
 using Olx.BLL.Helpers.Options;
 using Olx.BLL.Interfaces;
@@ -15,7 +18,11 @@ using System.Text;
 
 namespace Olx.BLL.Services
 {
+<<<<<<< HEAD
     public class JwtService(IConfiguration configuration, UserManager<OlxUser> userManager, IRepository<Settlement> settlementRepository) : IJwtService
+=======
+    public class JwtService(IConfiguration configuration, UserManager<OlxUser> userManager) : IJwtService
+>>>>>>> origin/tobi-nazar
     {
         private JwtOptions _jwtOpts = configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>()
                 ?? throw new HttpException(Errors.JwtSettingsReadError, HttpStatusCode.InternalServerError);
@@ -42,6 +49,7 @@ namespace Olx.BLL.Services
 
         public async Task<IEnumerable<Claim>> GetClaimsAsync(OlxUser user)
         {
+<<<<<<< HEAD
             // "city" must be a human-readable settlement name for the frontend (UserProfilePage/
             // SettingsPage render it directly) — resolve the raw SettlementRef GUID against
             // tbl_Settlements instead of putting the GUID itself in the claim.
@@ -49,6 +57,8 @@ namespace Olx.BLL.Services
                 ? string.Empty
                 : (await settlementRepository.GetByIDAsync(user.SettlementRef))?.Description ?? string.Empty;
 
+=======
+>>>>>>> origin/tobi-nazar
             var claims = new List<Claim>
             {
                 // 1. ID користувача (тут усе добре)
@@ -68,6 +78,7 @@ namespace Olx.BLL.Services
                 // 4. Перейменовуємо "photo" на "avatarUrl", як хоче фронтенд
                 new ("avatarUrl", user.Photo ?? string.Empty),
         
+<<<<<<< HEAD
                 // 5. Перейменовуємо "settlement" на "city" для відображення локації —
                 // людиночитна назва (напр. "м. Київ"), а не сирий SettlementRef GUID.
                 new ("city", settlementDescription),
@@ -83,6 +94,14 @@ namespace Olx.BLL.Services
             // user.role, so this also silently hid the Header "Admin" button for actual admins.
             var roles = await userManager.GetRolesAsync(user);
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+=======
+                // 5. Перейменовуємо "settlement" на "city" для відображення локації
+                new ("city", user.SettlementRef ?? string.Empty),
+                new ("website", user.WebSite ?? string.Empty),
+            };
+            var roles = await userManager.GetRolesAsync(user);
+            claims.AddRange(roles.Select(role => new Claim("roles", role)));
+>>>>>>> origin/tobi-nazar
             return claims;
         }
 

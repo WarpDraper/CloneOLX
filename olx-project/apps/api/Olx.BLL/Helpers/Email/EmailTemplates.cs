@@ -62,6 +62,7 @@ namespace Olx.BLL.Helpers.Email
         }
 
         public static string GetAccountUnblockedTemplate() => File.ReadAllText(Path.Combine(_path, "AccountUnblocked.html"));
+<<<<<<< HEAD
 
         // 6-digit code shown in Profile Settings -> "Підтвердити email". Built inline (no
         // external .html asset) since it's a small transactional message, unlike the templated
@@ -82,5 +83,8 @@ namespace Olx.BLL.Helpers.Email
                 <p style=""color:#555;font-size:14px"">Пароль вашого акаунту MultiMart щойно було успішно змінено.</p>
                 <p style=""color:#999;font-size:12px"">Якщо це були не ви, негайно зв'яжіться з нашою службою підтримки та відновіть доступ до акаунту.</p>
             </div>";
+=======
+        
+>>>>>>> origin/tobi-nazar
     }
 }

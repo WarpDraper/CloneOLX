@@ -13,13 +13,16 @@ export const QUICK_SEARCH_TAGS = [
 // напряму з бекенду через categoryService (GET /api/Category/get) та advertService
 // (POST /api/Advert/get/page), див. UserHomePage/index.tsx.
 
-// Minimalist dark-themed hero slides — no remote/Unsplash imagery (matches the
-// no-online-fallback policy in buildImageUrl.ts/FallbackImage.tsx); each slide renders as a
-// CSS gradient + inline decorative graphic keyed off `theme`, see UserHomePage/index.tsx.
-// `to` is the CTA's target route; all three are auth-gated the same way (see handleHeroCta in
-// UserHomePage) — signed-in users go straight there, signed-out users are sent to /login first
-// and returned to `to` afterwards (saveReturnUrl/consumeReturnUrl, same flow AdvertCard's
-// "add to cart"/favorite gates already use).
+// Minimalist dark-themed hero slides with the first 3 local product photos
+// (public/images/mock1/auto_1..3.jpg — same assets seed adverts use). They rotate
+// in a circular loop via HERO_AUTOPLAY_MS / setActiveSlide wrap in UserHomePage.
+// No remote/Unsplash imagery (matches the no-online-fallback policy in
+// buildImageUrl.ts/FallbackImage.tsx). `theme` drives title accent + gradient
+// overlay so text stays readable over the photo. `to` is the CTA's target route;
+// all three are auth-gated the same way (see handleHeroCta in UserHomePage) —
+// signed-in users go straight there, signed-out users are sent to /login first
+// and returned to `to` afterwards (saveReturnUrl/consumeReturnUrl, same flow
+// AdvertCard's "add to cart"/favorite gates already use).
 export const HERO_SLIDES = [
   {
     id: 1,
@@ -28,6 +31,7 @@ export const HERO_SLIDES = [
     cta: 'Перейти до каталогу',
     theme: 'navy' as const,
     to: '/categories',
+    image: '/images/multimart/slide_1.png',
   },
   {
     id: 2,
@@ -36,6 +40,7 @@ export const HERO_SLIDES = [
     cta: 'Переглянути знижки',
     theme: 'gold' as const,
     to: '/categories?discount=true',
+    image: '/images/multimart/slide_2.png',
   },
   {
     id: 3,
@@ -44,7 +49,9 @@ export const HERO_SLIDES = [
     cta: 'Подати оголошення',
     theme: 'purple' as const,
     to: '/adverts/create',
+    image: '/images/multimart/slide_3.png',
   },
+
 ];
 
 export const FOOTER_COLUMNS = [
