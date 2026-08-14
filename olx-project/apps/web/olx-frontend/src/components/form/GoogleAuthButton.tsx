@@ -57,7 +57,8 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ onError }) =
             onClick={handleClick}
             aria-label={t('googleAuth.ariaLabel')}
             title={t('googleAuth.ariaLabel')}
-            className="w-8 h-8 flex items-center justify-center hover:opacity-70 transition-opacity"
+            disabled={isExchanging}
+            className="w-8 h-8 flex items-center justify-center hover:opacity-70 transition-opacity disabled:opacity-50 disabled:cursor-wait"
         >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5">
                 <path fill="#4CAF50" d="M45 24c0 11.6-9.4 21-21 21S3 35.6 3 24 12.4 3 24 3s21 9.4 21 21z"/>

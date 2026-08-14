@@ -101,6 +101,8 @@ const isUnsplashUrl = (url: string): boolean => {
 };
 
 export const buildImageUrl = (name: string | null | undefined, size: number = IMAGE_SIZES.card): string | null => {
+    // size kept for call-site compatibility; backend currently serves originals only (no size variants).
+    void size;
     if (!name) return null;
     // Full external URL (Imgur, etc.) — manual seed/mock edits can drop these straight into
     // ImagePaths and they render as-is, no backend prefix involved. Unsplash URLs (and generic,

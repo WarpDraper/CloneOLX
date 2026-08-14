@@ -26,7 +26,10 @@ using Microsoft.AspNetCore.SignalR;
 using Olx.BLL.Hubs;
 using SixLabors.ImageSharp;
 using Microsoft.Extensions.Configuration;
+<<<<<<< HEAD
 using Microsoft.Extensions.Logging;
+=======
+>>>>>>> origin/tobi-nazar
 
 
 namespace Olx.BLL.Services
@@ -45,8 +48,12 @@ namespace Olx.BLL.Services
         IMapper mapper,
         IHubContext<MessageHub> hubContext,
         IConnectionTracker connectionTracker,
+<<<<<<< HEAD
         IValidator<AdvertCreationModel> advertCreationModelValidator,
         ILogger<AdvertService> logger) : IAdvertService
+=======
+        IValidator<AdvertCreationModel> advertCreationModelValidator) : IAdvertService
+>>>>>>> origin/tobi-nazar
     {
        
         public async Task<AdvertDto> CreateAsync(AdvertCreationModel advertModel)
@@ -114,6 +121,7 @@ namespace Olx.BLL.Services
             (await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().AsNoTracking().Where(x => ids.Contains(x.Id) && !x.Blocked && !x.Completed)).ToArrayAsync())
                 .WithOnlineStatus(connectionTracker);
 
+<<<<<<< HEAD
         // Falls back to an empty list instead of letting a DB outage bubble up as a raw 500 on
         // the public Advert/get endpoint — the storefront can still render (just without
         // listings) rather than hard-failing.
@@ -130,6 +138,11 @@ namespace Olx.BLL.Services
                 return [];
             }
         }
+=======
+        public async Task<IEnumerable<AdvertDto>> GetAllAsync() =>
+            (await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().AsNoTracking().Where(x => !x.Blocked && !x.Completed)).ToArrayAsync())
+                .WithOnlineStatus(connectionTracker);
+>>>>>>> origin/tobi-nazar
 
         public async Task<IEnumerable<AdvertDto>> GetUserAdvertsAsync(bool locked = false,bool completed = false)
         {
@@ -159,6 +172,7 @@ namespace Olx.BLL.Services
        
         public async Task<PageResponse<AdvertDto>> GetPageAsync(AdvertPageRequest pageRequest)
         {
+<<<<<<< HEAD
             try
             {
                 var query = mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().AsNoTracking().Where(x => !x.Completed));
@@ -189,6 +203,30 @@ namespace Olx.BLL.Services
                 logger.LogError(ex, "Failed to load advert page from the database; returning an empty page.");
                 return new() { Total = 0, Items = [] };
             }
+=======
+            var query = mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().AsNoTracking().Where(x => !x.Completed));
+            var filter = mapper.Map<AdvertFilter>(pageRequest);
+
+            // "random" sortKey (used by the homepage recommendation rail) intentionally bypasses
+            // plain SQL-level ordering: a straight OrderBy(Guid.NewGuid()) would still statistically
+            // skew toward whichever category has the most listings (e.g. Авто), since it's just a
+            // random permutation of the same skewed set. Instead pull a bounded random-ordered
+            // candidate pool from the DB, then round-robin across distinct categories in-memory so
+            // the page mixes categories instead of one dominating it.
+            if (string.Equals(pageRequest.SortKey, "random", StringComparison.OrdinalIgnoreCase))
+            {
+                return await GetBalancedRandomPageAsync(query, filter, pageRequest.Size, connectionTracker);
+            }
+
+            var paginationBuilder = new PaginationBuilder<AdvertDto>(query);
+            var sortData = new AdvertSortData(pageRequest.IsDescending, pageRequest.SortKey);
+            var page = await paginationBuilder.GetPageAsync(pageRequest.Page, pageRequest.Size, filter, sortData);
+            return new()
+            {
+                Total = page.Total,
+                Items = page.Items.WithOnlineStatus(connectionTracker)
+            };
+>>>>>>> origin/tobi-nazar
         }
 
         private static async Task<PageResponse<AdvertDto>> GetBalancedRandomPageAsync(IQueryable<AdvertDto> query, AdvertFilter filter, int size, IConnectionTracker connectionTracker)

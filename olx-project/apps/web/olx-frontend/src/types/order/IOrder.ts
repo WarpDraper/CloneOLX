@@ -1,15 +1,19 @@
 // Дзеркалить Olx.BLL.Entities.DeliveryType / PaymentMethod (за числовим значенням enum-а, як їх
 // серіалізує ASP.NET Core за замовчуванням).
-export enum DeliveryType {
-    OlxDelivery = 1,
-    SelfPickup = 2,
-    Courier = 3,
-}
+export const DeliveryType = {
+    OlxDelivery: 1,
+    SelfPickup: 2,
+    Courier: 3,
+} as const;
 
-export enum PaymentMethod {
-    CardOnline = 1,
-    CashOnDelivery = 2,
-}
+export type DeliveryType = (typeof DeliveryType)[keyof typeof DeliveryType];
+
+export const PaymentMethod = {
+    CardOnline: 1,
+    CashOnDelivery: 2,
+} as const;
+
+export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod];
 
 export interface IOrderItem {
     id: number;

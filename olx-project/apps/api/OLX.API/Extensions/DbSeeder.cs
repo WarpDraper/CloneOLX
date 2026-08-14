@@ -97,6 +97,7 @@ namespace OLX.API.Extensions
                                 Console.WriteLine($"Skip duplicate user \"{user.Email}\"");
                                 continue;
                             }
+<<<<<<< HEAD
                             // Image seeding disabled: no physical files are downloaded, generated, or
                             // written to wwwroot/images at seed time (imageService.SaveImageAsync is
                             // never called here). PhotoBase64 fixture data is dropped entirely — there's
@@ -111,6 +112,8 @@ namespace OLX.API.Extensions
                                 seededPhoto = user.PhotoUrl;
                             }
 
+=======
+>>>>>>> origin/tobi-nazar
                             var newUser = new OlxUser
                             {
                                 UserName = user.Email,
@@ -118,7 +121,13 @@ namespace OLX.API.Extensions
                                 PhoneNumber = user.PhoneNumber,
                                 FirstName = user.FirstName,
                                 LastName = user.LastName,
+<<<<<<< HEAD
                                 Photo = seededPhoto,
+=======
+                                Photo = user.PhotoBase64 is not null
+                                ? await imageService.SaveImageAsync(user.PhotoBase64)
+                                : await imageService.SaveImageFromUrlAsync(user.PhotoUrl ?? "https://picsum.photos/800/600"),
+>>>>>>> origin/tobi-nazar
                                 WebSite = user.WebSite,
                                 About = user.About,
                                 EmailConfirmed = true,
@@ -191,8 +200,12 @@ namespace OLX.API.Extensions
                         if (categoryModels.Any() && filterRepo is not null)
                         {
                             var filters = await filterRepo.GetListBySpec(new FilterSpecs.GetAll());
+<<<<<<< HEAD
                             var seederJsonDir = Path.Combine(Environment.CurrentDirectory, app.Configuration["SeederJsonDir"]!);
                             await categoryRepo.AddRangeAsync(await GetCategories(categoryModels, filters, imageService, seederJsonDir));
+=======
+                            await categoryRepo.AddRangeAsync(await GetCategories(categoryModels, filters,imageService));
+>>>>>>> origin/tobi-nazar
                             await categoryRepo.SaveAsync();
                         }
                     }
@@ -287,6 +300,7 @@ namespace OLX.API.Extensions
                                     ? ResolveCategoryId(allCategories, x.CategoryPath) ?? x.CategoryId
                                     : x.CategoryId;
                                 var filterValues = (await filterValueRepoNonNull.GetListBySpec(new FilterValueSpecs.GetByIds(x.FilterValueIds))).ToList();
+<<<<<<< HEAD
                                 // Image seeding disabled: advert images are never downloaded, generated,
                                 // or written to wwwroot/images (imageService.SaveImageAsync is never
                                 // called here). Local fixture paths are kept as plain string references
@@ -308,6 +322,32 @@ namespace OLX.API.Extensions
                                         Name = path
                                     })
                                     .ToArray();
+=======
+                                // Fixture images are either a real remote URL (downloaded over HTTP,
+                                // as before) or a path relative to SeederJsonDir pointing at a fixture
+                                // shipped in the repo (Helpers/JsonData/SeedImages/*.jpg) — read straight
+                                // off disk instead. The local branch has zero network dependency, so
+                                // seeding can never fail on an unreachable/rate-limited/erroring
+                                // third-party image host (this replaced loremflickr.com, which was
+                                // intermittently returning 500s).
+                                // imagesTasks only touch the (DbContext-free) imageService, so it's safe
+                                // to keep this inner batch parallel.
+                                var imagesTasks = x.ImagePaths.Select(async (path, index) =>
+                                {
+                                    var isRemoteUrl = path.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                                        || path.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
+                                    var savedName = isRemoteUrl
+                                        ? await imageService.SaveImageFromUrlAsync(path)
+                                        : await imageService.SaveImageAsync(await File.ReadAllBytesAsync(
+                                            Path.Combine(Environment.CurrentDirectory, app.Configuration["SeederJsonDir"]!, path)));
+                                    return new AdvertImage()
+                                    {
+                                        Priority = index,
+                                        Name = savedName
+                                    };
+                                });
+                                var images = await Task.WhenAll(imagesTasks);
+>>>>>>> origin/tobi-nazar
                                 var settlement = await settlementRepo.GetByIDAsync(x.SettlementRef) ??
                                     throw new NullReferenceException("settlement not found");
                                 adverts.Add(new Advert()
@@ -377,6 +417,7 @@ namespace OLX.API.Extensions
         private async static Task<IEnumerable<Category>> GetCategories(
             IEnumerable<SeederCategoryModel> models,
             IEnumerable<Filter> filters,
+<<<<<<< HEAD
             IImageService imageService,
             string seederJsonDir)
         {
@@ -402,6 +443,17 @@ namespace OLX.API.Extensions
                         image = x.Image;
                     }
                 }
+=======
+            IImageService imageService)
+        {
+            var categoryTasks =  models.Select(async (x) => 
+            {
+                var advertFilters = x.Filters?.Any() ?? false ? filters.Where(z => x.Filters.Contains(z.Name)) : null;
+                var childs = x.Childs?.Any() ?? false ? await GetCategories(x.Childs, filters, imageService) : null;
+                var image = !String.IsNullOrEmpty(x.Image)
+                    ? await imageService.SaveImageFromUrlAsync(x.Image)
+                    : null;
+>>>>>>> origin/tobi-nazar
                 return new Category()
                 {
                     Name = x.Name,

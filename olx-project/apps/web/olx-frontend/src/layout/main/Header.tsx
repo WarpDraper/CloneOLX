@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
     MessageOutlined,
@@ -6,6 +6,8 @@ import {
     BellOutlined,
     UserOutlined,
     ShoppingCartOutlined,
+    MenuOutlined,
+    CloseOutlined,
 } from '@ant-design/icons';
 import { Badge, Popover, Typography, Button } from 'antd';
 import { useSelector, useDispatch } from 'react-redux';
@@ -41,8 +43,12 @@ const Header: React.FC = () => {
     // Cart persists in localStorage independent of auth; never surface a leftover/hardcoded count to a logged-out user.
     const displayCartCount = isAuth ? cartCount : 0;
 
+    // Мобільне меню
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
+
     const notificationContent = (
-        <div className="w-80 max-h-96 flex flex-col">
+        <div className="w-[calc(100vw-2rem)] sm:w-80 max-h-96 flex flex-col">
             <div className="flex justify-between items-center mb-2 px-4 shadow-sm pb-2">
                 <span className="font-bold text-mm-navy">{t('header.notificationsPanel.title')}</span>
                 {unreadCount > 0 && (
@@ -84,15 +90,17 @@ const Header: React.FC = () => {
             <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-3 flex items-center justify-between gap-4">
                 <Link to="/" className="flex items-center gap-2.5 shrink-0">
                     <img src="/images/multimart/logo.svg" alt="MultiMart" className="w-10 h-10" />
-                    <span className="text-2xl font-bold text-mm-navy tracking-tight">MultiMart</span>
+                    <span className="text-2xl font-bold text-mm-navy tracking-tight">Multi
+                        <span className="text-mm-purple">Mart</span>
+                    </span>
                 </Link>
 
-                <div className="hidden lg:flex items-center gap-4 text-sm font-medium text-gray-600">
+                <div className="hidden xl:flex items-center gap-4 text-sm font-medium text-gray-600">
                     <Link to="/about" className="hover:text-mm-purple transition-colors">{t('header.aboutUs')}</Link>
                     <Link to="/terms" className="hover:text-mm-purple transition-colors">{t('header.terms')}</Link>
                 </div>
 
-                <div className="hidden md:flex items-center rounded-full overflow-hidden border border-gray-200 text-sm font-semibold">
+                <div className="hidden xl:flex items-center rounded-full overflow-hidden border border-gray-200 text-sm font-semibold">
                     <button
                         type="button"
                         onClick={() => setLanguage('ukr')}
@@ -111,7 +119,7 @@ const Header: React.FC = () => {
                     </button>
                 </div>
 
-                <div className="flex items-center gap-4 md:gap-6">
+                <div className="hidden lg:flex items-center gap-4 md:gap-6">
                     {NAV_ITEMS.map(({ icon: Icon, label, isNotification, isCart, isProfile, to }) => {
 
                         const currentLabel = isProfile && isAuth ? (user?.name || t('header.nav.profile')) : label;
@@ -192,7 +200,85 @@ const Header: React.FC = () => {
                         {t('header.addAdvert')}
                     </button>
                 </div>
+
+                <div className="lg:hidden flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={toggleMobileMenu}
+                        className="w-10 h-10 rounded-full bg-mm-lavender flex items-center justify-center text-mm-purple"
+                    >
+                        {isMobileMenuOpen ? <CloseOutlined /> : <MenuOutlined />}
+                    </button>
+                </div>
             </div>
+
+            {isMobileMenuOpen && (
+                <div className="lg:hidden border-t border-gray-100 bg-white px-4 py-4 flex flex-col gap-3">
+                    <div className="flex items-center rounded-full overflow-hidden border border-gray-200 text-sm font-semibold self-start">
+                        <button
+                            type="button"
+                            onClick={() => setLanguage('ukr')}
+                            className={`px-4 py-1.5 ${language === 'ukr' ? 'bg-mm-purple text-white' : 'bg-white text-gray-600'}`}
+                        >
+                            {t('header.langUk')}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setLanguage('eng')}
+                            className={`px-4 py-1.5 ${language === 'eng' ? 'bg-mm-orange text-white' : 'bg-white text-gray-600'}`}
+                        >
+                            {t('header.langEn')}
+                        </button>
+                    </div>
+                    {NAV_ITEMS.map(({ icon: Icon, label, isNotification, isCart, isProfile, to }) => {
+                        const currentLabel = isProfile && isAuth ? (user?.name || t('header.nav.profile')) : label;
+                        const target = isProfile ? (isAuth ? '/profile' : '/login') : (to ? (isAuth ? to : '/login') : undefined);
+                        const row = (
+                            <div className="flex items-center gap-3 py-2 text-mm-navy">
+                                {isNotification ? (
+                                    <Badge count={unreadCount} size="small"><Icon className="text-lg text-mm-purple" /></Badge>
+                                ) : isCart ? (
+                                    <Badge count={displayCartCount} size="small"><Icon className="text-lg text-mm-purple" /></Badge>
+                                ) : (
+                                    <Icon className="text-lg text-mm-purple" />
+                                )}
+                                <span>{currentLabel}</span>
+                            </div>
+                        );
+                        if (isNotification) {
+                            return (
+                                <Popover key={label} content={notificationContent} trigger="click" placement="bottom">
+                                    {row}
+                                </Popover>
+                            );
+                        }
+                        if (target) {
+                            return (
+                                <Link key={label} to={target} className="text-inherit no-underline" onClick={() => setIsMobileMenuOpen(false)}>
+                                    {row}
+                                </Link>
+                            );
+                        }
+                        return <div key={label}>{row}</div>;
+                    })}
+                    {isAdmin && (
+                        <button
+                            type="button"
+                            onClick={() => { setIsMobileMenuOpen(false); navigate('/admin'); }}
+                            className="bg-mm-navy text-white font-bold text-sm px-5 py-2.5 rounded-lg"
+                        >
+                            {t('header.adminPanel')}
+                        </button>
+                    )}
+                    <button
+                        type="button"
+                        onClick={() => { setIsMobileMenuOpen(false); navigate(isAuth ? '/adverts/create' : '/login'); }}
+                        className="bg-mm-orange text-white font-bold text-sm px-5 py-2.5 rounded-lg"
+                    >
+                        {t('header.addAdvert')}
+                    </button>
+                </div>
+            )}
         </header>
     );
 };
