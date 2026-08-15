@@ -718,7 +718,7 @@ const CategoryListingPage: React.FC = () => {
                     ) : adverts.length === 0 ? (
                         <p className="text-center text-gray-400 py-16">{t('categoryListing.noResults')}</p>
                     ) : viewMode === "grid" ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 items-start">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 items-start">
                             {adverts.map((advert) => (
                                 <AdvertCard
                                     key={advert.id}
@@ -760,7 +760,7 @@ const CategoryListingPage: React.FC = () => {
                                 <div className="h-px flex-1 bg-gray-200" />
                             </div>
                             {viewMode === "grid" ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 items-start">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 items-start">
                                     {fallbackRecommendations.map((advert) => (
                                         <AdvertCard
                                             key={advert.id}

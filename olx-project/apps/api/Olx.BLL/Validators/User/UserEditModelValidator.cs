@@ -32,13 +32,10 @@ namespace Olx.BLL.Validators.User
             RuleFor(x => x.ImageFile)
                .ImageFile().WithMessage(ValidationErrors.InvalidImageFileType)
                .When(x => x.ImageFile != null);
-<<<<<<< HEAD
             RuleFor(x => x.AccountType)
                 .Must(x => x == "Individual" || x == "Business")
                 .WithMessage("AccountType must be either \"Individual\" or \"Business\".")
                 .When(x => x.AccountType is not null);
-=======
->>>>>>> origin/tobi-nazar
         }
     }
 }

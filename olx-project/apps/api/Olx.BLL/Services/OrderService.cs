@@ -2,14 +2,18 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using NETCore.MailKit.Core;
 using Olx.BLL.DTOs.OrderDtos;
 using Olx.BLL.Entities;
 using Olx.BLL.Exceptions;
 using Olx.BLL.Exstensions;
+using Olx.BLL.Helpers.Email;
 using Olx.BLL.Interfaces;
 using Olx.BLL.Models.Order;
 using Olx.BLL.Resources;
 using System.Net;
+using System.Text;
 
 namespace Olx.BLL.Services
 {
@@ -22,6 +26,8 @@ namespace Olx.BLL.Services
         IRepository<Advert> advertRepository,
         UserManager<OlxUser> userManager,
         IHttpContextAccessor httpContext,
+        IEmailService emailService,
+        ILogger<OrderService> logger,
         IMapper mapper) : IOrderService
     {
         public async Task<OrderDto> CreateAsync(OrderCreationModel model)
@@ -73,7 +79,46 @@ namespace Olx.BLL.Services
             // і зміни advert.Completed вище (advertRepository/orderRepository — той самий context).
             await orderRepository.SaveAsync();
 
+            await SendOrderConfirmationEmailAsync(user, order);
+
             return mapper.Map<OrderDto>(order);
+        }
+
+        // Best-effort: an SMTP hiccup must never fail an already-persisted order. Mirrors
+        // AccountService, which never lets email delivery block the surrounding operation either.
+        private async Task SendOrderConfirmationEmailAsync(OlxUser user, Order order)
+        {
+            if (string.IsNullOrWhiteSpace(user.Email))
+            {
+                return;
+            }
+
+            var itemsHtml = new StringBuilder();
+            foreach (var item in order.Items)
+            {
+                itemsHtml.Append(
+                    $@"<tr style=""border-bottom:1px solid #eee"">
+                        <td style=""padding:8px 4px"">{item.Title}</td>
+                        <td style=""padding:8px 4px;text-align:center"">{item.Quantity}</td>
+                        <td style=""padding:8px 4px;text-align:right"">{item.Price * item.Quantity:0.00} грн</td>
+                    </tr>");
+            }
+
+            var deliveryDescription = !string.IsNullOrWhiteSpace(order.WarehouseDescription)
+                ? $"{order.DeliveryType}, {order.WarehouseDescription}"
+                : !string.IsNullOrWhiteSpace(order.Address)
+                    ? $"{order.DeliveryType}, {order.Address}"
+                    : order.DeliveryType.ToString();
+
+            var template = EmailTemplates.GetOrderConfirmationTemplate(order.Id, itemsHtml.ToString(), order.TotalPrice, deliveryDescription);
+            try
+            {
+                await emailService.SendAsync(user.Email, $"Замовлення №{order.Id} оформлено", template, true);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to send order confirmation email for order {OrderId}", order.Id);
+            }
         }
 
         public async Task<IEnumerable<OrderDto>> GetUserOrdersAsync()

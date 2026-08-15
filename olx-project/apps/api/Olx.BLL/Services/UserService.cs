@@ -45,7 +45,7 @@ namespace Olx.BLL.Services
             return users.WithOnlineStatus(connectionTracker);
         } 
 
-        public async Task<OlxUserDto> Get(int id, bool isAdmin = false) 
+        public async Task<OlxUserDto> Get(int id, bool isAdmin = false)
         {
             var userDto = await mapper.ProjectTo<OlxUserDto>(userRepo.GetQuery().AsNoTracking().Where(x => x.Id == id)).SingleOrDefaultAsync();
             if (userDto is not null)
@@ -56,7 +56,11 @@ namespace Olx.BLL.Services
                     return userDto.WithOnlineStatus(connectionTracker);
                 }
             }
-            throw new HttpException(Errors.InvalidUserId, HttpStatusCode.BadRequest);
+            // 404, not 400: this id simply doesn't resolve to a user (in the requested
+            // admin/non-admin scope) — it's a missing-resource case, not a malformed request.
+            // GET /api/User/get/{id} is [AllowAnonymous] (public seller-profile lookups), so
+            // callers need a clean 404 they can branch on instead of a validation-style 400.
+            throw new HttpException(Errors.InvalidUserId, HttpStatusCode.NotFound);
         }
         
 

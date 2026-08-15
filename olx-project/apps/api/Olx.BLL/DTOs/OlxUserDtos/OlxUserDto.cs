@@ -17,12 +17,10 @@
         public string? About { get; set; }
         public double Rating { get; set; }
         public int ReviewsCount { get; set; }
-<<<<<<< HEAD
         public string AccountType { get; set; } = "Individual";
-=======
->>>>>>> origin/tobi-nazar
         public string? SettlementRef { get; set; }
         public string? SettlementDescrption { get; set; }
+        public bool NewsletterSubscribed { get; set; }
         public IEnumerable<int> Adverts { get; set; } = [];
         public IEnumerable<int> FavoriteAdverts { get; set; } = [];
         // See OlxUserShortDto.IsOnline/LastSeen — same live-presence contract, stamped

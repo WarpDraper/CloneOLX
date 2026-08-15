@@ -12,6 +12,9 @@
         public string? PhotoUrl { get; init; }
         public string? WebSite { get; init; }
         public string? About { get; init; }
+        // Real DB-assigned Settlement.Ref (same GUID space used by SeederAdvertModel.SettlementRef)
+        // — optional, since not every fixture user needs a declared location.
+        public string? SettlementRef { get; init; }
         // Optional — falls back to the OlxUser entity defaults (Rating = 5.0, ReviewsCount = 0)
         // in DBSeeder when omitted, so every seeded user no longer renders the same uniform
         // default on seller cards.

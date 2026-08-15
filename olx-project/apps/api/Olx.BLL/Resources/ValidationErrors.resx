@@ -165,4 +165,7 @@
   <data name="InvalidImageFileType" xml:space="preserve">
     <value>Invalid image file type (png,jpeg,jpg,gif,webp)</value>
   </data>
+  <data name="TermsNotAccepted" xml:space="preserve">
+    <value>You must agree to the Terms of Service and Privacy Policy.</value>
+  </data>
 </root>

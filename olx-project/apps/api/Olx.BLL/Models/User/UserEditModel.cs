@@ -19,13 +19,10 @@ namespace Olx.BLL.Models.User
         public string? SettlementRef { get; init; }
         public string? About { get; init; }
         public string? PhoneNumber { get; init; }
-<<<<<<< HEAD
         // "Individual" or "Business" — see OlxUser.AccountType. Like About/WebSite/SettlementRef,
         // AutoMapper's plain `mapper.Map(userEditModel, user)` overwrites the destination even
         // with a null source, so every edit/user submission must resend the current value or it
         // gets wiped — callers must not omit this field (see SettingsPage.tsx / UserProfilePage.tsx).
         public string? AccountType { get; init; }
-=======
->>>>>>> origin/tobi-nazar
     }
 }

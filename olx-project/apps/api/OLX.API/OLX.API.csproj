@@ -46,12 +46,10 @@
     <Content Update="Helpers\JsonData\Users.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Update="Helpers\JsonData\Adverts.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <!-- Local advert seed images (replaces the old loremflickr.com URLs) — read directly off
-         disk by DBSeeder for any Adverts.json ImagePaths entry that isn't a real http(s) URL,
-         so seeding never depends on a third-party image host. -->
+    <!-- Real advert photos — DBSeeder copies these directly into wwwroot/images/products/ for
+         the 15 seeded adverts, one category per image slug. No JSON advert fixture, no
+         third-party image host. Directory is named "products" (not "adverts") so ad-blocker
+         extensions that block "/adverts/" URLs (ERR_BLOCKED_BY_CLIENT) don't break the images. -->
     <Content Include="Helpers\JsonData\SeedImages\**">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

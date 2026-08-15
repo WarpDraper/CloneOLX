@@ -16,5 +16,9 @@ namespace Olx.BLL.Models.User
         public string? SettlementRef { get; init; }
         public string RecapthcaToken { get; init; } = string.Empty;
         public string Action { get; init; } = string.Empty;
+        // Registration form's mandatory "I agree to the Terms of Service and Privacy Policy"
+        // checkbox — validated server-side too (UserCreationModelValidator) so the rule can't be
+        // bypassed by calling the API directly.
+        public bool TermsAccepted { get; init; }
     }
 }

@@ -1,0 +1,11 @@
+{
+  "firstName": "A",
+  "lastName": "B",
+  "phoneNumber": "0671234567",
+  "settlementRef": "",
+  "about": "Too short",
+  "oldPassword": "weak",
+  "password": "weak",
+  "passwordConfirmation": "different",
+  "accountType": "Unknown"
+}

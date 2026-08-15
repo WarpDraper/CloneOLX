@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Olx.BLL.Helpers;
 using Olx.BLL.Interfaces;
 using Olx.BLL.Models;
@@ -12,12 +13,19 @@ namespace OLX.API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     // Контролер облікових операцій: надає API для входу, реєстрації, профілю та управління улюбленими оголошеннями.
-    public class AccountController(IAccountService accountService) : ControllerBase
+    public class AccountController(IAccountService accountService, IConfiguration configuration) : ControllerBase
     {
-       // private readonly string _refreshTokenCookiesName = configuration["RefreshTokenCookiesName"]!;
+        // Scoped to this controller's routes so the refresh token cookie is only ever sent
+        // to the auth endpoints that need it (login/refresh/logout), never to unrelated APIs.
+        private const string RefreshTokenCookiePath = "/api/Account";
+        private readonly string _refreshTokenCookiesName = configuration["RefreshTokenCookiesName"]!;
 
         // Повертає список улюблених оголошень поточного користувача.
-        [Authorize(Roles = Roles.User)]
+        // [Authorize] (not Roles = Roles.User): any authenticated account can have favorites,
+        // including Admin accounts — DbSeeder/AccountService.AddUserAsync only ever grants an
+        // account ONE role (Admin xor User, never both), so an admin never carries the "User"
+        // role claim and would get 403 Forbidden here under a Roles.User-gated [Authorize].
+        [Authorize]
         [HttpGet("favorites")]
         public async Task<IActionResult> GetFavorites()
         {
@@ -30,8 +38,8 @@ namespace OLX.API.Controllers
         public async Task<IActionResult> Login([FromBody] AuthRequest model )
         {
             var authResponse = await accountService.LoginAsync(model);
-          //  SetHttpOnlyCookies(authResponse.RefreshToken);
-            return Ok(authResponse);
+            SetRefreshTokenCookie(authResponse.RefreshToken);
+            return Ok(new AccessTokenResponse { AccessToken = authResponse.AccessToken });
         }
 
         // Аутентифікує користувача через Google access token.
@@ -39,22 +47,20 @@ namespace OLX.API.Controllers
         public async Task<IActionResult> GoogleLogin([FromQuery] string googleAccessToken)
         {
             var authResponse = await accountService.GoogleLoginAsync(googleAccessToken);
-           // SetHttpOnlyCookies(authResponse.RefreshToken);
-            return Ok(authResponse);
+            SetRefreshTokenCookie(authResponse.RefreshToken);
+            return Ok(new AccessTokenResponse { AccessToken = authResponse.AccessToken });
         }
 
         // Виходить із системи й анулює refresh token, якщо він надійшов.
         [HttpPost("user/logout")]
         public async Task<IActionResult> LogOut([FromBody] LogoutModel? logoutModel)
         {
-            //Console.WriteLine("Refresh token: " + logoutModel?.RefreshToken);
-            //if (Request.Cookies.TryGetValue(_refreshTokenCookiesName, out var token))
-            //{
-            //    Response.Cookies.Delete(_refreshTokenCookiesName);
-            //    await accountService.LogoutAsync(token);
-            //}
-            //else 
-            if (logoutModel is not null && logoutModel.RefreshToken is not null)
+            if (Request.Cookies.TryGetValue(_refreshTokenCookiesName, out var cookieToken))
+            {
+                DeleteRefreshTokenCookie();
+                await accountService.LogoutAsync(cookieToken);
+            }
+            else if (logoutModel is not null && logoutModel.RefreshToken is not null)
             {
                 await accountService.LogoutAsync(logoutModel.RefreshToken);
             }
@@ -66,19 +72,18 @@ namespace OLX.API.Controllers
         public async Task<IActionResult> RefreshTokens([FromBody] RefreshRequest? refreshRequest)
         {
             string token;
-            //if (Request.Cookies.TryGetValue(_refreshTokenCookiesName, out var httpToken))
-            //{
-            //    token = httpToken;
-            //}
-            //else
-            if (refreshRequest is not null && refreshRequest.RefreshToken is not null)
+            if (Request.Cookies.TryGetValue(_refreshTokenCookiesName, out var httpToken))
+            {
+                token = httpToken;
+            }
+            else if (refreshRequest is not null && refreshRequest.RefreshToken is not null)
             {
                 token = refreshRequest.RefreshToken;
             }
             else return Unauthorized();
             var authResponse = await accountService.RefreshTokensAsync(token);
-            //SetHttpOnlyCookies(authResponse.RefreshToken);
-            return Ok(authResponse);
+            SetRefreshTokenCookie(authResponse.RefreshToken);
+            return Ok(new AccessTokenResponse { AccessToken = authResponse.AccessToken });
         }
 
         // Підтверджує email користувача за допомогою коду/моделі підтвердження.
@@ -98,7 +103,6 @@ namespace OLX.API.Controllers
         }
 
         // Ініціює процес відновлення пароля для користувача.
-<<<<<<< HEAD
         // Приймає адресу з тіла запиту (JSON { email }) — раніше очікувався query-параметр,
         // тоді як фронтенд завжди надсилав JSON body, через що запит ніколи не доходив до сервісу.
         [HttpPost("password/forgot")]
@@ -106,13 +110,6 @@ namespace OLX.API.Controllers
         {
             await accountService.FogotPasswordAsync(model.Email);
             return Ok(new { message = "Лист для відновлення паролю надіслано, якщо такий email зареєстрований." });
-=======
-        [HttpPost("password/fogot")]
-        public async Task<IActionResult> FogotPassword([FromQuery] string email)
-        {
-            await accountService.FogotPasswordAsync(email);
-            return Ok();
->>>>>>> origin/tobi-nazar
         }
 
         // Задає новий пароль після відновлення доступу.
@@ -120,12 +117,11 @@ namespace OLX.API.Controllers
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel resetPasswordModel)
         {
             await accountService.ResetPasswordAsync(resetPasswordModel);
-<<<<<<< HEAD
             return Ok(new { message = "Пароль успішно змінено." });
         }
 
         // Надсилає 6-значний код підтвердження на email поточного користувача (Налаштування профілю).
-        [Authorize(Roles = Roles.User)]
+        [Authorize]
         [HttpPost("send-verification-code")]
         public async Task<IActionResult> SendVerificationCode()
         {
@@ -134,18 +130,16 @@ namespace OLX.API.Controllers
         }
 
         // Перевіряє 6-значний код і, у разі успіху, підтверджує email поточного користувача.
-        [Authorize(Roles = Roles.User)]
+        [Authorize]
         [HttpPost("verify-email-code")]
         public async Task<IActionResult> VerifyEmailCode([FromBody] VerifyEmailCodeModel model)
         {
             await accountService.VerifyEmailCodeAsync(model.Code);
-=======
->>>>>>> origin/tobi-nazar
             return Ok();
         }
 
         // Оновлює профіль поточного користувача та повертає новий access token.
-        [Authorize(Roles = Roles.User)]
+        [Authorize]
         [HttpPost("edit/user")]
         public async Task<IActionResult> EditUser([FromForm] UserEditModel userEditModel)
         {
@@ -172,7 +166,7 @@ namespace OLX.API.Controllers
         }
 
         // Додає оголошення до списку улюблених поточного користувача.
-        [Authorize(Roles = Roles.User)]
+        [Authorize]
         [HttpPost("favorites/add/{advertId:int}")]
         public async Task<IActionResult> AddToFavorites([FromRoute] int advertId)
         {
@@ -181,12 +175,21 @@ namespace OLX.API.Controllers
         }
 
         // Додає кілька оголошень до списку улюблених за один запит.
-        [Authorize(Roles = Roles.User)]
+        [Authorize]
         [HttpPost("favorites/add/range")]
         public async Task<IActionResult> AddToFavoritesRange([FromBody] IEnumerable<int> advertIds)
         {
             await accountService.AddToFavoritesRangeAsync(advertIds);
             return Ok();
+        }
+
+        // Перемикає підписку поточного користувача на розсилку/новини (Налаштування профілю).
+        [Authorize]
+        [HttpPost("subscribe")]
+        public async Task<IActionResult> SetNewsletterSubscription([FromBody] NewsletterSubscriptionModel model)
+        {
+            var subscribed = await accountService.SetNewsletterSubscriptionAsync(model.Subscribed);
+            return Ok(new { subscribed });
         }
 
         // Перевіряє пароль адміністратора перед чутливими діями.
@@ -216,7 +219,7 @@ namespace OLX.API.Controllers
         }
         
         // Видаляє оголошення зі списку улюблених поточного користувача.
-        [Authorize(Roles = Roles.User)]
+        [Authorize]
         [HttpDelete("favorites/remove/{advertId:int}")]
         public async Task<IActionResult> RemoveFromFavorites([FromRoute] int advertId)
         {
@@ -233,21 +236,32 @@ namespace OLX.API.Controllers
             return Ok();
         }
 
-        
 
-        //private void SetHttpOnlyCookies(string token)
-        //{
-        //    var days = double.Parse(configuration["JwtOptions:RefreshTokenLifeTimeInDays"]!);
-        //    Response.Cookies.Append(_refreshTokenCookiesName, token, new CookieOptions
-        //    {
-        //        IsEssential = true,
-        //        //  HttpOnly = true,
-        //        //Domain = "localhost",
-        //     //   SameSite = SameSiteMode.Strict,
-        //     //   Secure = true,
-        //        Path = "api/Account/user",
-        //        Expires = DateTime.UtcNow.AddDays(days)
-        //    });
-        //}
+
+        // Sets the rotation refresh token as a browser-inaccessible cookie: HttpOnly blocks
+        // JS/XSS access, Secure restricts transport to HTTPS, SameSite=Strict blocks CSRF by
+        // never attaching the cookie to cross-site requests. The JWT access token is returned
+        // in the JSON body separately and is short-lived by design.
+        private void SetRefreshTokenCookie(string refreshToken)
+        {
+            var days = configuration.GetValue<double>("JwtOptions:RefreshTokenLifeTimeInDays");
+            Response.Cookies.Append(_refreshTokenCookiesName, refreshToken, new CookieOptions
+            {
+                IsEssential = true,
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Path = RefreshTokenCookiePath,
+                Expires = DateTimeOffset.UtcNow.AddDays(days)
+            });
+        }
+
+        private void DeleteRefreshTokenCookie()
+        {
+            Response.Cookies.Delete(_refreshTokenCookiesName, new CookieOptions
+            {
+                Path = RefreshTokenCookiePath
+            });
+        }
     }
 }

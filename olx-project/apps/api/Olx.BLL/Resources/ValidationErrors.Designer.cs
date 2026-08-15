@@ -203,5 +203,14 @@ namespace Olx.BLL.Resources {
                 return ResourceManager.GetString("StartUppercaseError", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на You must agree to the Terms of Service and Privacy Policy..
+        /// </summary>
+        internal static string TermsNotAccepted {
+            get {
+                return ResourceManager.GetString("TermsNotAccepted", resourceCulture);
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { useRegisterMutation } from "../../services/accountService.ts";
@@ -36,7 +37,8 @@ const RegisterForm: React.FC = () => {
         PhoneNumber: "",
         SettlementRef: "",
         RecapthcaToken: "",
-        Action: ""
+        Action: "",
+        TermsAccepted: false,
     });
 
     const [fileList, setFileList] = useState<UploadFile[]>([]);
@@ -72,6 +74,7 @@ const RegisterForm: React.FC = () => {
         }
         if (!formValues.Password) nextFieldErrors.Password = t('register.errors.passwordRequired');
         if (!formValues.PasswordConfirmation) nextFieldErrors.PasswordConfirmation = t('register.errors.passwordConfirmationRequired');
+        if (!formValues.TermsAccepted) nextFieldErrors.TermsAccepted = t('register.errors.termsRequired');
         if (Object.keys(nextFieldErrors).length > 0) {
             setFieldErrors(nextFieldErrors);
             return;
@@ -108,6 +111,7 @@ const RegisterForm: React.FC = () => {
             formData.append("SettlementRef", formValues.SettlementRef || "");
             formData.append("RecapthcaToken", token);
             formData.append("Action", "register");
+            formData.append("TermsAccepted", String(formValues.TermsAccepted));
 
             // Додаємо фото тільки якщо користувач його дійсно вибрав
             if (fileList[0]?.originFileObj) {
@@ -249,6 +253,37 @@ const RegisterForm: React.FC = () => {
                     setImageError={setImageError}
                 />
                 {imageError && <p className="text-red-500 text-xs mt-1">{t('register.imageRequired')}</p>}
+            </div>
+
+            {/* Terms of Service agreement */}
+            <div className="flex flex-col gap-1">
+                <label className="flex items-start gap-2 text-xs text-[rgba(62,57,57,0.99)] cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={formValues.TermsAccepted}
+                        onChange={(e) => {
+                            setFormValues((prev) => ({ ...prev, TermsAccepted: e.target.checked }));
+                            if (e.target.checked) {
+                                setFieldErrors((prev) => {
+                                    if (!prev.TermsAccepted) return prev;
+                                    const next = { ...prev };
+                                    delete next.TermsAccepted;
+                                    return next;
+                                });
+                            }
+                        }}
+                        className="mt-0.5 shrink-0"
+                    />
+                    <span>
+                        {t('register.termsPrefix')}{' '}
+                        <Link to="/terms" target="_blank" rel="noopener noreferrer" className="text-[#6648D2] font-medium hover:underline">
+                            {t('register.termsLink')}
+                        </Link>
+                    </span>
+                </label>
+                {fieldErrors.TermsAccepted && (
+                    <p className="text-red-500 text-xs">{fieldErrors.TermsAccepted}</p>
+                )}
             </div>
 
             {/* Form error */}

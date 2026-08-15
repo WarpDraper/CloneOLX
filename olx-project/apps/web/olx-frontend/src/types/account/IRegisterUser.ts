@@ -11,6 +11,7 @@ export interface IRegisterUser {
     SettlementRef: string;
     RecapthcaToken: string;
     Action: string;
+    TermsAccepted: boolean;
 }
 
 

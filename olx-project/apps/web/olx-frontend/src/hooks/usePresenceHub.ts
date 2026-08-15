@@ -13,6 +13,15 @@ const HUB_METHODS = {
     UserOffline: "UserOffline",
 } as const;
 
+// SignalR surfaces an unmount-during-negotiation cancellation either as `err.name ===
+// "AbortError"` or (depending on transport/browser) as a plain Error whose message contains
+// this text — both mean "we tore down the connection while .start() was still negotiating" and
+// are expected/harmless, not a real connection failure.
+const isNegotiationAbortError = (err: unknown): boolean => {
+    const e = err as { name?: string; message?: string } | undefined;
+    return e?.name === "AbortError" || /stopped during negotiation/i.test(String(e?.message ?? ""));
+};
+
 /**
  * App-wide SignalR presence listener — mounted once (see MainLayout) whenever the user is
  * authenticated, independent of whatever page is open. Connects to the same {API_BASE_URL}/hub
@@ -48,6 +57,13 @@ export function usePresenceHub() {
                 accessTokenFactory: () => token,
             })
             .withAutomaticReconnect()
+            // SignalR's own internal logger writes the "connection was stopped during
+            // negotiation" warning straight to the browser console on every fast
+            // unmount/remount (route change, React StrictMode's dev double-invoke) — that case
+            // is already handled and swallowed explicitly below via isNegotiationAbortError, so
+            // this is pure noise, not a signal. LogLevel.None silences the library's own
+            // console output; console.error calls we make ourselves further down still fire.
+            .configureLogging(signalR.LogLevel.None)
             .build();
 
         connection.on(HUB_METHODS.UserOnline, (userId: number) => {
@@ -58,30 +74,35 @@ export function usePresenceHub() {
             dispatch(userWentOffline({ userId, lastSeen }));
         });
 
-        connection
-            .start()
-            .then(() => {
-                if (cancelled) {
-                    return connection.stop().catch(() => undefined);
-                }
-                return undefined;
-            })
-            .catch((err) => {
-                if (cancelled || err?.name === "AbortError") return;
+        // Only ever start a fresh, still-Disconnected connection for an authenticated user —
+        // guards against a stray double-invoke (React StrictMode, a re-run effect) trying to
+        // .start() a connection that's already connecting/connected, which SignalR rejects.
+        if (token && !isTokenExpired(token) && connection.state === signalR.HubConnectionState.Disconnected) {
+            connection
+                .start()
+                .then(() => {
+                    if (cancelled) {
+                        return connection.stop().catch(() => undefined);
+                    }
+                    return undefined;
+                })
+                .catch((err) => {
+                    if (cancelled || isNegotiationAbortError(err)) return;
 
-                // The token passed every client-side check above but the server still rejected
-                // the handshake (401/Unauthorized) — e.g. the JWT signing key rotated after this
-                // token was issued. Clear the dead session instead of logging a scary error:
-                // this is an expected consequence of an invalid token, not an unexpected failure.
-                const message = String(err?.message ?? err ?? "");
-                const isUnauthorized = err?.statusCode === 401 || /unauthorized|401/i.test(message);
-                if (isUnauthorized) {
-                    dispatch(logout());
-                    return;
-                }
+                    // The token passed every client-side check above but the server still rejected
+                    // the handshake (401/Unauthorized) — e.g. the JWT signing key rotated after this
+                    // token was issued. Clear the dead session instead of logging a scary error:
+                    // this is an expected consequence of an invalid token, not an unexpected failure.
+                    const message = String(err?.message ?? err ?? "");
+                    const isUnauthorized = err?.statusCode === 401 || /unauthorized|401/i.test(message);
+                    if (isUnauthorized) {
+                        dispatch(logout());
+                        return;
+                    }
 
-                console.error("Presence SignalR connection error:", err);
-            });
+                    console.error("Presence SignalR connection error:", err);
+                });
+        }
 
         return () => {
             cancelled = true;

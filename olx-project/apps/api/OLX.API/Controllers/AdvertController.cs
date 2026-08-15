@@ -22,17 +22,21 @@ namespace OLX.API.Controllers
         public async Task<IActionResult> GetById([FromRoute] int id) => Ok(await advertService.GetByIdAsync(id));
 
         // Повертає оголошення поточного користувача.
-        [Authorize(Roles = Roles.User)]
+        // [Authorize] (not Roles = Roles.User): DbSeeder/AccountService.AddUserAsync only ever
+        // grants an account ONE role (Admin xor User, never both), so an Admin account never
+        // carries the "User" role claim and would 403 here under a Roles.User-gated [Authorize]
+        // even though "my own adverts" is a perfectly valid thing for an admin to look at.
+        [Authorize]
         [HttpGet("get/user")]
         public async Task<IActionResult> GetUserAdverts() => Ok(await advertService.GetUserAdvertsAsync());
 
         // Повертає заблоковані оголошення поточного користувача.
-        [Authorize(Roles = Roles.User)]
+        [Authorize]
         [HttpGet("get/user/locked")]
         public async Task<IActionResult> GetLockedUserAdverts() => Ok(await advertService.GetUserAdvertsAsync(locked:true));
 
         // Повертає завершені оголошення поточного користувача.
-        [Authorize(Roles = Roles.User)]
+        [Authorize]
         [HttpGet("get/user/completed")]
         public async Task<IActionResult> GetCompletedUserAdverts() => Ok(await advertService.GetUserAdvertsAsync(completed:true));
 
@@ -73,22 +77,22 @@ namespace OLX.API.Controllers
         }
 
         // Оновлює існуюче оголошення власником.
-        [Authorize(Roles = Roles.User)]
+        [Authorize]
         [HttpPost("update")]
-        public async Task<IActionResult> Update([FromForm] AdvertCreationModel creationModel) => 
+        public async Task<IActionResult> Update([FromForm] AdvertCreationModel creationModel) =>
             Ok(await advertService.UpdateAsync(creationModel));
 
         // Позначає оголошення як завершене власником.
-        [Authorize(Roles = Roles.User)]
+        [Authorize]
         [HttpPost("complete/{advertId:int}")]
-        public async Task<IActionResult> CompleteAdvert([FromRoute] int advertId) 
+        public async Task<IActionResult> CompleteAdvert([FromRoute] int advertId)
         {
             await advertService.SetCompletedAsync(advertId);
             return  Ok();
         }
 
         // Позначає оголошення як придбане користувачем.
-        [Authorize(Roles = Roles.User)]
+        [Authorize]
         [HttpPost("buy/{advertId:int}")]
         public async Task<IActionResult> BuyAdvert([FromRoute] int advertId)
         {
@@ -97,7 +101,7 @@ namespace OLX.API.Controllers
         }
 
         // Створює нове оголошення від імені авторизованого користувача.
-        [Authorize(Roles = Roles.User)]
+        [Authorize]
         [HttpPut("create")]
         public async Task<IActionResult> Create([FromForm] AdvertCreationModel creationModel) => 
             Ok(await advertService.CreateAsync(creationModel));
@@ -112,7 +116,7 @@ namespace OLX.API.Controllers
         }
 
         // Видаляє всі завершені оголошення поточного користувача.
-        [Authorize(Roles = Roles.User)]
+        [Authorize]
         [HttpDelete("delete/completed/all")]
         public async Task<IActionResult> DeleteCompleted() => Ok( await advertService.RemoveCompletedAsync());
        

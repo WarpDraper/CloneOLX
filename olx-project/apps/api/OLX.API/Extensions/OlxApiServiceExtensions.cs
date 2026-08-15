@@ -105,12 +105,17 @@ namespace OLX.API.Extensions
                 });
             });
 
+            // Allowed origins come from configuration (AllowedCorsOrigins, comma-separated) so each
+            // environment (local dev, Render, production) can set its own without a rebuild.
+            var allowedOrigins = (configuration["AllowedCorsOrigins"] ?? "http://localhost:5173")
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowOrigins",
+                options.AddPolicy("AllowFrontend",
                 builder =>
                 {
-                    builder.WithOrigins("http://localhost:5173","http://10.20.42.134")
+                    builder.WithOrigins(allowedOrigins)
                            .AllowAnyHeader()
                            .AllowAnyMethod()
                            .AllowCredentials();

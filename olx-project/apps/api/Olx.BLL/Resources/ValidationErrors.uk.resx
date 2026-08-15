@@ -165,4 +165,7 @@
   <data name="InvalidImageFileType" xml:space="preserve">
     <value>Невірний пип зображення(png,jpeg,jpg,gif,webp)</value>
   </data>
+  <data name="TermsNotAccepted" xml:space="preserve">
+    <value>Ви маєте погодитися з Умовами користування та Політикою конфіденційності.</value>
+  </data>
 </root>

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Olx.BLL.Entities;
 using Olx.BLL.Entities.FilterEntities;
@@ -97,7 +98,6 @@ namespace OLX.API.Extensions
                                 Console.WriteLine($"Skip duplicate user \"{user.Email}\"");
                                 continue;
                             }
-<<<<<<< HEAD
                             // Image seeding disabled: no physical files are downloaded, generated, or
                             // written to wwwroot/images at seed time (imageService.SaveImageAsync is
                             // never called here). PhotoBase64 fixture data is dropped entirely — there's
@@ -112,8 +112,6 @@ namespace OLX.API.Extensions
                                 seededPhoto = user.PhotoUrl;
                             }
 
-=======
->>>>>>> origin/tobi-nazar
                             var newUser = new OlxUser
                             {
                                 UserName = user.Email,
@@ -121,15 +119,10 @@ namespace OLX.API.Extensions
                                 PhoneNumber = user.PhoneNumber,
                                 FirstName = user.FirstName,
                                 LastName = user.LastName,
-<<<<<<< HEAD
                                 Photo = seededPhoto,
-=======
-                                Photo = user.PhotoBase64 is not null
-                                ? await imageService.SaveImageAsync(user.PhotoBase64)
-                                : await imageService.SaveImageFromUrlAsync(user.PhotoUrl ?? "https://picsum.photos/800/600"),
->>>>>>> origin/tobi-nazar
                                 WebSite = user.WebSite,
                                 About = user.About,
+                                SettlementRef = user.SettlementRef,
                                 EmailConfirmed = true,
                                 // Distinct per-seed-user values (Users.json) instead of every
                                 // seeded user rendering the same uniform entity default on seller
@@ -200,12 +193,8 @@ namespace OLX.API.Extensions
                         if (categoryModels.Any() && filterRepo is not null)
                         {
                             var filters = await filterRepo.GetListBySpec(new FilterSpecs.GetAll());
-<<<<<<< HEAD
-                            var seederJsonDir = Path.Combine(Environment.CurrentDirectory, app.Configuration["SeederJsonDir"]!);
-                            await categoryRepo.AddRangeAsync(await GetCategories(categoryModels, filters, imageService, seederJsonDir));
-=======
-                            await categoryRepo.AddRangeAsync(await GetCategories(categoryModels, filters,imageService));
->>>>>>> origin/tobi-nazar
+                            var categorySeederJsonDir = Path.Combine(Environment.CurrentDirectory, app.Configuration["SeederJsonDir"]!);
+                            await categoryRepo.AddRangeAsync(await GetCategories(categoryModels, filters, imageService, categorySeederJsonDir));
                             await categoryRepo.SaveAsync();
                         }
                     }
@@ -219,172 +208,169 @@ namespace OLX.API.Extensions
 
 
             //Advert seeder
-            // Fixture is an all-or-nothing 80-item demo snapshot (see Adverts.json) — reseed
-            // whenever the DB doesn't already hold exactly that many (covers a fresh DB, a stale
-            // DB left over from a previous larger fixture, and manual force-reseed), instead of a
-            // "< minimum" threshold that would silently never shrink an over-sized table back down.
-            const int TargetAdvertCount = 80;
-            var filterValueRepo = scope.ServiceProvider.GetService<IRepository<FilterValue>>();
+            // Adverts are seeded exclusively from Helpers/JsonData/Adverts.json (deserialized into
+            // SeederAdvertModel) — no advert data is hardcoded in this file. Each definition's User
+            // and Category (via CategoryPath) are validated against the DB before use, and its 3
+            // ImagePaths are copied from Helpers/JsonData/SeedImages onto disk into
+            // wwwroot/images/products/ (served via UseStaticFiles) and mapped onto AdvertImage
+            // entities before SaveChanges is called.
+            // NOTE: this directory is intentionally NOT named "adverts" — some ad-blocker
+            // extensions block any request URL containing the "/adverts/" substring
+            // (ERR_BLOCKED_BY_CLIENT), which would silently break every seeded product image.
+            //
+            // One-time pipeline: this is a straight "seed once, never touch again" fixture load —
+            // if the table already has rows (from this seeder or otherwise), Adverts.json is never
+            // even opened, let alone parsed. There is no reseed-on-mismatch / force-reseed path;
+            // wiping and reloading a live table of user-generated adverts is not something a normal
+            // app boot should ever do automatically.
             var settlementRepo = scope.ServiceProvider.GetService<IRepository<Settlement>>();
             var advertRepo = scope.ServiceProvider.GetService<IRepository<Advert>>();
-            var advertImageRepo = scope.ServiceProvider.GetService<IRepository<AdvertImage>>();
-            var forceReseedAdverts = app.Configuration.GetValue<bool>("Seeder:ForceReseedAdverts");
-            var currentAdvertCount = advertRepo is not null ? await advertRepo.CountAsync() : 0;
-            if (advertRepo is not null && (currentAdvertCount != TargetAdvertCount || forceReseedAdverts))
-            {
-                Console.WriteLine($"Start adverts seeder (current count: {currentAdvertCount}, forceReseed: {forceReseedAdverts})");
+            var filterValueRepo = scope.ServiceProvider.GetService<IRepository<FilterValue>>();
+            var seederJsonDir = Path.Combine(Environment.CurrentDirectory, app.Configuration["SeederJsonDir"]!);
 
-                // Re-hydrate: the fixture file is an all-or-nothing snapshot of demo adverts, so a
-                // partial/stale table (e.g. from an interrupted previous seed, a leftover larger
-                // fixture, or a manual force-reseed trigger) is wiped and reloaded from scratch
-                // rather than merged.
-                if (currentAdvertCount > 0)
-                {
-                    var existingAdverts = (await advertRepo.GetListBySpec(new AdvertSpecs.GetAll(AdvertOpt.Images))).ToList();
-                    if (advertImageRepo is not null)
-                    {
-                        var existingImages = existingAdverts.SelectMany(a => a.Images ?? Enumerable.Empty<AdvertImage>()).ToList();
-                        if (existingImages.Count > 0)
-                        {
-                            advertImageRepo.DeleteRange(existingImages);
-                            await advertImageRepo.SaveAsync();
-                        }
-                    }
-                    advertRepo.DeleteRange(existingAdverts);
-                    await advertRepo.SaveAsync();
-                    Console.WriteLine($"Cleared {existingAdverts.Count} existing adverts before re-seeding.");
-                }
-                string advertsJsonDataFile = Path.Combine(Environment.CurrentDirectory, app.Configuration["SeederJsonDir"]!, "Adverts.json");
+            var advertsAlreadySeeded = advertRepo is not null && await advertRepo.AnyAsync();
+            if (advertRepo is not null && settlementRepo is not null && !advertsAlreadySeeded)
+            {
+                var advertDefinitions = new List<SeederAdvertModel>();
+                string advertsJsonDataFile = Path.Combine(seederJsonDir, "Adverts.json");
                 if (File.Exists(advertsJsonDataFile))
                 {
                     var advertsJson = File.ReadAllText(advertsJsonDataFile, Encoding.UTF8);
                     try
                     {
-                        var parsedAdvertModels = JsonConvert.DeserializeObject<IEnumerable<SeederAdvertModel>>(advertsJson)
+                        advertDefinitions = JsonConvert.DeserializeObject<List<SeederAdvertModel>>(advertsJson)
                             ?? throw new JsonException();
-                        // Dedup guard: collapse accidental duplicate fixture rows (same title from
-                        // the same seller) before insert, so a hand-edited/regenerated Adverts.json
-                        // can never silently produce duplicate listings in the DB.
-                        var advertModels = parsedAdvertModels
-                            .GroupBy(x => (x.Title, x.UserId))
-                            .Select(g => g.First())
-                            .ToList();
-                        if (advertModels.Count != parsedAdvertModels.Count())
-                        {
-                            Console.WriteLine($"Skipped {parsedAdvertModels.Count() - advertModels.Count} duplicate advert fixture rows.");
-                        }
-                        if (advertModels.Any() && filterValueRepo is not null)
-                        {
-                            // Categories are auto-increment ids assigned on insert, so a hand-copied
-                            // numeric CategoryId in Adverts.json can silently point at the wrong (or a
-                            // nonexistent) category and abort the whole seed batch via an FK violation.
-                            // Entries that specify CategoryPath resolve against the just-seeded category
-                            // tree instead — see ResolveCategoryId below.
-                            var allCategories = categoryRepo is not null
-                                ? (await categoryRepo.GetListBySpec(new CategorySpecs.GetAll())).ToList()
-                                : new List<Category>();
-                            // Narrowed to a non-null local before the closure below — the nullable
-                            // flow analysis for `filterValueRepo is not null` above doesn't carry
-                            // into a captured variable inside a lambda, which otherwise triggers
-                            // CS8602 on the dereference a few lines down.
-                            var filterValueRepoNonNull = filterValueRepo;
-
-                            // Built sequentially (not via Task.WhenAll over the projection) because each
-                            // iteration awaits calls against the shared DbContext (filterValueRepo,
-                            // settlementRepo) — running those concurrently throws "A second operation
-                            // was started on this context instance before a previous operation completed".
-                            var adverts = new List<Advert>();
-                            foreach (var x in advertModels)
-                            {
-                                var resolvedCategoryId = (x.CategoryPath is not null && x.CategoryPath.Count > 0)
-                                    ? ResolveCategoryId(allCategories, x.CategoryPath) ?? x.CategoryId
-                                    : x.CategoryId;
-                                var filterValues = (await filterValueRepoNonNull.GetListBySpec(new FilterValueSpecs.GetByIds(x.FilterValueIds))).ToList();
-<<<<<<< HEAD
-                                // Image seeding disabled: advert images are never downloaded, generated,
-                                // or written to wwwroot/images (imageService.SaveImageAsync is never
-                                // called here). Local fixture paths are kept as plain string references
-                                // on the AdvertImage records instead — no file read, no file write.
-                                var images = x.ImagePaths
-                                    .Where(path =>
-                                    {
-                                        var isRemoteUrl = path.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
-                                            || path.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
-                                        if (isRemoteUrl)
-                                        {
-                                            Console.WriteLine($"[DbSeeder] Skipping remote image URL (network fetch disabled): {path}");
-                                        }
-                                        return !isRemoteUrl;
-                                    })
-                                    .Select((path, index) => new AdvertImage()
-                                    {
-                                        Priority = index,
-                                        Name = path
-                                    })
-                                    .ToArray();
-=======
-                                // Fixture images are either a real remote URL (downloaded over HTTP,
-                                // as before) or a path relative to SeederJsonDir pointing at a fixture
-                                // shipped in the repo (Helpers/JsonData/SeedImages/*.jpg) — read straight
-                                // off disk instead. The local branch has zero network dependency, so
-                                // seeding can never fail on an unreachable/rate-limited/erroring
-                                // third-party image host (this replaced loremflickr.com, which was
-                                // intermittently returning 500s).
-                                // imagesTasks only touch the (DbContext-free) imageService, so it's safe
-                                // to keep this inner batch parallel.
-                                var imagesTasks = x.ImagePaths.Select(async (path, index) =>
-                                {
-                                    var isRemoteUrl = path.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
-                                        || path.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
-                                    var savedName = isRemoteUrl
-                                        ? await imageService.SaveImageFromUrlAsync(path)
-                                        : await imageService.SaveImageAsync(await File.ReadAllBytesAsync(
-                                            Path.Combine(Environment.CurrentDirectory, app.Configuration["SeederJsonDir"]!, path)));
-                                    return new AdvertImage()
-                                    {
-                                        Priority = index,
-                                        Name = savedName
-                                    };
-                                });
-                                var images = await Task.WhenAll(imagesTasks);
->>>>>>> origin/tobi-nazar
-                                var settlement = await settlementRepo.GetByIDAsync(x.SettlementRef) ??
-                                    throw new NullReferenceException("settlement not found");
-                                adverts.Add(new Advert()
-                                {
-                                    UserId = x.UserId,
-                                    PhoneNumber = x.PhoneNumber,
-                                    ContactEmail = x.ContactEmail,
-                                    ContactPersone = x.ContactPersone,
-                                    Title = x.Title,
-                                    Description = x.Description,
-                                    IsContractPrice = x.IsContractPrice,
-                                    Price = x.Price,
-                                    CategoryId = resolvedCategoryId,
-                                    FilterValues = filterValues,
-                                    Images = images,
-                                    Approved = true,
-                                    Completed = false,
-                                    Settlement = settlement
-                                });
-                            }
-                            Console.WriteLine($"Adding {adverts.Count} adverts to the database.");
-                            await advertRepo.AddRangeAsync(adverts);
-                            await advertRepo.SaveAsync();
-                            Console.WriteLine("Adverts added to the database.");
-                        }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[DbSeeder] Adverts seed failed: {ex.Message}\n{ex}");
+                        Console.WriteLine($"[DbSeeder] Failed to parse Adverts.json: {ex.Message}\n{ex}");
                     }
                 }
-                else Console.WriteLine("File \"Adverts.json\" not found");
+                else Console.WriteLine("File \"JsonData/Adverts.json\" not found");
+
+                Console.WriteLine($"Start adverts seeder (target: {advertDefinitions.Count})");
+
+                try
+                {
+                    var allCategories = categoryRepo is not null
+                        ? (await categoryRepo.GetListBySpec(new CategorySpecs.GetAll())).ToList()
+                        : new List<Category>();
+                    var seedImagesDir = Path.Combine(seederJsonDir, "SeedImages");
+                    var advertImagesDestDir = Path.Combine(Environment.CurrentDirectory, app.Configuration["ImagesDir"]!, "products");
+                    Directory.CreateDirectory(advertImagesDestDir);
+
+                    var adverts = new List<Advert>();
+                    foreach (var def in advertDefinitions)
+                    {
+                        // Validate the user relation from the JSON before doing anything else with
+                        // this advert — every seeded advert must belong to a real seeded user.
+                        var user = await userManager.FindByIdAsync(def.UserId.ToString());
+                        if (user is null)
+                        {
+                            Console.WriteLine($"[DbSeeder] Skipping advert \"{def.Title}\": user id {def.UserId} not found.");
+                            continue;
+                        }
+
+                        // Validate the category relation: prefer the human-readable CategoryPath
+                        // (resolved against the real DB-assigned ids), falling back to the raw
+                        // CategoryId only if it already matches a seeded category.
+                        int? categoryId = def.CategoryPath is { Count: > 0 } categoryPath
+                            ? ResolveCategoryId(allCategories, categoryPath)
+                            : null;
+                        if (categoryId is null && def.CategoryId > 0 && allCategories.Any(c => c.Id == def.CategoryId))
+                        {
+                            categoryId = def.CategoryId;
+                        }
+                        if (categoryId is null)
+                        {
+                            Console.WriteLine($"[DbSeeder] Skipping advert \"{def.Title}\": category path not found ({string.Join(" > ", def.CategoryPath ?? Array.Empty<string>())}).");
+                            continue;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(def.SettlementRef))
+                        {
+                            Console.WriteLine($"[DbSeeder] Skipping advert \"{def.Title}\": no settlement reference specified.");
+                            continue;
+                        }
+                        var settlement = await settlementRepo.GetByIDAsync(def.SettlementRef);
+                        if (settlement is null)
+                        {
+                            Console.WriteLine($"[DbSeeder] Skipping advert \"{def.Title}\": settlement \"{def.SettlementRef}\" not found.");
+                            continue;
+                        }
+
+                        if (def.ImagePaths.Count != 3)
+                        {
+                            Console.WriteLine($"[DbSeeder] Skipping advert \"{def.Title}\": expected exactly 3 image files in Adverts.json, found {def.ImagePaths.Count}.");
+                            continue;
+                        }
+
+                        // Copy the 3 physical seed photos referenced by this advert onto disk so
+                        // they exist under wwwroot/images/products/ and are reachable through
+                        // /images/products/{file}, then map them onto AdvertImage entities.
+                        // Routed through IImageService.ProcessImageAsync (not a raw File.Copy) so
+                        // seeded product photos get the exact same 1200x1200 pad + high-quality
+                        // re-encode + transparency handling as everything uploaded through the
+                        // API, instead of shipping whatever raw fixture bytes happen to be on disk.
+                        var images = new List<AdvertImage>();
+                        var missingImage = false;
+                        var priority = 0;
+                        foreach (var imageFileName in def.ImagePaths)
+                        {
+                            var sourceFile = Path.Combine(seedImagesDir, imageFileName);
+                            if (!File.Exists(sourceFile))
+                            {
+                                Console.WriteLine($"[DbSeeder] Skipping advert \"{def.Title}\": seed image \"{imageFileName}\" not found in SeedImages.");
+                                missingImage = true;
+                                break;
+                            }
+                            var (processedBytes, extension) = await imageService.ProcessImageAsync(await File.ReadAllBytesAsync(sourceFile));
+                            var destFileName = $"{Path.GetFileNameWithoutExtension(imageFileName)}-{def.UserId}-{priority + 1}-{Guid.NewGuid():N}{extension}";
+                            await File.WriteAllBytesAsync(Path.Combine(advertImagesDestDir, destFileName), processedBytes);
+                            images.Add(new AdvertImage { Priority = priority, Name = $"products/{destFileName}" });
+                            priority++;
+                        }
+                        if (missingImage)
+                        {
+                            continue;
+                        }
+
+                        var filterValues = def.FilterValueIds.Count > 0 && filterValueRepo is not null
+                            ? (await filterValueRepo.GetListBySpec(new FilterValueSpecs.GetByIds(def.FilterValueIds))).ToList()
+                            : new List<FilterValue>();
+
+                        adverts.Add(new Advert()
+                        {
+                            UserId = user.Id,
+                            PhoneNumber = string.IsNullOrWhiteSpace(def.PhoneNumber)
+                                ? (string.IsNullOrWhiteSpace(user.PhoneNumber) ? "+380000000000" : user.PhoneNumber)
+                                : def.PhoneNumber,
+                            ContactEmail = string.IsNullOrWhiteSpace(def.ContactEmail) ? (user.Email ?? string.Empty) : def.ContactEmail,
+                            ContactPersone = string.IsNullOrWhiteSpace(def.ContactPersone) ? $"{user.FirstName} {user.LastName}".Trim() : def.ContactPersone,
+                            Title = def.Title,
+                            Description = def.Description,
+                            IsContractPrice = def.IsContractPrice,
+                            Price = def.Price,
+                            CategoryId = categoryId.Value,
+                            FilterValues = filterValues,
+                            Images = images,
+                            Approved = true,
+                            Completed = false,
+                            Settlement = settlement
+                        });
+                    }
+
+                    Console.WriteLine($"Adding {adverts.Count} adverts to the database.");
+                    await advertRepo.AddRangeAsync(adverts);
+                    await advertRepo.SaveAsync();
+                    Console.WriteLine("Adverts added to the database.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[DbSeeder] Adverts seed failed: {ex.Message}\n{ex}");
+                }
             }
         }
-
-       
-       
 
         // Resolves a root-to-leaf category name path (e.g. ["Авто", "Легкові автомобілі"]) to the
         // real DB-assigned CategoryId, walking level by level so duplicate leaf names elsewhere in
@@ -417,7 +403,6 @@ namespace OLX.API.Extensions
         private async static Task<IEnumerable<Category>> GetCategories(
             IEnumerable<SeederCategoryModel> models,
             IEnumerable<Filter> filters,
-<<<<<<< HEAD
             IImageService imageService,
             string seederJsonDir)
         {
@@ -443,17 +428,6 @@ namespace OLX.API.Extensions
                         image = x.Image;
                     }
                 }
-=======
-            IImageService imageService)
-        {
-            var categoryTasks =  models.Select(async (x) => 
-            {
-                var advertFilters = x.Filters?.Any() ?? false ? filters.Where(z => x.Filters.Contains(z.Name)) : null;
-                var childs = x.Childs?.Any() ?? false ? await GetCategories(x.Childs, filters, imageService) : null;
-                var image = !String.IsNullOrEmpty(x.Image)
-                    ? await imageService.SaveImageFromUrlAsync(x.Image)
-                    : null;
->>>>>>> origin/tobi-nazar
                 return new Category()
                 {
                     Name = x.Name,

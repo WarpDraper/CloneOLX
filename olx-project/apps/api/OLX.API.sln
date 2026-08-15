@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Olx.DAL", "Olx.DAL\Olx.DAL.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Olx.BLL", "Olx.BLL\Olx.BLL.csproj", "{EC9C69AA-CCC6-46B5-8358-F94726E0CC63}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Olx.BLL.Tests", "Olx.BLL.Tests\Olx.BLL.Tests.csproj", "{6B66B51B-3790-4F02-9B0F-BF69DF4FA25B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{EC9C69AA-CCC6-46B5-8358-F94726E0CC63}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC9C69AA-CCC6-46B5-8358-F94726E0CC63}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC9C69AA-CCC6-46B5-8358-F94726E0CC63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B66B51B-3790-4F02-9B0F-BF69DF4FA25B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B66B51B-3790-4F02-9B0F-BF69DF4FA25B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B66B51B-3790-4F02-9B0F-BF69DF4FA25B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B66B51B-3790-4F02-9B0F-BF69DF4FA25B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -2,12 +2,12 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
-import { Upload, Avatar, message, Modal, Input } from "antd";
-import { UserOutlined, UploadOutlined, PhoneOutlined, CheckCircleFilled, MailOutlined } from "@ant-design/icons";
+import { Upload, Avatar, message, Modal, Input, Switch } from "antd";
+import { UserOutlined, UploadOutlined, PhoneOutlined, CheckCircleFilled, MailOutlined, NotificationOutlined } from "@ant-design/icons";
 import type { RcFile } from "antd/es/upload/interface";
 import type { RootState } from "../../../store";
-import { useGetSellerProfileQuery, isRealUserId } from "../../../services/profileService";
-import { useEditUserMutation, useSendVerificationCodeMutation, useVerifyEmailCodeMutation } from "../../../services/accountService";
+import { useGetSellerProfileQuery, isOwnProfileId } from "../../../services/profileService";
+import { useEditUserMutation, useSendVerificationCodeMutation, useVerifyEmailCodeMutation, useSetNewsletterSubscriptionMutation } from "../../../services/accountService";
 import { setAuth } from "../../../Slice/authSlice";
 import { buildImageUrl, IMAGE_SIZES } from "../../../utils/buildImageUrl";
 import { parseServerValidationErrors } from "../../../utils/parseServerValidationErrors";
@@ -36,7 +36,7 @@ const SettingsPage: React.FC = () => {
         if (!isAuth) navigate("/login", { replace: true });
     }, [isAuth, navigate]);
 
-    const { data: profile, isLoading: isProfileLoading, refetch: refetchProfile } = useGetSellerProfileQuery(currentUserId, { skip: !isRealUserId(currentUserId) });
+    const { data: profile, isLoading: isProfileLoading, refetch: refetchProfile } = useGetSellerProfileQuery(currentUserId, { skip: !isOwnProfileId(currentUserId) });
     const [editUser, { isLoading: isSaving }] = useEditUserMutation();
 
     // Email verification (Profile Settings -> "Підтвердити email"): send a 6-digit code, then
@@ -46,6 +46,23 @@ const SettingsPage: React.FC = () => {
     const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
     const [verificationCode, setVerificationCode] = useState("");
     const [codeError, setCodeError] = useState<string | null>(null);
+
+    // Newsletter subscription toggle — fires immediately on click (independent of the
+    // firstName/lastName/... "Зберегти зміни" form below), same as the email-verification flow.
+    const [setNewsletterSubscription, { isLoading: isTogglingNewsletter }] = useSetNewsletterSubscriptionMutation();
+    const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
+
+    const handleToggleNewsletter = async (checked: boolean) => {
+        setNewsletterSubscribed(checked); // optimistic — reverted on failure below
+        try {
+            const result = await setNewsletterSubscription(checked).unwrap();
+            setNewsletterSubscribed(result.subscribed);
+            message.success(checked ? t('settings.newsletter.subscribed') : t('settings.newsletter.unsubscribed'));
+        } catch {
+            setNewsletterSubscribed(!checked);
+            message.error(t('settings.newsletter.toggleFailed'));
+        }
+    };
 
     const handleStartEmailVerification = async () => {
         setCodeError(null);
@@ -115,6 +132,7 @@ const SettingsPage: React.FC = () => {
             accountTypeRef.current = profile.accountType ?? "Individual";
             setAvatarPreview(buildImageUrl(profile.photo, IMAGE_SIZES.avatarLarge));
             setAvatarLoadFailed(false);
+            setNewsletterSubscribed(profile.newsletterSubscribed ?? false);
             // Baseline for the isDirty comparison below — captured once per fresh profile load,
             // not on every keystroke.
             setInitialValues({
@@ -259,6 +277,24 @@ const SettingsPage: React.FC = () => {
                                             </button>
                                         )}
                                     </div>
+                                </div>
+                            )}
+
+                            {profile && (
+                                <div className="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-4 py-3">
+                                    <div className="flex items-start gap-2">
+                                        <NotificationOutlined className="text-mm-purple mt-0.5" />
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-medium text-mm-navy">{t('settings.newsletter.label')}</span>
+                                            <span className="text-xs text-gray-500">{t('settings.newsletter.description')}</span>
+                                        </div>
+                                    </div>
+                                    <Switch
+                                        checked={newsletterSubscribed}
+                                        loading={isTogglingNewsletter}
+                                        onChange={handleToggleNewsletter}
+                                        aria-label={t('settings.newsletter.label')}
+                                    />
                                 </div>
                             )}
 

@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 using Microsoft.AspNetCore.HttpOverrides;
-=======
->>>>>>> origin/tobi-nazar
 using Olx.BLL.Exstensions;
 using Olx.BLL.Hubs;
 using Olx.DAL.Exstension;
@@ -22,31 +19,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR();
 builder.Logging.AddConsole();
 
-<<<<<<< HEAD
-// Allowed frontend origins come from configuration so each environment (local dev, Render,
-// production) can set its own without a rebuild. Set via the AllowedCorsOrigins env var as a
-// comma-separated list, e.g. "https://my-frontend.onrender.com,http://localhost:5173".
-var allowedOrigins = (builder.Configuration["AllowedCorsOrigins"] ?? "http://localhost:5173")
-    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-=======
->>>>>>> origin/tobi-nazar
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend", policy =>
-    {
-<<<<<<< HEAD
-        policy.WithOrigins(allowedOrigins)
-=======
-        policy.WithOrigins("http://localhost:5173") 
->>>>>>> origin/tobi-nazar
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials(); 
-    });
-});
-
-<<<<<<< HEAD
 // Render (and most PaaS proxies) terminate TLS at the edge and forward plain HTTP to the
 // container, passing the original scheme/host in X-Forwarded-*. Without this the app thinks
 // every request is http://, which breaks Secure cookies and absolute URL generation.
@@ -70,13 +42,8 @@ if (!app.Environment.IsProduction())
 {
     app.UseHttpsRedirection();
 }
-=======
 
-var app = builder.Build();
 
-// Увімкнути HTTPS редирект і глобальний обробник винятків перед обробкою запитів.
-app.UseHttpsRedirection();
->>>>>>> origin/tobi-nazar
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 // Включаємо Swagger UI та статичні файли, а також підтримку культур.
@@ -91,8 +58,8 @@ app.AddCultures();
 //    Secure = CookieSecurePolicy.Always,
 //});
 
-app.UseRouting();
 app.UseCors("AllowFrontend");
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.SetMaxRequestBodySize();

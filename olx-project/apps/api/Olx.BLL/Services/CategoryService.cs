@@ -16,10 +16,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Olx.BLL.Exstensions;
 using Microsoft.EntityFrameworkCore;
-<<<<<<< HEAD
 using Microsoft.Extensions.Logging;
-=======
->>>>>>> origin/tobi-nazar
 
 
 namespace Olx.BLL.Services
@@ -31,7 +28,6 @@ namespace Olx.BLL.Services
         IValidator<CategoryCreationModel> validator,
         IFilterService filterService,
         UserManager<OlxUser> userManager,
-<<<<<<< HEAD
         IHttpContextAccessor httpContext,
         ILogger<CategoryService> logger) : ICategoryService
     {
@@ -52,13 +48,6 @@ namespace Olx.BLL.Services
             }
         }
 
-=======
-        IHttpContextAccessor httpContext) : ICategoryService
-    {
-
-        public async Task<IEnumerable<CategoryDto>> Get() => await mapper.ProjectTo<CategoryDto>(categoryRepository.GetQuery().AsNoTracking()).ToArrayAsync();
-     
->>>>>>> origin/tobi-nazar
         public async Task<CategoryDto> CreateAsync(CategoryCreationModel creationModel)
         {
             await userManager.UpdateUserActivityAsync(httpContext);
@@ -192,7 +181,6 @@ namespace Olx.BLL.Services
 
         public async Task<PageResponse<CategoryDto>> GetPageAsync(CategoryPageRequest pageRequest)
         {
-<<<<<<< HEAD
             try
             {
                 var query = mapper.ProjectTo<CategoryDto>(categoryRepository.GetQuery().AsNoTracking());
@@ -211,18 +199,6 @@ namespace Olx.BLL.Services
                 logger.LogError(ex, "Failed to load category page from the database; returning an empty page.");
                 return new() { Total = 0, Items = [] };
             }
-=======
-            var query = mapper.ProjectTo<CategoryDto>(categoryRepository.GetQuery().AsNoTracking());
-            var paginationBuilder = new PaginationBuilder<CategoryDto>(query);
-            var filter = new CategoryFilter(pageRequest.SearchName, pageRequest.ParentName);
-            var sortData = new CategorySortData(pageRequest.IsDescending, pageRequest.SortKey);
-            var page = await paginationBuilder.GetPageAsync(pageRequest.Page, pageRequest.Size, filter, sortData);
-            return new()
-            {
-                Total = page.Total,
-                Items = page.Items
-            };
->>>>>>> origin/tobi-nazar
         }
 
         

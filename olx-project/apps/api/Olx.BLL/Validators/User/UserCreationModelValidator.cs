@@ -31,6 +31,8 @@ namespace Olx.BLL.Validators.User
             RuleFor(x => x.ImageFile)
                 .ImageFile().WithMessage(ValidationErrors.InvalidImageFileType)
                 .When(x => x.ImageFile != null);
+            RuleFor(x => x.TermsAccepted)
+                .Equal(true).WithMessage(ValidationErrors.TermsNotAccepted);
         }
     }
 }

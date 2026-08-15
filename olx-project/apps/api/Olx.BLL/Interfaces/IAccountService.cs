@@ -15,11 +15,8 @@ namespace Olx.BLL.Interfaces
         Task EmailConfirmAsync(EmailConfirmationModel confirmationModel);
         Task FogotPasswordAsync(string email);
         Task ResetPasswordAsync(ResetPasswordModel resetPasswordModel);
-<<<<<<< HEAD
         Task SendEmailVerificationCodeAsync();
         Task VerifyEmailCodeAsync(string code);
-=======
->>>>>>> origin/tobi-nazar
         Task BlockUserAsync(UserBlockModel userBlockModel);
         Task AddUserAsync(UserCreationModel userModel,bool isAdmin = false);
         Task RemoveAccountAsync(int id);
@@ -29,5 +26,6 @@ namespace Olx.BLL.Interfaces
         Task RemoveFromFavoritesAsync(int advertId);
         Task<IEnumerable<AdvertDto>> GetFavoritesAsync();
         Task CheckPasswordAsync(string password);
+        Task<bool> SetNewsletterSubscriptionAsync(bool subscribed);
     }
 }
