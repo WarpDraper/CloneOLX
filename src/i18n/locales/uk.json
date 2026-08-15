@@ -115,6 +115,8 @@
     "passwordConfirmation": "Підтвердження паролю",
     "passwordConfirmationPlaceholder": "Повторіть пароль",
     "imageRequired": "Зображення є обов'язковим",
+    "termsPrefix": "Я погоджуюсь з",
+    "termsLink": "Умовами користування та Політикою конфіденційності",
     "submit": "Зареєструватися",
     "errors": {
       "firstNameRequired": "Введіть ім'я",
@@ -124,6 +126,7 @@
       "passwordRequired": "Введіть пароль",
       "passwordConfirmationRequired": "Підтвердіть пароль",
       "passwordMismatch": "Паролі не збігаються!",
+      "termsRequired": "Ви маєте погодитися з Умовами користування та Політикою конфіденційності.",
       "captchaLoading": "Захист від роботів завантажується. Спробуйте ще раз через мить.",
       "generic": "Помилка реєстрації"
     }
@@ -170,6 +173,13 @@
     "phoneNumber": "Номер телефону",
     "phoneFormatHint": "Формат: +380 (XX) XXX-XX-XX",
     "city": "Місто",
+    "newsletter": {
+      "label": "Підписатися на розсилку / новини",
+      "description": "Отримуйте час від часу листи про нові функції, акції та новини MultiMart.",
+      "subscribed": "Ви підписалися на розсилку.",
+      "unsubscribed": "Ви відписалися від розсилки.",
+      "toggleFailed": "Не вдалося оновити підписку. Спробуйте ще раз."
+    },
     "errors": {
       "nameLength": "Від 2 до 100 символів",
       "saveFailed": "Не вдалося зберегти зміни.",

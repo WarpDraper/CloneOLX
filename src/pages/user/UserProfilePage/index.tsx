@@ -11,10 +11,11 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { RootState } from '../../../store';
 import {logout} from "../../../Slice/authSlice.ts";
-import { useGetSellerProfileQuery, isRealUserId } from '../../../services/profileService';
+import { useGetSellerProfileQuery, isRealUserId, isOwnProfileId } from '../../../services/profileService';
 import WalletTopUpModal from './WalletTopUpModal';
 import AccountTypeModal from './AccountTypeModal';
 import NovaPoshtaDeliveryPanel from './NovaPoshtaDeliveryPanel';
+import ImageWithFallback from '../../../components/common/ImageWithFallback';
 
 type TabKey = 'ads' | 'chat' | 'payments' | 'rating' | 'job' | 'profile' | 'settings' | 'delivery';
 
@@ -26,7 +27,7 @@ const UserProfilePage: React.FC = () => {
     const { isAuth } = useSelector((state: RootState) => state.auth);
     const currentUserId = Number(user?.id);
 
-    const { data: profile } = useGetSellerProfileQuery(currentUserId, { skip: !isRealUserId(currentUserId) });
+    const { data: profile } = useGetSellerProfileQuery(currentUserId, { skip: !isOwnProfileId(currentUserId) });
 
     const [activeTab, setActiveTab] = useState<TabKey>('profile');
     const [walletBalance, setWalletBalance] = useState(0);
@@ -102,20 +103,19 @@ const UserProfilePage: React.FC = () => {
         <>
         <div className="flex items-center gap-6 mb-10">
           <div className="w-24 h-24 rounded-full bg-[#cbf7ee] flex items-center justify-center overflow-hidden flex-shrink-0">
-              {user?.avatarUrl ? (
-                  <img
-                      src={user.avatarUrl}
-                      alt={t('userProfile.avatarAlt')}
-                      className="w-full h-full object-cover"
-                  />
-              ) : (
-                  <svg viewBox="0 0 100 100" className="w-20 h-20 text-[#002f34] mt-2">
-                      <circle cx="50" cy="40" r="22" fill="currentColor"/>
-                      <path d="M15,95 C15,65 85,65 85,95" fill="currentColor" />
-                      <circle cx="42" cy="35" r="3" fill="#cbf7ee"/>
-                      <circle cx="58" cy="35" r="3" fill="#cbf7ee"/>
-                  </svg>
-              )}
+              <ImageWithFallback
+                  src={user?.avatarUrl}
+                  alt={t('userProfile.avatarAlt')}
+                  className="w-full h-full object-cover"
+                  fallback={
+                      <svg viewBox="0 0 100 100" className="w-20 h-20 text-[#002f34] mt-2">
+                          <circle cx="50" cy="40" r="22" fill="currentColor"/>
+                          <path d="M15,95 C15,65 85,65 85,95" fill="currentColor" />
+                          <circle cx="42" cy="35" r="3" fill="#cbf7ee"/>
+                          <circle cx="58" cy="35" r="3" fill="#cbf7ee"/>
+                      </svg>
+                  }
+              />
           </div>
           <div>
             <h2 className="text-3xl font-bold text-[#002f34] mb-2">{t('userProfile.editProfileHeading')}</h2>

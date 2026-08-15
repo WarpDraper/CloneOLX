@@ -2,8 +2,8 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { jwtDecode } from "jwt-decode";
 import type {IUserItem} from "../types/account/IUserItem.ts";
 
-import { APP_ENV } from "../env";
 import { isTokenExpired } from "../utils/tokenUtils";
+import { buildImageUrl, IMAGE_SIZES } from "../utils/buildImageUrl";
 
 interface AuthState {
     user: IUserItem | null;
@@ -38,10 +38,13 @@ const authSlice = createSlice({
             // Декодуємо токен
             const decoded: any = jwtDecode(token);
 
-            const avatarPath = decoded.avatarUrl || "";
-            const fullAvatarUrl = avatarPath
-                ? (avatarPath.startsWith("http") ? avatarPath : `${APP_ENV.API_BASE_URL}${avatarPath}`)
-                : "";
+            // decoded.avatarUrl is the bare backend filename (same value as profile.photo
+            // elsewhere) — it must be resolved via buildImageUrl (which prefixes it with
+            // `${API_BASE_URL}/images/`), not concatenated by hand. Naive concatenation used to
+            // produce a malformed URL like `${API_BASE_URL}filename.jpg` (no "/images/" segment,
+            // no separating slash), which is why the avatar failed to render in the Header and
+            // on the profile pages even though a photo was actually uploaded.
+            const fullAvatarUrl = buildImageUrl(decoded.avatarUrl, IMAGE_SIZES.avatarSmall) ?? "";
 
             const user : IUserItem = {
                 id: decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded.id,

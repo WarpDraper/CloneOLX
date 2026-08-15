@@ -15,6 +15,9 @@ export interface ISellerProfile {
     about: string | null;
     settlementRef: string | null;
     settlementDescrption: string | null;
+    // Optional: irrelevant to a *public* seller profile (subscription state is only meaningful
+    // to the account owner, on the Settings page) and seed-hydrated sellers never carry it.
+    newsletterSubscribed?: boolean;
     rating: number;
     reviewsCount: number;
     accountType: "Individual" | "Business";

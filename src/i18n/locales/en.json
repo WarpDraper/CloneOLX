@@ -115,6 +115,8 @@
     "passwordConfirmation": "Confirm password",
     "passwordConfirmationPlaceholder": "Repeat your password",
     "imageRequired": "An image is required",
+    "termsPrefix": "I agree to the",
+    "termsLink": "Terms of Service and Privacy Policy",
     "submit": "Sign Up",
     "errors": {
       "firstNameRequired": "Enter your first name",
@@ -124,6 +126,7 @@
       "passwordRequired": "Enter your password",
       "passwordConfirmationRequired": "Confirm your password",
       "passwordMismatch": "Passwords do not match!",
+      "termsRequired": "You must agree to the Terms of Service and Privacy Policy.",
       "captchaLoading": "Bot protection is loading. Please try again in a moment.",
       "generic": "Registration error"
     }
@@ -170,6 +173,13 @@
     "phoneNumber": "Phone number",
     "phoneFormatHint": "Format: +380 (XX) XXX-XX-XX",
     "city": "City",
+    "newsletter": {
+      "label": "Subscribe to Newsletter / Updates",
+      "description": "Get occasional emails about new features, offers and MultiMart news.",
+      "subscribed": "You're subscribed to the newsletter.",
+      "unsubscribed": "You've unsubscribed from the newsletter.",
+      "toggleFailed": "Failed to update your subscription. Please try again."
+    },
     "errors": {
       "nameLength": "2 to 100 characters",
       "saveFailed": "Failed to save changes.",

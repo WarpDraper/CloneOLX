@@ -58,7 +58,9 @@ const SellerProfilePage: React.FC = () => {
     const navigate = useNavigate();
 
     // Seed-hydrated sellers (see UserHomePage) use synthetic negative ids — never issue a real
-    // API request for those (backend rejects e.g. GET /api/User/get/-1747 with 400 Bad Request).
+    // API request for those (backend rejects e.g. GET /api/User/get/-1747 with 404 Not Found).
+    // RTK Query's isError flag fires for a 404 the same as any other error status, so the
+    // "seller not found" branch below already covers it without any extra handling.
     const isValidApiId = isRealUserId(id);
     const { data: apiSeller, isLoading, isError } = useGetSellerProfileQuery(id, { skip: !isValidApiId });
 
@@ -72,6 +74,7 @@ const SellerProfilePage: React.FC = () => {
         twoFactorEnabled: false,
         about: null,
         settlementRef: null,
+        newsletterSubscribed: false,
         adverts: [],
         favoriteAdverts: [],
         accountType: "Individual" as const,

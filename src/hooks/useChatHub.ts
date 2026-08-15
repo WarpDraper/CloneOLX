@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../store";
 import { APP_ENV } from "../env";
 import { chatService } from "../services/chatService";
+import { isTokenExpired } from "../utils/tokenUtils";
 import type { IChatMessage } from "../types/chat/IChatMessage";
 import type { ISetChatMessageReaded } from "../types/chat/ISetChatMessageReaded";
 
@@ -13,6 +14,14 @@ const HUB_METHODS = {
     CreateChat: "CreateChat",
     SetChatMessageReaded: "SetChatMessageReaded",
 } as const;
+
+// See usePresenceHub.ts for why both forms need checking: an unmount-during-negotiation
+// cancellation surfaces either as `err.name === "AbortError"` or as a plain Error whose message
+// contains this text, depending on transport/browser — both are expected/harmless.
+const isNegotiationAbortError = (err: unknown): boolean => {
+    const e = err as { name?: string; message?: string } | undefined;
+    return e?.name === "AbortError" || /stopped during negotiation/i.test(String(e?.message ?? ""));
+};
 
 interface UseChatHubOptions {
     onReceiveMessage?: (message: IChatMessage) => void;
@@ -37,7 +46,10 @@ export function useChatHub({ onReceiveMessage, onCreateChat, onMessagesReaded }:
     callbacksRef.current = { onReceiveMessage, onCreateChat, onMessagesReaded };
 
     useEffect(() => {
-        if (!token) return;
+        // A present-but-expired/invalid token must not attempt to connect — the API rejects it
+        // at /hub/negotiate with a 401 every time. Bail out the same as "no token" (see
+        // usePresenceHub.ts for the identical guard on the presence hub).
+        if (!token || isTokenExpired(token)) return;
 
         // Guards against the classic SignalR unmount race: if the component unmounts (route
         // change, React StrictMode's mount->unmount->mount in dev, fast token swap) while
@@ -53,6 +65,11 @@ export function useChatHub({ onReceiveMessage, onCreateChat, onMessagesReaded }:
                 accessTokenFactory: () => token,
             })
             .withAutomaticReconnect()
+            // See usePresenceHub.ts: silences SignalR's own internal logger (the "connection was
+            // stopped during negotiation" console noise on fast unmount/remount) — that case is
+            // already handled via isNegotiationAbortError below, so it's not a real error.
+            // Our own console.error calls further down are unaffected by this setting.
+            .configureLogging(signalR.LogLevel.None)
             .build();
 
         connection.on(HUB_METHODS.ReceiveChatMessage, (message: IChatMessage) => {
@@ -84,23 +101,29 @@ export function useChatHub({ onReceiveMessage, onCreateChat, onMessagesReaded }:
             callbacksRef.current.onMessagesReaded?.(payload);
         });
 
-        connection
-            .start()
-            .then(() => {
-                if (cancelled) {
-                    // Unmounted while we were still connecting — don't announce "Connect" for a
-                    // hub we're about to tear down anyway, just close it.
-                    return connection.stop().catch(() => undefined);
-                }
-                return connection.invoke("Connect").catch(() => undefined);
-            })
-            .catch((err) => {
-                // AbortError here just means the cleanup below cancelled an in-flight
-                // negotiation — expected during fast unmount/remount, not a real error.
-                if (err?.name !== "AbortError") {
-                    console.error("SignalR connection error:", err);
-                }
-            });
+        // Only start a fresh, still-Disconnected connection — guards against a stray
+        // double-invoke (React StrictMode, a re-run effect) trying to .start() a connection
+        // that's already connecting/connected, which SignalR rejects.
+        if (connection.state === signalR.HubConnectionState.Disconnected) {
+            connection
+                .start()
+                .then(() => {
+                    if (cancelled) {
+                        // Unmounted while we were still connecting — don't announce "Connect" for a
+                        // hub we're about to tear down anyway, just close it.
+                        return connection.stop().catch(() => undefined);
+                    }
+                    return connection.invoke("Connect").catch(() => undefined);
+                })
+                .catch((err) => {
+                    // A negotiation-abort here just means the cleanup below cancelled an
+                    // in-flight negotiation — expected during fast unmount/remount, not a real
+                    // error, and must never hit console.error.
+                    if (!isNegotiationAbortError(err)) {
+                        console.error("SignalR connection error:", err);
+                    }
+                });
+        }
 
         connectionRef.current = connection;
 

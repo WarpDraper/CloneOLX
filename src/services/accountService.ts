@@ -121,6 +121,18 @@ export const accountService = createApi({
             }),
         }),
 
+        // 11. НАЛАШТУВАННЯ РОЗСИЛКИ (Frame 336, "Підписка на новини"): POST /api/account/subscribe,
+        // точно відповідає Olx.BLL.Models.User.NewsletterSubscriptionModel ({ Subscribed: bool }).
+        // Приймає бажаний стан явно (не сліпе перемикання), тож повторний клік/ретрай ніколи не
+        // розходиться із сервером — відповідь повертає збережене значення.
+        setNewsletterSubscription: builder.mutation<{ subscribed: boolean }, boolean>({
+            query: (subscribed) => ({
+                url: "/subscribe",
+                method: "POST",
+                body: { Subscribed: subscribed },
+            }),
+        }),
+
     }),
 });
 
@@ -136,4 +148,5 @@ export const {
     useAddToFavoritesMutation,
     useRemoveFromFavoritesMutation,
     useEditUserMutation,
+    useSetNewsletterSubscriptionMutation,
 } = accountService;
