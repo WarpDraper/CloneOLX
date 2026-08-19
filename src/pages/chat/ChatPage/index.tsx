@@ -127,9 +127,8 @@ const ChatPage: React.FC = () => {
             ? selectedChat.seller.id
             : selectedChat.buyer.id
         : null;
-    // Chat counterparts can be seed-hydrated sellers with synthetic negative ids (see
-    // utils/seedHydration.ts) — the backend can never resolve those (GET /api/User/get/-1747 ->
-    // 400 Bad Request), so only fire the request for real, positive backend ids.
+    // Only fire the request once we have a real, positive backend user id (avoids a spurious
+    // GET /api/User/get/0 while state is still settling).
     const { data: counterpartProfile } = useGetSellerProfileQuery(counterpartId ?? 0, { skip: !isRealUserId(counterpartId) });
 
     const counterpartSeller = selectedChat
@@ -209,13 +208,13 @@ const ChatPage: React.FC = () => {
                                                 onClick={() => handlePickSellerAdvert(advert.id)}
                                                 className="flex items-center gap-3 border border-gray-100 rounded-lg p-2 hover:border-mm-purple transition-colors text-left"
                                             >
-                                                <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100 shrink-0">
+                                                <div className="relative w-12 h-12 aspect-square overflow-hidden rounded-md bg-gray-100 shrink-0">
                                                     <FallbackImage
                                                         src={imageUrl}
                                                         fallbackKeyword={advert.title}
                                                         uniqueSeed={advert.id}
                                                         alt={advert.title}
-                                                        className="w-full h-full object-cover"
+                                                        className="w-full h-full object-cover object-center scale-110"
                                                         placeholder={<div className="w-full h-full bg-gray-100" />}
                                                     />
                                                 </div>

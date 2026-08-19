@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -11,9 +11,13 @@ import {
     MinusOutlined,
     PlusOutlined,
     CarOutlined,
+    FlagOutlined,
+    QrcodeOutlined,
 } from "@ant-design/icons";
+import { Eye } from "lucide-react";
+import { Tooltip } from "antd";
 import type { RootState } from "../../../store";
-import { useGetAdvertByIdQuery, useBuyAdvertMutation, useGetAdvertsPageQuery, isRealAdvertId } from "../../../services/advertService";
+import { useGetAdvertByIdQuery, useBuyAdvertMutation, useGetAdvertsPageQuery } from "../../../services/advertService";
 import {
     useGetFavoritesQuery,
     useAddToFavoritesMutation,
@@ -24,10 +28,12 @@ import { addToCart } from "../../../store/cartSlice";
 import { addNotification } from "../../../store/notificationSlice";
 import AdvertGallery from "../../../components/advert/AdvertGallery";
 import SellerWidget from "../../../components/advert/SellerWidget";
+import ReportModal from "../../../components/common/ReportModal";
+import QrCodeModal from "../../../components/advert/QrCodeModal";
 import RatingStars from "../../../components/common/RatingStars";
 import AdvertCarousel from "../../../components/advert/AdvertCarousel";
 import { buildImageUrl, IMAGE_SIZES } from "../../../utils/buildImageUrl";
-import { getSeedAdverts, getSeedFilters } from "../../../utils/seedHydration";
+import { getConditionBadge } from "../../../utils/advertSpecs";
 
 const AdvertDetailsPage: React.FC = () => {
     const { t } = useTranslation();
@@ -46,19 +52,9 @@ const AdvertDetailsPage: React.FC = () => {
         { label: t("advertDetails.delivery.options.courierNovaPoshta.label"), note: "", price: t("advertDetails.delivery.carrierRate"), priceClass: "text-gray-500" },
     ];
 
-    // Seed-hydrated adverts use synthetic negative ids (see utils/seedHydration.ts) — never
-    // issue a real API request for those (backend rejects e.g. GET /api/Advert/get/-2149 with 400).
     const isValidApiId = Number.isFinite(advertId) && advertId > 0;
-    const { data: apiAdvert, isLoading, isError } = useGetAdvertByIdQuery(advertId, { skip: !isValidApiId });
-
-    // Фолбек на локальні seed-дані (adverts.seed.json), якщо C# API повернуло помилку/порожньо
-    // (offline dev / щойно піднята БД) — не застосовується, поки триває реальний запит.
-    const usingSeedFallback = !isValidApiId || (!isLoading && (isError || !apiAdvert));
-    const seedAdvert = useMemo(
-        () => (usingSeedFallback ? getSeedAdverts().find((a) => a.id === advertId) : undefined),
-        [usingSeedFallback, advertId]
-    );
-    const advert = apiAdvert ?? seedAdvert;
+    const { data: apiAdvert, isLoading } = useGetAdvertByIdQuery(advertId, { skip: !isValidApiId });
+    const advert = apiAdvert;
 
     const [buyAdvert, { isLoading: isBuying }] = useBuyAdvertMutation();
     const { data: favorites } = useGetFavoritesQuery(undefined, { skip: !isAuth });
@@ -66,21 +62,15 @@ const AdvertDetailsPage: React.FC = () => {
     const [removeFromFavorites] = useRemoveFromFavoritesMutation();
     const [getFiltersByRange, { data: filters }] = useGetFiltersByRangeMutation();
 
-    // Схожі оголошення з тієї ж категорії — POST /api/Advert/get/page (публічний),
-    // або з seed-даних, якщо саме оголошення теж прийшло з фолбека. 8 items = 2 pages of the
-    // 4-item "Також Вас можуть зацікавити" carousel below.
+    // Схожі оголошення з тієї ж категорії — POST /api/Advert/get/page (публічний). 8 items = 2
+    // pages of the 4-item "Також Вас можуть зацікавити" carousel below. If the API returns none,
+    // the carousel section below simply doesn't render (see AdvertCarousel usage) — no
+    // placeholder/mock cards.
     const { data: relatedPage } = useGetAdvertsPageQuery(
         { size: 8, page: 1, categoryIds: advert ? [advert.categoryId] : undefined, approved: true },
-        { skip: !advert || usingSeedFallback }
+        { skip: !advert }
     );
-    const seedRelatedAdverts = useMemo(
-        () =>
-            usingSeedFallback && advert
-                ? getSeedAdverts().filter((a) => a.categoryId === advert.categoryId && a.id !== advert.id)
-                : [],
-        [usingSeedFallback, advert]
-    );
-    const relatedAdverts = (usingSeedFallback ? seedRelatedAdverts : relatedPage?.items ?? [])
+    const relatedAdverts = (relatedPage?.items ?? [])
         .filter((a) => a.id !== advertId)
         .slice(0, 8);
 
@@ -89,22 +79,17 @@ const AdvertDetailsPage: React.FC = () => {
     // (AdvertFilter.UserId) and excluding the advert currently open.
     const { data: sellerPage } = useGetAdvertsPageQuery(
         { size: 8, page: 1, userId: advert?.userId, approved: true },
-        { skip: !advert || usingSeedFallback }
+        { skip: !advert }
     );
-    const seedSellerAdverts = useMemo(
-        () =>
-            usingSeedFallback && advert
-                ? getSeedAdverts().filter((a) => a.userId === advert.userId && a.id !== advert.id)
-                : [],
-        [usingSeedFallback, advert]
-    );
-    const sellerAdverts = (usingSeedFallback ? seedSellerAdverts : sellerPage?.items ?? [])
+    const sellerAdverts = (sellerPage?.items ?? [])
         .filter((a) => a.id !== advertId)
         .slice(0, 8);
 
     const [quantity, setQuantity] = useState(1);
     const [isSpecsOpen, setIsSpecsOpen] = useState(true);
     const [isPhoneRevealed, setIsPhoneRevealed] = useState(false);
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+    const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
     const isFavorite = !!advert && !!favorites?.some((f) => f.id === advert.id);
 
@@ -131,17 +116,6 @@ const AdvertDetailsPage: React.FC = () => {
         action();
     };
 
-    // Seed-fallback adverts (synthetic negative id, offline/no-DB demo mode) have no real
-    // backend record — buying/favoriting/messaging them would 400. Block those actions here
-    // instead of letting the request go out.
-    const requireRealAdvert = (action: () => void) => {
-        if (!isRealAdvertId(advert.id)) {
-            dispatch(addNotification({ type: "error", title: t("advertDetails.demoUnavailable.title"), message: t("advertDetails.demoUnavailable.message") }));
-            return;
-        }
-        action();
-    };
-
     // Was missing the auth check other "add to cart" entry points already have — unauthenticated
     // users must never get the item added or the "Додано в кошик" toast, just a redirect.
     const handleAddToCart = () => requireAuth(() => {
@@ -156,33 +130,42 @@ const AdvertDetailsPage: React.FC = () => {
         dispatch(addNotification({ type: "success", title: t("cart.addedTitle"), message: advert.title }));
     });
 
-    const handleBuy = () => requireAuth(() => requireRealAdvert(async () => {
+    const handleBuy = () => requireAuth(async () => {
         await buyAdvert(advert.id).unwrap();
         dispatch(addNotification({ type: "success", title: t("advertDetails.purchase.successTitle"), message: advert.title }));
-    }));
+    });
 
-    const handleToggleFavorite = () => requireAuth(() => requireRealAdvert(async () => {
+    const handleToggleFavorite = () => requireAuth(async () => {
         if (isFavorite) {
             await removeFromFavorites(advert.id).unwrap();
         } else {
             await addToFavorites(advert.id).unwrap();
         }
-    }));
+    });
 
-    const handleMessage = () => requireAuth(() => requireRealAdvert(() => navigate(`/chat?advertId=${advert.id}`)));
+    const handleMessage = () => requireAuth(() => navigate(`/chat?advertId=${advert.id}`));
 
     const handleShowPhone = () => requireAuth(() => setIsPhoneRevealed(true));
 
-    // Resolve each filter id to a human-readable title. Prefer the live API result
-    // (`filters`, fetched by id above); when that's empty/unavailable (offline dev, or the
-    // advert itself came from the seed fallback and carries synthetic filter ids the real API
-    // can't resolve), fall back to the local filters.seed.json catalogue by id. Only as a last
-    // resort do we fall back to the raw "Характеристика #id" placeholder.
-    const characteristicsRows = advert.filterValues.map((fv) => {
-        const filter = filters?.find((f) => f.id === fv.filterId);
-        const seedFilter = !filter ? getSeedFilters().find((f) => f.id === fv.filterId) : undefined;
-        return { key: filter?.name ?? seedFilter?.name ?? t("advertDetails.unknownCharacteristic", { id: fv.filterId }), value: fv.value };
-    });
+    const handleReport = () => requireAuth(() => setIsReportModalOpen(true));
+
+    // Resolve each filter id to a human-readable title from the live API result. Falls back to
+    // the raw "Характеристика #id" placeholder only if the filter definition isn't loaded yet.
+    const conditionBadge = getConditionBadge(advert);
+    const characteristicsRows = [
+        // Condition ("Стан") goes first — omitted entirely when condition is None (services,
+        // pets, real estate, etc. where "new/used" doesn't apply).
+        ...(conditionBadge
+            ? [{
+                key: t("adverts.condition.label"),
+                value: conditionBadge.type === "new" ? t("adverts.condition.new") : t("adverts.condition.used"),
+            }]
+            : []),
+        ...advert.filterValues.map((fv) => {
+            const filter = filters?.find((f) => f.id === fv.filterId);
+            return { key: filter?.name ?? t("advertDetails.unknownCharacteristic", { id: fv.filterId }), value: fv.value };
+        }),
+    ];
 
     return (
         <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-6">
@@ -204,6 +187,15 @@ const AdvertDetailsPage: React.FC = () => {
                         >
                             {isFavorite ? <HeartFilled /> : <HeartOutlined />}
                         </button>
+                    </div>
+
+                    <div className="text-xs text-neutral-500 flex items-center gap-4">
+                        <span>
+                            {t("adverts.details.id")}: {advert.id}
+                        </span>
+                        <span className="flex items-center gap-1">
+                            <Eye size={14} /> {advert.viewCount ?? 0} {t("adverts.details.views")}
+                        </span>
                     </div>
 
                     {advert.user && advert.user.reviewsCount > 0 && (
@@ -298,8 +290,37 @@ const AdvertDetailsPage: React.FC = () => {
                             <SellerWidget seller={advert.user} />
                         </div>
                     )}
+
+                    <div className="flex items-center justify-center gap-4 py-1">
+                        <Tooltip title={t("advertDetails.qr.buttonLabel")}>
+                            <button
+                                type="button"
+                                onClick={() => setIsQrModalOpen(true)}
+                                aria-label={t("advertDetails.qr.buttonLabel")}
+                                className="flex items-center justify-center gap-1.5 text-xs font-medium text-gray-400 hover:text-mm-purple transition-colors"
+                            >
+                                <QrcodeOutlined />
+                            </button>
+                        </Tooltip>
+                        <span className="text-gray-200">|</span>
+                        <button
+                            type="button"
+                            onClick={handleReport}
+                            className="flex items-center justify-center gap-1.5 text-xs font-medium text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                            <FlagOutlined /> {t("advertDetails.reportButton")}
+                        </button>
+                    </div>
                 </div>
             </div>
+
+            <ReportModal
+                open={isReportModalOpen}
+                onClose={() => setIsReportModalOpen(false)}
+                target={{ type: "advert", id: advert.id }}
+            />
+
+            <QrCodeModal open={isQrModalOpen} onClose={() => setIsQrModalOpen(false)} />
 
             <div className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 flex flex-col gap-8">

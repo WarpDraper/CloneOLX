@@ -175,13 +175,13 @@ const ChatThreadList: React.FC<ChatThreadListProps> = ({ chats, currentUserId, s
                                     active ? "bg-mm-lavender" : "hover:bg-gray-50"
                                 }`}
                             >
-                                <div className="relative w-10 h-10 rounded-full bg-mm-lavender flex items-center justify-center overflow-hidden shrink-0">
+                                <div className="relative w-10 h-10 rounded-full bg-mm-lavender flex items-center justify-center overflow-hidden shrink-0 aspect-square">
                                     <FallbackImage
                                         src={avatarUrl}
                                         fallbackKeyword={counterpart.description}
                                         uniqueSeed={counterpart.id}
                                         alt={counterpart.description}
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full object-cover object-center scale-110"
                                         placeholder={<UserOutlined className="text-mm-purple" />}
                                     />
                                     <PresenceDot userId={counterpart.id} />

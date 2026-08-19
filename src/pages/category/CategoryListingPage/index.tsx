@@ -4,30 +4,21 @@ import { Pagination, Slider } from "antd";
 import { AppstoreOutlined, CloseOutlined, SearchOutlined, UnorderedListOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import { useGetCategoryTreeByIdQuery } from "../../../services/categoryService";
-import { useGetAdvertsPageQuery, isRealAdvertId } from "../../../services/advertService";
+import { useGetAdvertsPageQuery } from "../../../services/advertService";
 import { useGetFiltersByRangeMutation } from "../../../services/filterService";
 import { useAddToFavoritesMutation, useGetFavoritesQuery, useRemoveFromFavoritesMutation } from "../../../services/accountService";
 import { useGetAreasQuery, useGetRegionsByAreaQuery } from "../../../services/newPostService";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
-import AdvertCard from "../../../components/advert/AdvertCard";
-import AdvertListItem from "../../../components/advert/AdvertListItem";
+import AdvertList from "../../../components/advert/AdvertList";
 import FallbackImage from "../../../components/common/FallbackImage";
 import CubeLoader from "../../../components/common/CubeLoader";
 import { buildImageUrl, IMAGE_SIZES } from "../../../utils/buildImageUrl";
 import type { IAdvert } from "../../../types/advert/IAdvert";
 import type { IFilter } from "../../../types/filter/IFilter";
 import type { ICategory } from "../../../types/category/ICategory";
-import {
-    findSeedCategoryById,
-    getSeedAdverts,
-    getSeedFiltersByNames,
-    getSeedRecommendedAdverts,
-    detectTopLevelCategoryFromSearch,
-    matchesAllWords,
-    matchesTitle,
-} from "../../../utils/seedHydration";
 import { arrangeFeedWithTopAds } from "../../../utils/arrangeFeedWithTopAds";
+import { CONDITION_FILTER_NAME, isConditionApplicable } from "../../../utils/advertSpecs";
 import { UA_CITIES } from "../../../data/ukrainianCities";
 import { useMinLoadingTime } from "../../../hooks/useMinLoadingTime";
 
@@ -128,25 +119,8 @@ const CategoryListingPage: React.FC = () => {
     // Повне піддерево (з усіма вкладеними підкатегоріями), а не лише один рівень — потрібно
     // для строгої фільтрації "категорія + всі її підкатегорії" нижче.
     const { data: category } = useGetCategoryTreeByIdQuery(categoryId!, { skip: !categoryId });
-    // Офлайн-фолбек: якщо реальний API категорій недоступний (бекенд лежить / щойно піднята
-    // БД), резолвимо категорію із seed-дерева за тим самим id, щоб хлібні крихти, підкатегорії
-    // та фасети відпрацьовували і в офлайн-режимі.
-    const seedCategory = useMemo(
-        () => (categoryId !== undefined ? findSeedCategoryById(categoryId) : undefined),
-        [categoryId]
-    );
-    const effectiveCategory = category ?? seedCategory;
-
-    // Auto-detect the top-level category a free-text search belongs to (e.g. "авто" -> "Авто")
-    // when the user isn't already browsing a specific category (plain /search?q=... route).
-    // Only used to drive the sidebar's dynamic filters and breadcrumb below — it never
-    // restricts which adverts are listed, so it can't hide legitimate cross-category matches
-    // or interfere with the real API's own (unscoped) search query.
-    const detectedCategory = useMemo(
-        () => (!categoryId && searchText ? detectTopLevelCategoryFromSearch(searchText) : undefined),
-        [categoryId, searchText]
-    );
-    const displayCategory = effectiveCategory ?? detectedCategory;
+    const effectiveCategory = category;
+    const displayCategory = effectiveCategory;
 
     const { data: favorites } = useGetFavoritesQuery(undefined, { skip: !isAuth });
     const [addToFavorites] = useAddToFavoritesMutation();
@@ -160,14 +134,7 @@ const CategoryListingPage: React.FC = () => {
         }
     }, [category, getFiltersByRange]);
 
-    // Фолбек на локальні seed-фільтри (filters.seed.json), якщо бекенд не повернув фасетів
-    // (порожньо/помилка/ще не завантажено) — підбираються за іменами (`category.filterNames`),
-    // які присутні і в реальних категоріях з API, і в seed-гідратованих.
-    const seedFacetDefinitions = useMemo(
-        () => (displayCategory ? getSeedFiltersByNames(displayCategory.filterNames) : []),
-        [displayCategory]
-    );
-    const facets = facetDefinitions && facetDefinitions.length > 0 ? facetDefinitions : seedFacetDefinitions;
+    const facets = facetDefinitions ?? [];
     // filterId -> name, resolved from whichever facet set is active — passed to cards so they
     // can label short specs (engine, RAM, brand...) without an extra per-card lookup.
     const filterNameById = useMemo(
@@ -186,8 +153,8 @@ const CategoryListingPage: React.FC = () => {
         [selectedFacets]
     );
 
-    // Категорія + всі її підкатегорії — і для реального API запиту, і для клієнтської
-    // фільтрації seed-фолбеку нижче. Ніколи не показуємо весь каталог, коли обрано категорію.
+    // Категорія + всі її підкатегорії — для реального API запиту. Ніколи не показуємо весь
+    // каталог, коли обрано категорію.
     const matchingCategoryIds = useMemo(() => {
         if (!categoryId) return undefined;
         return effectiveCategory ? collectCategoryIds(effectiveCategory) : [categoryId];
@@ -212,91 +179,30 @@ const CategoryListingPage: React.FC = () => {
         approved: true,
     });
 
-    // Фолбек на локальні seed-дані (Adverts.json), якщо бекенд не повернув оголошень
-    // (offline dev / щойно піднята БД). Не застосовується, поки триває реальний запит.
     const apiAdverts = page1Response?.items ?? [];
-    const usingSeedFallback = !isAdvertsPageLoading && apiAdverts.length === 0;
     // Keeps the CubeLoader overlay visible for at least 500ms so it never flashes on/off
-    // for fast responses/cached seed-data fallbacks.
+    // for fast responses.
     const isLoading = useMinLoadingTime(isAdvertsPageLoading, 500);
 
-    // Строга клієнтська фільтрація/сортування seed-даних — дзеркалить те, що реальний API
-    // робить на бекенді (категорія + підкатегорії, ціна, обрані фасети), без фолбеку на
-    // "показати все", якщо після фільтрації нічого не залишилось.
-    const filteredSeedAdverts = useMemo(() => {
-        if (!usingSeedFallback) return [];
-        let list = getSeedAdverts();
-
-        if (matchingCategoryIds) {
-            const idSet = new Set(matchingCategoryIds);
-            list = list.filter((a) => idSet.has(a.categoryId));
-        }
-        if (appliedPriceFrom !== undefined) list = list.filter((a) => a.price >= appliedPriceFrom);
-        if (appliedPriceTo !== undefined) list = list.filter((a) => a.price <= appliedPriceTo);
-        if (filterGroups.length > 0) {
-            list = list.filter((a) =>
-                filterGroups.every((group) => group.some((valueId) => a.filterValues.some((fv) => fv.id === valueId)))
-            );
-        }
-        if (searchText) {
-            // Standalone-word match over title + description + category name — "авто" matches
-            // "Авто продам" or a "Авто" category, but not "автономне опалення"/"автоматична
-            // коробка". Never falls back to the unfiltered list, so an unmatched query correctly
-            // shows "Нічого не знайдено" instead of the whole catalog.
-            list = list.filter(
-                (a) =>
-                    matchesAllWords(a.title, searchText) ||
-                    matchesAllWords(a.description, searchText) ||
-                    matchesAllWords(a.categoryName, searchText)
-            );
-        }
-        if (city) {
-            list = list.filter((a) => a.settlementName === city);
-        }
-        // Note: seed-fallback adverts don't carry real Nova Poshta regionRef/areaRef (offline
-        // fixture data has no such hierarchy attached), so the Area/Region radius filter below is
-        // only enforced against the real API — it's a no-op in seed-fallback mode.
-
-        const sorted = [...list].sort((a, b) => {
-            if (sort === "cheap") return a.price - b.price;
-            if (sort === "expensive") return b.price - a.price;
-            if (sort === "popularity") return b.favoritesCount - a.favoritesCount;
-            return new Date(b.date).getTime() - new Date(a.date).getTime();
-        });
-
-        if (!searchText) return sorted;
-
-        // Prioritize title matches over description-only matches, preserving the chosen
-        // sort order within each group (Array#sort is stable).
-        return [...sorted].sort((a, b) => Number(matchesTitle(b, searchText)) - Number(matchesTitle(a, searchText)));
-    }, [usingSeedFallback, matchingCategoryIds, appliedPriceFrom, appliedPriceTo, filterGroups, searchText, city, sort]);
-
-    const pagedSeedAdverts = useMemo(
-        () => filteredSeedAdverts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
-        [filteredSeedAdverts, page]
-    );
-
-    const rawAdverts = usingSeedFallback ? pagedSeedAdverts : apiAdverts;
-    const total = usingSeedFallback ? filteredSeedAdverts.length : page1Response?.total ?? 0;
+    const rawAdverts = apiAdverts;
+    const total = page1Response?.total ?? 0;
     // Reorder so a premium ("ТОП") card lands after every 4-5 regular ones.
     const adverts = useMemo(() => arrangeFeedWithTopAds(rawAdverts), [rawAdverts]);
 
     // "Схожі товари" fallback: when the current search/filter combination has zero matches,
-    // fetch (real API) or sample (seed-fallback) an unfiltered set so the page never dead-ends on
-    // "Нічого не знайдено" with no way forward — matches the "continuous fallback / seamless
-    // scrolling" spec. Only fetched once the primary result is confirmed empty.
+    // fetch an unfiltered set from the real API so the page never dead-ends on
+    // "Нічого не знайдено" with no way forward. Only fetched once the primary result is
+    // confirmed empty. If the API itself returns nothing, this section simply doesn't render —
+    // no mock/placeholder cards.
     const needsFallbackRecommendations = !isLoading && total === 0;
     const { data: fallbackPageResponse } = useGetAdvertsPageQuery(
         { size: FALLBACK_RECOMMENDATIONS_COUNT, page: 1, sortKey: "random", isDescending: true, approved: true },
-        { skip: !needsFallbackRecommendations || usingSeedFallback }
+        { skip: !needsFallbackRecommendations }
     );
     const fallbackRecommendations = useMemo(() => {
         if (!needsFallbackRecommendations) return [];
-        const source = usingSeedFallback
-            ? getSeedRecommendedAdverts(FALLBACK_RECOMMENDATIONS_COUNT)
-            : fallbackPageResponse?.items ?? [];
-        return arrangeFeedWithTopAds(source);
-    }, [needsFallbackRecommendations, usingSeedFallback, fallbackPageResponse]);
+        return arrangeFeedWithTopAds(fallbackPageResponse?.items ?? []);
+    }, [needsFallbackRecommendations, fallbackPageResponse]);
 
     const setPage = (newPage: number) => {
         const next = new URLSearchParams(searchParams);
@@ -323,9 +229,6 @@ const CategoryListingPage: React.FC = () => {
 
     const handleToggleFavorite = (advert: IAdvert) => {
         if (!isAuth) return;
-        // Seed-fallback cards (synthetic negative id) have no real backend record — favoriting
-        // them would 400 the API (see isRealAdvertId).
-        if (!isRealAdvertId(advert.id)) return;
         const isFav = favorites?.some((f) => f.id === advert.id);
         if (isFav) {
             removeFromFavorites(advert.id);
@@ -400,24 +303,35 @@ const CategoryListingPage: React.FC = () => {
             </h1>
 
             {displayCategory && displayCategory.childs.length > 0 && (
-                <div className="flex gap-6 overflow-x-auto pb-2 mb-8 justify-center">
+                // overflow-x-auto + scrollbar-hide: smooth native horizontal scroll with no
+                // visible scrollbar track. No justify-center here on purpose — centering a
+                // flex row that's wider than its container pushes the first tiles off-screen
+                // to the left, which is what made the rail feel like it "overflowed abruptly"
+                // and made scrolling to the start awkward.
+                <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide px-4 py-2 mb-8">
                     {displayCategory.childs.map((child) => (
                         <Link
                             key={child.id}
                             to={`/category/${child.id}`}
-                            className="flex flex-col items-center gap-2 shrink-0 w-[90px] group"
+                            className="flex flex-col items-center gap-2 flex-shrink-0 w-20 md:w-24 group"
                         >
-                            <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 border-2 border-transparent group-hover:border-mm-purple transition-colors">
+                            <div className="relative w-16 h-16 aspect-square rounded-full overflow-hidden flex-shrink-0 bg-gray-100 border-2 border-transparent group-hover:border-mm-purple transition-colors">
                                 <FallbackImage
                                     src={buildImageUrl(child.image, IMAGE_SIZES.thumbnail)}
                                     fallbackKeyword={child.name}
                                     uniqueSeed={child.id}
                                     alt={child.name}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-cover object-center scale-125"
                                     placeholder={<div className="w-full h-full flex items-center justify-center"><AppstoreOutlined className="text-mm-purple" /></div>}
                                 />
                             </div>
-                            <span className="text-xs text-center text-gray-600 group-hover:text-mm-purple leading-tight">{child.name}</span>
+                            {/* line-clamp-2 + fixed tile width: long labels (e.g. "Продукти
+                                харчування / напої") wrap to at most 2 tidy lines instead of
+                                breaking into ragged multi-line fragments or overflowing the
+                                tile's border. */}
+                            <span className="text-xs text-center text-gray-600 group-hover:text-mm-purple leading-tight line-clamp-2 w-full">
+                                {child.name}
+                            </span>
                         </Link>
                     ))}
                 </div>
@@ -543,6 +457,15 @@ const CategoryListingPage: React.FC = () => {
                     </div>
 
                     {facets.map((facet) => {
+                        // "Стан" ("condition") doesn't apply to services/jobs/real estate/pets/etc
+                        // — never render the New/Used facet there, even if a category was ever
+                        // misconfigured with the "Стан" filter attached to it. See
+                        // isConditionApplicable in utils/advertSpecs.ts for the same rule applied
+                        // to the AdvertDetailsPage spec row and the condition badge on cards.
+                        if (facet.name === CONDITION_FILTER_NAME && !isConditionApplicable(displayCategory?.name, displayCategory?.slug)) {
+                            return null;
+                        }
+
                         const values = facet.values ?? [];
                         const label = facetNameById.get(facet.id) ?? facet.name;
 
@@ -717,30 +640,14 @@ const CategoryListingPage: React.FC = () => {
                         </div>
                     ) : adverts.length === 0 ? (
                         <p className="text-center text-gray-400 py-16">{t('categoryListing.noResults')}</p>
-                    ) : viewMode === "grid" ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 items-start">
-                            {adverts.map((advert) => (
-                                <AdvertCard
-                                    key={advert.id}
-                                    advert={advert}
-                                    onToggleFavorite={handleToggleFavorite}
-                                    isFavorite={favorites?.some((f) => f.id === advert.id) ?? false}
-                                    filterNameById={filterNameById}
-                                />
-                            ))}
-                        </div>
                     ) : (
-                        <div className="flex flex-col gap-3">
-                            {adverts.map((advert) => (
-                                <AdvertListItem
-                                    key={advert.id}
-                                    advert={advert}
-                                    onToggleFavorite={handleToggleFavorite}
-                                    isFavorite={favorites?.some((f) => f.id === advert.id) ?? false}
-                                    filterNameById={filterNameById}
-                                />
-                            ))}
-                        </div>
+                        <AdvertList
+                            adverts={adverts}
+                            viewMode={viewMode}
+                            onToggleFavorite={handleToggleFavorite}
+                            isFavorite={(advert) => favorites?.some((f) => f.id === advert.id) ?? false}
+                            filterNameById={filterNameById}
+                        />
                     )}
 
                     {total > PAGE_SIZE && (
@@ -759,29 +666,12 @@ const CategoryListingPage: React.FC = () => {
                                 <span className="text-sm font-semibold text-gray-400 shrink-0">{t('categoryListing.similarProducts')}</span>
                                 <div className="h-px flex-1 bg-gray-200" />
                             </div>
-                            {viewMode === "grid" ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 items-start">
-                                    {fallbackRecommendations.map((advert) => (
-                                        <AdvertCard
-                                            key={advert.id}
-                                            advert={advert}
-                                            onToggleFavorite={handleToggleFavorite}
-                                            isFavorite={favorites?.some((f) => f.id === advert.id) ?? false}
-                                        />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="flex flex-col gap-3">
-                                    {fallbackRecommendations.map((advert) => (
-                                        <AdvertListItem
-                                            key={advert.id}
-                                            advert={advert}
-                                            onToggleFavorite={handleToggleFavorite}
-                                            isFavorite={favorites?.some((f) => f.id === advert.id) ?? false}
-                                        />
-                                    ))}
-                                </div>
-                            )}
+                            <AdvertList
+                                adverts={fallbackRecommendations}
+                                viewMode={viewMode}
+                                onToggleFavorite={handleToggleFavorite}
+                                isFavorite={(advert) => favorites?.some((f) => f.id === advert.id) ?? false}
+                            />
                         </div>
                     )}
                 </div>

@@ -72,11 +72,11 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ seller, advert }) => {
     return (
         <div className="flex flex-col gap-4 h-full overflow-y-auto p-4">
             <div className="flex flex-col items-center text-center gap-2 pb-4 border-b border-gray-100">
-                <div className="w-20 h-20 rounded-full bg-mm-lavender flex items-center justify-center overflow-hidden">
+                <div className="relative aspect-square w-20 h-20 rounded-full bg-mm-lavender flex items-center justify-center overflow-hidden shrink-0">
                     <ImageWithFallback
                         src={avatarUrl}
                         alt={displayName}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover object-center scale-110"
                         fallback={<UserOutlined className="text-mm-purple text-2xl" />}
                     />
                 </div>

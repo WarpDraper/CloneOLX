@@ -79,7 +79,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     const bottomRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+        // block: "nearest" keeps this scroll contained to the messages list's own
+        // `overflow-y-auto` container. Without it, scrollIntoView's default ("start") walks up
+        // every scrollable ancestor — including the outer page — and was yanking the whole page
+        // down to the chat window every time a message was sent/received.
+        bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }, [messages.length]);
 
     const handleSend = () => {
@@ -123,11 +127,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                 to={`/advert/${advert.id}`}
                 className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors shrink-0"
             >
-                <div className="w-11 h-11 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+                <div className="relative w-11 h-11 aspect-square overflow-hidden rounded-lg bg-gray-100 shrink-0">
                     <FallbackImage
                         src={advert.imageUrl}
                         alt={advert.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover object-center scale-110"
                         placeholder={<div className="w-full h-full" />}
                     />
                 </div>

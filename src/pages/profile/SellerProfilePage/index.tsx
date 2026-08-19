@@ -1,14 +1,15 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
-import { UserOutlined, MessageOutlined, CalendarOutlined, StarFilled, CommentOutlined } from "@ant-design/icons";
+import { UserOutlined, MessageOutlined, CalendarOutlined, StarFilled, CommentOutlined, FlagOutlined } from "@ant-design/icons";
 import { useGetSellerProfileQuery, isRealUserId } from "../../../services/profileService";
 import { useGetAdvertsByRangeMutation } from "../../../services/advertService";
 import { buildImageUrl, IMAGE_SIZES } from "../../../utils/buildImageUrl";
 import FallbackImage from "../../../components/common/FallbackImage";
-import { findSeedSellerById } from "../../../utils/seedHydration";
-import type { ISellerProfile } from "../../../types/user/ISellerProfile";
+import ReportModal from "../../../components/common/ReportModal";
 import type { IAdvert } from "../../../types/advert/IAdvert";
+import type { RootState } from "../../../store";
 import RatingStars from "../../../components/common/RatingStars";
 import OnlineStatusBadge from "../../../components/common/OnlineStatusBadge";
 import AdvertCard from "../../../components/advert/AdvertCard";
@@ -29,13 +30,13 @@ const SoldListingTile: React.FC<{ advert: IAdvert }> = ({ advert }) => {
             <span className="absolute top-2 left-2 z-10 text-[10px] font-semibold px-2 py-1 rounded-full bg-mm-navy text-white">
                 {t('sellerProfile.sold.badge')}
             </span>
-            <div className="h-[180px] w-full overflow-hidden bg-gray-100 shrink-0">
+            <div className="relative w-full aspect-[4/3] overflow-hidden rounded-xl bg-neutral-900 shrink-0">
                 <FallbackImage
                     src={imageUrl}
                     fallbackKeyword={advert.title}
                     uniqueSeed={advert.id || advert.title}
                     alt={advert.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover object-center scale-105 hover:scale-110 transition-transform duration-300"
                     placeholder={
                         <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">{t('common.noPhoto')}</div>
                     }
@@ -56,29 +57,13 @@ const SellerProfilePage: React.FC = () => {
     const { sellerId } = useParams<{ sellerId: string }>();
     const id = Number(sellerId);
     const navigate = useNavigate();
+    const { isAuth, user } = useSelector((state: RootState) => state.auth);
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
-    // Seed-hydrated sellers (see UserHomePage) use synthetic negative ids — never issue a real
-    // API request for those (backend rejects e.g. GET /api/User/get/-1747 with 404 Not Found).
-    // RTK Query's isError flag fires for a 404 the same as any other error status, so the
-    // "seller not found" branch below already covers it without any extra handling.
+    // id <= 0/NaN is never a real backend id — skip the request instead of firing it (backend
+    // rejects e.g. GET /api/User/get/-1 or /get/0 with 404 Not Found).
     const isValidApiId = isRealUserId(id);
-    const { data: apiSeller, isLoading, isError } = useGetSellerProfileQuery(id, { skip: !isValidApiId });
-
-    // Fall back to the local seed seller instead — same fields the UI needs, just no linked
-    // adverts (seed adverts aren't reliably attributable back to a synthetic seller id).
-    const seedSeller = useMemo(() => (isValidApiId ? undefined : findSeedSellerById(id)), [isValidApiId, id]);
-    const seller: ISellerProfile | undefined = apiSeller ?? (seedSeller && {
-        ...seedSeller,
-        emailConfirmed: true,
-        phoneNumberConfirmed: true,
-        twoFactorEnabled: false,
-        about: null,
-        settlementRef: null,
-        newsletterSubscribed: false,
-        adverts: [],
-        favoriteAdverts: [],
-        accountType: "Individual" as const,
-    });
+    const { data: seller, isLoading, isError } = useGetSellerProfileQuery(id, { skip: !isValidApiId });
 
     const [getAdvertsByRange, { data: adverts, isLoading: isAdvertsLoading }] = useGetAdvertsByRangeMutation();
 
@@ -93,7 +78,18 @@ const SellerProfilePage: React.FC = () => {
     }
 
     if (isError || !seller) {
-        return <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-16 text-center text-gray-400">{t('sellerProfile.notFound')}</div>;
+        return (
+            <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-16 flex flex-col items-center justify-center text-center gap-4">
+                <UserOutlined className="text-4xl text-gray-300" />
+                <p className="text-gray-500 text-base font-medium">{t('sellerProfile.notFound')}</p>
+                <Link
+                    to="/"
+                    className="inline-flex items-center justify-center bg-mm-purple hover:bg-mm-purple-dark text-white font-bold text-sm px-6 py-2.5 rounded-lg transition-colors"
+                >
+                    {t('sellerProfile.backToHome')}
+                </Link>
+            </div>
+        );
     }
 
     const displayName = [seller.firstName, seller.lastName].filter(Boolean).join(" ") || t('sellerProfile.defaultName');
@@ -106,13 +102,13 @@ const SellerProfilePage: React.FC = () => {
         <div className="min-h-screen flex flex-col">
         <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-8 flex-1 w-full">
             <div className="bg-white rounded-xl border border-gray-100 p-6 flex flex-col sm:flex-row sm:items-center gap-6 mb-8 shadow-sm">
-                <div className="w-24 h-24 rounded-full bg-mm-lavender flex items-center justify-center overflow-hidden shrink-0">
+                <div className="relative w-24 h-24 rounded-full bg-mm-lavender flex items-center justify-center overflow-hidden shrink-0 aspect-square">
                     <FallbackImage
                         src={avatarUrl}
                         fallbackKeyword={displayName}
                         uniqueSeed={id}
                         alt={displayName}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover object-center scale-110"
                         placeholder={<UserOutlined className="text-mm-purple text-3xl" />}
                     />
                 </div>
@@ -132,14 +128,33 @@ const SellerProfilePage: React.FC = () => {
                     </div>
                 </div>
 
-                <button
-                    type="button"
-                    onClick={() => navigate(`/chat?sellerId=${seller.id}`)}
-                    className="flex items-center justify-center gap-2 bg-mm-purple hover:bg-mm-purple-dark text-white font-bold text-sm px-6 py-2.5 rounded-lg transition-all duration-300 hover:-translate-y-1 shrink-0"
-                >
-                    <MessageOutlined /> {t('sellerProfile.messageSeller')}
-                </button>
+                <div className="flex flex-col items-stretch sm:items-end gap-2 shrink-0">
+                    <button
+                        type="button"
+                        onClick={() => navigate(`/chat?sellerId=${seller.id}`)}
+                        className="flex items-center justify-center gap-2 bg-mm-purple hover:bg-mm-purple-dark text-white font-bold text-sm px-6 py-2.5 rounded-lg transition-all duration-300 hover:-translate-y-1"
+                    >
+                        <MessageOutlined /> {t('sellerProfile.messageSeller')}
+                    </button>
+                    {(!isAuth || user?.id !== seller.id) && (
+                        <button
+                            type="button"
+                            onClick={() => (isAuth ? setIsReportModalOpen(true) : navigate("/login"))}
+                            className="flex items-center justify-center gap-1.5 text-xs font-medium text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                            <FlagOutlined /> {t('sellerProfile.reportButton')}
+                        </button>
+                    )}
+                </div>
             </div>
+
+            {isValidApiId && (
+                <ReportModal
+                    open={isReportModalOpen}
+                    onClose={() => setIsReportModalOpen(false)}
+                    target={{ type: "user", id: seller.id }}
+                />
+            )}
 
             {/* 1. Buyer reviews — summarized from the seller's real rating/reviewsCount fields
                 (no fabricated per-review text: the backend has no reviews endpoint yet). */}

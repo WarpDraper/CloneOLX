@@ -1,5 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { createBaseQuery } from "../utils/createBaseQuery";
+import { categoryService } from "./categoryService";
+import type { ICategory } from "../types/category/ICategory";
 
 // Shapes returned by OLX.API.Controllers.AdminController — kept local to this slice since
 // they're admin-dashboard-specific projections, not the general-purpose account/advert DTOs.
@@ -71,7 +73,7 @@ export interface IAdminOverview {
 export const adminService = createApi({
     reducerPath: "adminService",
     baseQuery: createBaseQuery("Admin"),
-    tagTypes: ['User', 'Report', 'Order', 'Product', 'Overview', 'Seller'],
+    tagTypes: ['User', 'Report', 'Order', 'Product', 'Overview', 'Seller', 'NewsletterStats'],
     endpoints: (builder) => ({
         getUsers: builder.query<IAdminUserItem[], void>({
             query: () => ({
@@ -121,6 +123,71 @@ export const adminService = createApi({
             providesTags: ['Seller'],
         }),
 
+        // PUT /api/admin/categories/{id} (multipart/form-data) — see AdminController.UpdateCategory
+        // / CategoryService.EditAsync / CategoryCreationModelValidator on the backend.
+        //
+        // AutoMapper's CreateMap<CategoryCreationModel, Category>() maps every field unconditionally
+        // (including nulls over existing values), so every field CategoryService reads must be
+        // resent on every edit, not just the image — `category` below is the row exactly as loaded
+        // from GET /api/category/get, used to repopulate everything except the image itself.
+        //
+        // Image semantics mirror CategoryService.EditAsync exactly:
+        //   - imageFile provided        -> replace (old file deleted, new one saved)
+        //   - no imageFile, removeImage -> clear (CurrentImage omitted/empty -> old file deleted, Image set null)
+        //   - no imageFile, keep        -> CurrentImage = category.image -> left untouched
+        updateCategoryImage: builder.mutation<
+            ICategory,
+            { id: number; category: ICategory; imageFile?: File | null; removeImage?: boolean }
+        >({
+            query: ({ id, category, imageFile, removeImage }) => {
+                const formData = new FormData();
+                formData.append("Id", String(id));
+                formData.append("Name", category.name);
+                if (category.nameUk) formData.append("NameUk", category.nameUk);
+                if (category.nameEn) formData.append("NameEn", category.nameEn);
+                if (category.slug) formData.append("Slug", category.slug);
+                if (category.parentId != null) formData.append("ParentId", String(category.parentId));
+                category.filters.forEach((filterId) => formData.append("FilterIds", String(filterId)));
+                if (imageFile) {
+                    formData.append("ImageFile", imageFile);
+                } else if (!removeImage && category.image) {
+                    formData.append("CurrentImage", category.image);
+                }
+                return { url: `/categories/${id}`, method: "PUT", body: formData };
+            },
+            // categoryService (GET /api/category/get, used by both the public storefront and this
+            // same admin table) is a separate RTK Query api slice with its own cache — invalidating
+            // its "Category" tag here is what makes the admin table (and MegaMenu/CategoryAvatar
+            // everywhere else) pick up the new image without a full page reload.
+            async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+                try {
+                    await queryFulfilled;
+                    dispatch(categoryService.util.invalidateTags(["Category"]));
+                } catch {
+                    // Failure already logged + toasted by createBaseQuery.
+                }
+            },
+        }),
+
+        // GET /api/admin/newsletter/subscribers-count — see AdminController.GetNewsletterSubscribersCount.
+        getNewsletterSubscribersCount: builder.query<{ count: number }, void>({
+            query: () => ({
+                url: "/newsletter/subscribers-count",
+                method: "GET",
+            }),
+            providesTags: ['NewsletterStats'],
+        }),
+
+        // POST /api/admin/newsletter/send — see AdminController.SendNewsletter /
+        // IAccountService.SendNewsletterAsync. Broadcasts to every OlxUser.NewsletterSubscribed.
+        sendNewsletter: builder.mutation<{ sentCount: number }, { subject: string; body: string }>({
+            query: (dto) => ({
+                url: "/newsletter/send",
+                method: "POST",
+                body: dto,
+            }),
+        }),
+
     }),
 });
 
@@ -131,4 +198,7 @@ export const {
     useGetProductsQuery,
     useGetDashboardOverviewQuery,
     useGetSellersQuery,
+    useUpdateCategoryImageMutation,
+    useGetNewsletterSubscribersCountQuery,
+    useSendNewsletterMutation,
 } = adminService;

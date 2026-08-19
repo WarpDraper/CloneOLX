@@ -9,12 +9,17 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 // GoogleReCaptchaProvider an empty string — an empty reCaptchaKey makes the underlying script
 // warn on every page load even though ReCAPTCHA itself is never actually exercised locally.
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6Ld_dummy_dev_key";
+// Numeric Telegram bot id (from @BotFather), used by the Telegram Login Widget's custom-button
+// JS API (Telegram.Login.auth). Not a secret — same public-identifier status as GOOGLE_CLIENT_ID
+// above. TelegramAuthButton hides/disables itself rather than opening a popup that would fail.
+const TELEGRAM_BOT_ID = import.meta.env.VITE_TELEGRAM_BOT_ID || "";
 
 const APP_ENV = {
     API_BASE_URL,
     UNSPLASH_ACCESS_KEY,
     GOOGLE_CLIENT_ID,
     RECAPTCHA_SITE_KEY,
+    TELEGRAM_BOT_ID,
 }
 
 export { APP_ENV }

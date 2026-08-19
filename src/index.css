@@ -10,6 +10,18 @@
   --color-mm-lavender-light: #f5f0ff;
 }
 
+/* Hides the scrollbar on horizontally-scrollable rails (subcategory rail, home category rail)
+   while keeping the element natively scrollable (wheel/touch/drag still work) — Tailwind v4
+   ships no built-in scrollbar-hiding utility, so this is defined by hand and reused via the
+   `scrollbar-hide` class name already referenced by UserHomePage's category rail. */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Admin dashboard: dark-card tables/inputs on top of antd's light-theme defaults. */
 .admin-dark-table .ant-table {
   background: transparent;
@@ -50,4 +62,21 @@
 }
 .admin-header-search .ant-input::placeholder {
   color: #6b7280;
+}
+
+/* QrCodeModal entrance: fade + zoom-in, ~200ms. Tailwind's `animate-in`/`fade-in`/`zoom-in-95`
+   utilities come from the tailwindcss-animate plugin, which isn't installed in this project —
+   so the modal card's pop-in is defined here as a plain keyframe instead of a utility class. */
+@keyframes qr-modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.qr-modal-in {
+  animation: qr-modal-in 200ms ease-out;
 }

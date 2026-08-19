@@ -32,6 +32,37 @@ const extractErrorMessage = (error: FetchBaseQueryError): string | undefined => 
     return undefined;
 };
 
+// GlobalExceptionHandlerMiddleware (OLX.API) now echoes ASP.NET Core's per-request
+// TraceIdentifier back as `requestId` on every error body it produces (and as an
+// `X-Request-Id` response header, for responses that bypass that middleware). Surfacing it in
+// every console line below means a failure a user reports can be grep'd straight out of the
+// server-side logs by this id, instead of trying to reconstruct "which request was that" from a
+// timestamp.
+const extractRequestId = (error: FetchBaseQueryError): string | undefined => {
+    const data = error.data as Record<string, unknown> | undefined;
+    if (data && typeof data === "object" && typeof data.requestId === "string") return data.requestId;
+    return undefined;
+};
+
+// Requests whose failures are already surfaced inline by the calling form/component
+// (LoginForm, RegisterForm, GoogleAuthButton — see their local formError/onError handling) and
+// must never ALSO be pushed into the global toast queue. Without this, a wrong-password 400 on
+// /api/Account/login produced two error surfaces for the same failure: the form's own inline
+// message right away, plus a duplicate queued in notificationSlice that (before NotificationManager
+// was mounted globally, see App.tsx) sat unrendered until the user navigated to a page that
+// happened to mount it — then every queued login-page failure popped at once. Keyed by
+// [endpoint, url] so only these specific auth-entry requests are silenced; every other /api/Account/*
+// call (favorites, edit profile, newsletter, ...) still gets the normal global-toast treatment.
+const SILENCED_GLOBAL_TOAST_REQUESTS: ReadonlyArray<{ endpoint: string; url: string }> = [
+    { endpoint: "Account", url: "/login" },
+    { endpoint: "Account", url: "/register/user" },
+    { endpoint: "Account", url: "/login/google" },
+    { endpoint: "Account", url: "/telegram-login" },
+];
+
+const isSilencedGlobalToastRequest = (endpoint: string, requestUrl: string): boolean =>
+    SILENCED_GLOBAL_TOAST_REQUESTS.some((entry) => entry.endpoint === endpoint && entry.url === requestUrl);
+
 export const createBaseQuery = (endpoint: string) => {
     const rawBaseQuery = fetchBaseQuery({
         baseUrl: `${APP_ENV.API_BASE_URL}/api/${endpoint}`,
@@ -64,10 +95,12 @@ export const createBaseQuery = (endpoint: string) => {
             // `args` is either a bare url string or a FetchArgs object ({ url, method, ... }),
             // so the request path has to be read out of whichever shape it is.
             const requestUrl = typeof args === "string" ? args : args.url;
+            const requestId = extractRequestId(result.error);
             console.error(`[API ERROR ${result.error.status}] ${requestUrl}:`, {
                 status: result.error.status,
                 data: result.error.data,
                 endpoint: requestUrl,
+                requestId,
             });
 
             if (isBackendUnreachable(result.error)) {
@@ -76,7 +109,7 @@ export const createBaseQuery = (endpoint: string) => {
                 const now = Date.now();
                 if (now - lastUnreachableNoticeAt > UNREACHABLE_NOTICE_COOLDOWN_MS) {
                     lastUnreachableNoticeAt = now;
-                    console.error(`[API ✕] Backend unreachable`, { endpoint, request: args, status: result.error.status });
+                    console.error(`[API ✕] Backend unreachable`, { endpoint, request: args, status: result.error.status, requestId });
                     api.dispatch(
                         addNotification({
                             type: "error",
@@ -97,11 +130,23 @@ export const createBaseQuery = (endpoint: string) => {
                     request: args,
                     status: result.error.status,
                     error: result.error.data ?? result.error,
+                    requestId,
                 });
                 const state = api.getState() as RootState;
                 if (state.auth.isAuth || state.auth.token) {
                     api.dispatch(logout());
                 }
+            } else if (isSilencedGlobalToastRequest(endpoint, requestUrl)) {
+                // Auth-entry request whose caller already shows this error inline — log it (so
+                // it's still visible in the console/network tab) but skip the global toast
+                // entirely, on every status code including 401 (locked-out/invalid-credential
+                // responses land here too depending on the branch order below).
+                console.error(`[API ✕] ${endpoint}`, {
+                    request: args,
+                    status: result.error.status,
+                    error: result.error.data ?? result.error,
+                    requestId,
+                });
             } else if (result.error.status === 403) {
                 // Forbidden: the session itself is valid (401 is what signals a dead/expired
                 // token) — 403 just means this particular user/role isn't allowed to do this
@@ -114,6 +159,7 @@ export const createBaseQuery = (endpoint: string) => {
                     request: args,
                     status: result.error.status,
                     error: result.error.data ?? result.error,
+                    requestId,
                 });
                 api.dispatch(
                     addNotification({
@@ -131,6 +177,7 @@ export const createBaseQuery = (endpoint: string) => {
                     request: args,
                     status: result.error.status,
                     error: result.error.data ?? result.error,
+                    requestId,
                 });
                 const message = extractErrorMessage(result.error);
                 if (message) {
@@ -156,8 +203,7 @@ export const createBaseQuery = (endpoint: string) => {
 /**
  * True when a query failed because the backend is completely unreachable (dev API down,
  * ERR_CONNECTION_REFUSED, CORS preflight failure) rather than a genuine 4xx/5xx response.
- * *Service.ts callers use this (alongside an empty-result check) to decide when to fall back
- * to local seed data hydration (see utils/seedHydration.ts) instead of showing an error state.
+ * Used above to throttle the single app-wide "Немає з'єднання" notification.
  */
 export const isBackendUnreachable = (error: FetchBaseQueryError | undefined): boolean =>
     !!error && (error.status === "FETCH_ERROR" || error.status === "TIMEOUT_ERROR");

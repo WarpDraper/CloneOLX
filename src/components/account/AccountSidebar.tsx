@@ -31,7 +31,7 @@ const AccountSidebar: React.FC = () => {
     return (
         <aside className="w-full md:w-60 shrink-0 bg-white border border-gray-100 rounded-xl p-4 h-fit">
             <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100">
-                <div className="w-11 h-11 rounded-full bg-mm-lavender flex items-center justify-center overflow-hidden shrink-0">
+                <div className="relative w-11 h-11 rounded-full bg-mm-lavender flex items-center justify-center overflow-hidden shrink-0 aspect-square">
                     <ImageWithFallback
                         src={user?.avatarUrl}
                         alt={user?.name || t('accountSidebar.defaultUserName')}

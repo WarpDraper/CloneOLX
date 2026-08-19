@@ -1,20 +1,23 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { createBaseQuery } from "../utils/createBaseQuery";
-import type { IUserItem } from "../types/account/IUserItem";
 import type { IRegisterUser } from "../types/account/IRegisterUser";
 import type { IUserLogin } from "../types/account/IUserLogin.ts";
 import type { ILoginResult } from "../types/account/ILoginResult.ts";
 import type { IAdvert } from "../types/advert/IAdvert";
 import type { IUserEditResponse } from "../types/account/IUserEditResponse";
+import type { ITelegramAuthData } from "../types/account/ITelegramAuthData";
+import type { IMyProfile } from "../types/user/IMyProfile";
 
 export const accountService = createApi({
     reducerPath: "accountService",
     baseQuery: createBaseQuery("Account"), // Автоматично робить префікс /api/Account
-    tagTypes: ["Favorites"],
+    tagTypes: ["Favorites", "MyProfile"],
     endpoints: (builder) => ({
 
-        // 1. РЕЄСТРАЦІЯ: тепер без примусового JSON-заголовка!
-        register: builder.mutation<IUserItem, IRegisterUser>({
+        // 1. РЕЄСТРАЦІЯ: тепер без примусового JSON-заголовка! Бекенд одразу автентифікує
+        // нового користувача й повертає ту саму форму відповіді, що й /login (accessToken у
+        // тілі, refreshToken — у HttpOnly cookie), тож тип відповіді співпадає з ILoginResult.
+        register: builder.mutation<ILoginResult, IRegisterUser>({
             query: (body) => {
                 return {
                     url: "/register/user",
@@ -46,6 +49,17 @@ export const accountService = createApi({
                 url: "/login/google",
                 method: "POST",
                 params: { googleAccessToken },
+            }),
+        }),
+
+        // 2c. ТЕЛЕГРАМ-ЛОГІН: POST /login/telegram, приймає payload Telegram Login Widget
+        // (id/first_name/username/auth_date/hash) — HMAC-перевірка відбувається на бекенді.
+        telegramLogin: builder.mutation<ILoginResult, ITelegramAuthData>({
+            query: (body) => ({
+                url: "/telegram-login",
+                method: "POST",
+                body,
+                headers: { "Content-Type": "application/json" },
             }),
         }),
 
@@ -133,6 +147,26 @@ export const accountService = createApi({
             }),
         }),
 
+        // 12. ВЛАСНИЙ ПРОФІЛЬ (гаманець): GET /api/account/profile — авторизований, id береться з
+        // JWT на бекенді (не з route/query), тож на відміну від /api/user/get/{id} тут безпечно
+        // повертати чутливі власні поля (наразі — Balance).
+        getMyProfile: builder.query<IMyProfile, void>({
+            query: () => "/profile",
+            providesTags: ["MyProfile"],
+        }),
+
+        // 13. ПОПОВНЕННЯ ГАМАНЦЯ: POST /api/account/wallet/topup, точно відповідає
+        // Olx.BLL.Models.User.WalletTopUpModel ({ Amount: decimal }). Це мок-оплата (немає
+        // реального платіжного шлюзу) — бекенд одразу зараховує суму на Balance.
+        topUpWallet: builder.mutation<{ balance: number }, number>({
+            query: (amount) => ({
+                url: "/wallet/topup",
+                method: "POST",
+                body: { Amount: amount },
+            }),
+            invalidatesTags: ["MyProfile"],
+        }),
+
     }),
 });
 
@@ -140,6 +174,7 @@ export const {
     useRegisterMutation,
     useLoginMutation,
     useGoogleLoginMutation,
+    useTelegramLoginMutation,
     useForgotPasswordMutation,
     useResetPasswordMutation,
     useSendVerificationCodeMutation,
@@ -149,4 +184,6 @@ export const {
     useRemoveFromFavoritesMutation,
     useEditUserMutation,
     useSetNewsletterSubscriptionMutation,
+    useGetMyProfileQuery,
+    useTopUpWalletMutation,
 } = accountService;

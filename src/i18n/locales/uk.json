@@ -14,15 +14,40 @@
     "notificationsPanel": {
       "title": "Сповіщення",
       "markAllRead": "Прочитано всі",
-      "empty": "Немає нових сповіщень"
+      "empty": "Немає нових сповіщень",
+      "viewAll": "Усі сповіщення"
     },
-    "adminPanel": "Адмін панель",
+    "adminPanel": "Панель керування",
     "addAdvert": "Додати оголошення"
   },
   "footer": {
     "socials": "Спільноти MultiMart в соціальних мережах:",
     "qrLabel": "Скануйте, щоб дізнатись про застосунок MultiMart",
     "copyright": "© 2024 Інтернет-магазин «MultiMart». Всі права захищені."
+  },
+  "qrModal": {
+    "title": "Поділитися посиланням",
+    "copyLink": "Копіювати посилання",
+    "copied": "Скопійовано!"
+  },
+  "reportModal": {
+    "titleAdvert": "Поскаржитися на оголошення",
+    "titleUser": "Поскаржитися на користувача",
+    "reasonLabel": "Причина скарги",
+    "reasons": {
+      "fraud": "Шахрайство",
+      "spam": "Спам",
+      "inappropriate": "Неприйнятний контент",
+      "other": "Інше"
+    },
+    "descriptionLabel": "Коментар (необов'язково)",
+    "descriptionPlaceholder": "Опишіть деталі, якщо потрібно",
+    "submit": "Надіслати скаргу",
+    "cancel": "Скасувати",
+    "reasonRequired": "Оберіть причину скарги",
+    "success": "Дякуємо, вашу скаргу передано модераторам",
+    "error": "Не вдалося надіслати скаргу. Спробуйте пізніше",
+    "loginRequired": "Щоб поскаржитися, увійдіть в акаунт"
   },
   "home": {
     "catalog": "Каталог",
@@ -160,7 +185,10 @@
     "avatar": {
       "changePhoto": "Змінити фото",
       "allowedFormats": "Дозволені формати: JPG, PNG, GIF, WEBP.",
-      "maxSize": "Розмір фото не може перевищувати 2MB."
+      "maxSize": "Розмір фото не може перевищувати 2MB.",
+      "previewFailed": "Не вдалося відобразити це фото. Спробуйте інший файл.",
+      "cropTitle": "Кадрування аватарки",
+      "cropSave": "Зберегти"
     },
     "email": {
       "label": "Email",
@@ -208,6 +236,14 @@
     "notConfigured": "Авторизація через Google тимчасово недоступна: не вказано VITE_GOOGLE_CLIENT_ID у .env",
     "ariaLabel": "Увійти через Google"
   },
+  "telegramAuth": {
+    "errors": {
+      "loginFailed": "Не вдалося увійти через Telegram. Спробуйте ще раз.",
+      "widgetFailed": "Не вдалося завантажити віджет Telegram. Перевірте з'єднання з інтернетом."
+    },
+    "notConfigured": "Авторизація через Telegram тимчасово недоступна: не вказано VITE_TELEGRAM_BOT_ID у .env",
+    "ariaLabel": "Увійти через Telegram"
+  },
   "accountSidebar": {
     "nav": {
       "profile": "Кабінет",
@@ -228,9 +264,21 @@
       "empty": "Категорій не знайдено",
       "table": {
         "id": "ID",
+        "image": "Зображення",
         "name": "Назва",
         "parent": "Батьківська категорія",
-        "filters": "Фільтри"
+        "filters": "Фільтри",
+        "actions": "Дії"
+      },
+      "image": {
+        "changeButton": "Змінити зображення",
+        "uploadButton": "Завантажити зображення",
+        "removeButton": "Прибрати",
+        "modalTitle": "Зображення — {{name}}",
+        "hint": "PNG, JPG, GIF або WebP, до {{size}} МБ.",
+        "invalidType": "Непідтримуваний тип файлу. Використовуйте PNG, JPG, GIF або WebP.",
+        "tooLarge": "Файл завеликий. Максимум {{size}} МБ.",
+        "saved": "Зображення категорії оновлено."
       }
     },
     "chats": {
@@ -348,47 +396,67 @@
     },
     "reports": {
       "title": "Обробка скарг",
+      "empty": "Немає скарг, що очікують розгляду",
       "messages": {
-        "statusChanged": "Скаргу {{id}} позначено як {{status}}",
-        "updateError": "Помилка оновлення статусу. Перевірте підключення до API.",
-        "blockSuccess": "Користувача {{targetId}} успішно заблоковано.",
-        "blockError": "Помилка блокування користувача. Перевірте підключення до API."
-      },
-      "statusVerb": {
-        "resolved": "вирішену",
-        "dismissed": "відхилену"
+        "resolveSuccess": "Скаргу #{{id}} позначено як вирішену",
+        "rejectSuccess": "Скаргу #{{id}} відхилено",
+        "updateError": "Помилка оновлення скарги. Перевірте підключення до API."
       },
       "notifications": {
         "blockTitle": "Блокування",
-        "blockMessage": "Користувача {{targetId}} було заблоковано за скаргою."
+        "blockMessage": "Користувача за скаргою #{{id}} було заблоковано.",
+        "unpublishTitle": "Оголошення знято з публікації",
+        "unpublishMessage": "Оголошення за скаргою #{{id}} знято з публікації."
       },
       "table": {
         "id": "ID Скарги",
         "reporter": "Хто поскаржився",
         "target": "Об'єкт",
         "reason": "Причина",
+        "description": "Коментар",
         "date": "Дата",
         "status": "Статус",
         "actions": "Дії"
       },
       "targetType": {
-        "ad": "Оголошення",
+        "advert": "Оголошення",
         "user": "Користувач"
       },
       "status": {
-        "pending": "Очікує",
-        "resolved": "Вирішено",
-        "dismissed": "Відхилено"
+        "Pending": "Очікує",
+        "Resolved": "Вирішено",
+        "Rejected": "Відхилено"
       },
       "actions": {
-        "confirm": "Підтвердити",
-        "dismiss": "Відхилити",
-        "block": "Блок"
+        "resolve": "Підтвердити",
+        "reject": "Відхилити",
+        "banAndResolve": "Заблокувати й підтвердити",
+        "unpublishAndResolve": "Зняти оголошення й підтвердити"
       },
-      "blockConfirm": {
-        "title": "Заблокувати користувача?",
-        "description": "Ви впевнені, що хочете заблокувати порушника?"
+      "confirm": {
+        "resolveTitle": "Підтвердити скаргу?",
+        "resolveDescription": "Скаргу буде позначено як вирішену.",
+        "rejectTitle": "Відхилити скаргу?",
+        "rejectDescription": "Скаргу буде позначено як необґрунтовану.",
+        "banTitle": "Заблокувати користувача?",
+        "banDescription": "Користувача буде заблоковано, а скаргу — позначено як вирішену.",
+        "unpublishTitle": "Зняти оголошення з публікації?",
+        "unpublishDescription": "Оголошення буде приховано, а скаргу — позначено як вирішену."
       }
+    },
+    "newsletter": {
+      "title": "Розсилка листів",
+      "subscribersLabel": "Підписників",
+      "subjectLabel": "Тема листа",
+      "subjectPlaceholder": "Наприклад: Нові знижки на MultiMart",
+      "bodyLabel": "Текст листа",
+      "bodyPlaceholder": "Напишіть текст розсилки для підписників...",
+      "sendButton": "Надіслати розсилку",
+      "confirmTitle": "Надіслати розсилку?",
+      "confirmDescription": "Лист буде надіслано всім підписаним користувачам ({{count}}). Цю дію не можна скасувати.",
+      "sendSuccess": "Розсилку надіслано {{count}} підписникам",
+      "sendError": "Не вдалося надіслати розсилку. Перевірте підключення до API.",
+      "noSubscribers": "Наразі немає підписаних користувачів"
     },
     "sellers": {
       "title": "Продавці",
@@ -455,7 +523,7 @@
         "chats": "Чати",
         "reports": "Скарги",
         "analytics": "Аналітика",
-        "marketing": "Маркетинг",
+        "marketing": "Розсилка",
         "settings": "Налаштування"
       },
       "profileMenu": {
@@ -532,6 +600,50 @@
       "orderFailed": "Не вдалося оформити замовлення. Спробуйте ще раз."
     }
   },
+  "checkout": {
+    "recipient": {
+      "self": "Я отримувач",
+      "other": "Інший отримувач",
+      "phonePrompt": "Вкажіть номер телефону для отримання",
+      "editHint": "Ім'я та прізвище редагуються в налаштуваннях профілю"
+    }
+  },
+  "packagesPage": {
+    "title": "Пакети та просування",
+    "subtitle": "Оберіть тариф активних оголошень або підсвітіть найважливіші лоти — все в одному місці.",
+    "perMonth": "/ міс.",
+    "purchaseSuccess": "Пакет «{{plan}}» активовано!",
+    "limits": {
+      "heading": "Ліміт активних оголошень",
+      "description": "Розмістіть більше товарів одночасно — оберіть свій ліміт.",
+      "popular": "Популярний",
+      "activeListings": "активних оголошень",
+      "planLabel": "Ліміт {{limit}}",
+      "selectButton": "Обрати"
+    },
+    "boosts": {
+      "heading": "Просування оголошень",
+      "description": "Підійміть оголошення у видачі й отримайте більше переглядів.",
+      "activateButton": "Активувати",
+      "fastSale": {
+        "title": "Швидкий продаж",
+        "description": "TOP-розміщення на {{days}} днів",
+        "perks": ["Оголошення у ТОП категорії", "Виділення кольором", "У 3 рази більше переглядів"]
+      },
+      "turbo": {
+        "title": "Turbo",
+        "description": "VIP-розміщення на {{days}} днів",
+        "perks": ["Місце на головній сторінці", "VIP-позначка", "Максимальна видимість"]
+      }
+    }
+  },
+  "notificationsPage": {
+    "title": "Сповіщення",
+    "markAllRead": "Прочитати всі",
+    "loading": "Завантаження сповіщень...",
+    "emptyTitle": "Поки що немає сповіщень",
+    "emptyDescription": "Ми повідомимо вас, коли зʼявиться щось нове."
+  },
   "favorites": {
     "add": "Додати в обране",
     "remove": "Прибрати з обраного",
@@ -549,6 +661,13 @@
   },
   "advertDetails": {
     "notFound": "Оголошення не знайдено.",
+    "reportButton": "Поскаржитися на оголошення",
+    "qr": {
+      "buttonLabel": "QR-код для перегляду з телефону",
+      "closeAriaLabel": "Закрити",
+      "title": "Скануйте для перегляду",
+      "hint": "Відкрийте це оголошення на смартфоні"
+    },
     "demoUnavailable": {
       "title": "Недоступно",
       "message": "Ця дія недоступна для демонстраційного оголошення"
@@ -612,6 +731,9 @@
     "fields": {
       "category": "Категорія",
       "categoryPlaceholder": "Виберіть категорію",
+      "condition": "Стан товару",
+      "conditionUsed": "Б/в",
+      "conditionNew": "Нове",
       "title": "Назва оголошення",
       "titlePlaceholder": "Напр. iPhone 13 Pro 128GB",
       "description": "Опис",
@@ -621,6 +743,13 @@
       "contactPerson": "Контактна особа",
       "email": "Email",
       "phone": "Телефон"
+    },
+    "ai": {
+      "fillButton": "✨ Заповнити з AI",
+      "generating": "Генеруємо...",
+      "titleRequired": "Спочатку введіть назву оголошення",
+      "success": "Опис і категорію згенеровано за допомогою AI",
+      "error": "Не вдалося згенерувати опис. Спробуйте ще раз."
     },
     "errors": {
       "required": "Обов'язкове поле",
@@ -648,6 +777,18 @@
     "description": "Дякуємо за інтерес! Це оголошення завершене, і товар більше не доступний для покупки. Перегляньте інші активні оголошення на MultiMart.",
     "backToHome": "Повернутися на головну"
   },
+  "adverts": {
+    "condition": {
+      "label": "Стан",
+      "used": "Б/в",
+      "new": "Новий"
+    },
+    "details": {
+      "id": "ID",
+      "views": "переглядів",
+      "fullscreen": "На весь екран"
+    }
+  },
   "advertCard": {
     "noPhoto": "Немає фото",
     "top": "ТОП",
@@ -657,7 +798,10 @@
     }
   },
   "advertGallery": {
-    "noPhoto": "Немає фото"
+    "noPhoto": "Немає фото",
+    "prev": "Попереднє фото",
+    "next": "Наступне фото",
+    "close": "Закрити"
   },
   "sellerWidget": {
     "defaultName": "Продавець",
@@ -667,10 +811,16 @@
     "addPhoto": "Додати фото",
     "hint": "До {{maxCount}} фото, JPG/PNG/GIF/WEBP, до {{maxSize}}MB кожне.",
     "upload": "+ Завантажити",
+    "editCrop": "Редагувати кадрування / центр",
     "errors": {
       "allowedFormats": "Дозволені формати: JPG, PNG, GIF, WEBP.",
       "maxSize": "Розмір фото не може перевищувати {{size}}MB."
     }
+  },
+  "imageCropModal": {
+    "title": "Кадрування зображення",
+    "apply": "Застосувати",
+    "hint": "Перетягніть, щоб змістити центр, або використайте повзунок / жест масштабування, щоб наблизити."
   },
   "chat": {
     "page": {
@@ -732,7 +882,8 @@
   },
   "categories": {
     "title": "Всі категорії",
-    "allProducts": "Усі товари"
+    "allProducts": "Усі товари",
+    "empty": "Категорій поки немає"
   },
   "categoryListing": {
     "breadcrumb": {
@@ -1165,7 +1316,8 @@
     "appStoreSoon": "App Store · скоро",
     "googlePlaySoon": "Google Play · скоро",
     "notifyMe": "Повідомити про реліз",
-    "backToHome": "Повернутися на головну"
+    "backToHome": "Повернутися на головну",
+    "qrHint": "Відскануйте QR-код, щоб відкрити MultiMart на телефоні вже зараз."
   },
   "userProfile": {
     "title": "Профіль",
@@ -1234,6 +1386,7 @@
     },
     "walletTopUp": {
       "amountRequired": "Вкажіть суму поповнення.",
+      "topUpFailed": "Не вдалося поповнити гаманець. Спробуйте ще раз.",
       "stepAmount": "Сума",
       "stepPayment": "Оплата",
       "stepDone": "Готово",
@@ -1250,11 +1403,12 @@
       "badge": "Продано"
     },
     "amountCurrency": "{{amount}} грн.",
-    "notFound": "Профіль не знайдено.",
+    "notFound": "Користувача не знайдено",
     "defaultName": "Продавець",
     "memberSince": "На сайті з {{date}}",
     "activeAdvertsCount": "Активних оголошень: {{count}}",
     "messageSeller": "Написати продавцю",
+    "reportButton": "Поскаржитися на користувача",
     "reviews": {
       "heading": "Відгуки покупців",
       "basedOnPrefix": "На основі",
@@ -1282,8 +1436,11 @@
     "online": "Онлайн"
   },
   "newsletterWidget": {
-    "notificationTitle": "Підписку оформлено",
+    "notificationTitle": "Підписка на новини",
     "notificationMessage": "Ми надсилатимемо новини про оновлення MultiMart на {{email}}.",
+    "subscribedMessage": "Ви підписані на оновлення MultiMart.",
+    "unsubscribedMessage": "Ви відписалися від оновлень MultiMart.",
+    "toggleFailed": "Не вдалося змінити підписку. Спробуйте ще раз.",
     "invalidEmail": "Введіть коректний email.",
     "thankYouTitle": "Дякуємо за підписку!",
     "thankYouDescription": "Ви будете отримувати новини про оновлення MultiMart першими.",
@@ -1291,7 +1448,8 @@
     "description": "Дізнавайтесь першими про нові функції та релізи.",
     "emailPlaceholder": "Ваш email",
     "submitting": "Зачекайте...",
-    "subscribeButton": "Підписатися"
+    "subscribeButton": "Підписатися на оновлення MultiMart",
+    "unsubscribeButton": "Відписатися"
   },
   "welcomeModal": {
     "title": "Вітаємо!",

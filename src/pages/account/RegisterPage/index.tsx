@@ -5,14 +5,23 @@ import RegisterForm from "../../../components/form/RegisterForm";
 import GoogleAuthButton from "../../../components/form/GoogleAuthButton.tsx";
 import { Link } from "react-router-dom";
 import { APP_ENV } from "../../../env";
+import ErrorBoundary from "../../../components/common/ErrorBoundary.tsx";
+import { useRecaptchaCrashGuard } from "../../../hooks/useRecaptchaCrashGuard";
 
 const RegisterPage: React.FC = () => {
   const { t } = useTranslation();
   const [socialError, setSocialError] = useState<string | null>(null);
 
+  // Swallows reCAPTCHA's own background promise rejections so they can never surface as an
+  // uncaught error — see the hook for the full story (same rationale as LoginPage).
+  useRecaptchaCrashGuard();
+
   return (
     // Scoped here (not app-wide) so the reCAPTCHA script is only ever requested on the one
-    // page that actually needs it — see main.tsx for why.
+    // page that actually needs it — see main.tsx for why. ErrorBoundary contains any
+    // render/commit-phase crash from the widget itself so it can never take the rest of the
+    // app down with it.
+    <ErrorBoundary>
     <GoogleReCaptchaProvider reCaptchaKey={APP_ENV.RECAPTCHA_SITE_KEY}>
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       {/* Card */}
@@ -98,6 +107,7 @@ const RegisterPage: React.FC = () => {
       </div>
     </div>
     </GoogleReCaptchaProvider>
+    </ErrorBoundary>
   );
 };
 
