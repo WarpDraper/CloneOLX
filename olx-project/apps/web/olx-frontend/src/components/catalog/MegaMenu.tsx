@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { RightOutlined } from "@ant-design/icons";
 import type { ICategory } from "../../types/category/ICategory";
+import { getCategoryName } from "../../utils/getCategoryName";
 import CategoryAvatar from "./CategoryAvatar";
 
 interface MegaMenuProps {
@@ -15,7 +16,7 @@ const COLUMN_ITEM_LIMIT = 8;
 // Мега-меню каталогу (Frame 330): темний сайдбар категорій зліва, багатоколонковий
 // список підкатегорій справа та візуальна стрічка підкатегорій знизу.
 const MegaMenu: React.FC<MegaMenuProps> = ({ categories, onClose }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [activeId, setActiveId] = useState<number | null>(categories[0]?.id ?? null);
     const activeCategory = categories.find((c) => c.id === activeId) ?? categories[0] ?? null;
 
@@ -65,7 +66,7 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ categories, onClose }) => {
                                     : "text-white/80 hover:bg-white/10 hover:text-white"
                             }`}
                         >
-                            {category.name}
+                            {getCategoryName(category, i18n.language)}
                             {category.childs.length > 0 && <RightOutlined className="text-[10px] opacity-60" />}
                         </button>
                     ))}
@@ -80,14 +81,14 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ categories, onClose }) => {
                             onClick={onClose}
                             className="text-sm font-semibold text-mm-purple hover:underline"
                         >
-                            {t('megaMenu.viewCategory', { name: activeCategory.name })}
+                            {t('megaMenu.viewCategory', { name: getCategoryName(activeCategory, i18n.language) })}
                         </Link>
                     ) : (
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                             {columns.map((column, columnIndex) => (
                                 <div key={columnIndex}>
                                     {columnIndex === 0 && (
-                                        <h3 className="text-sm font-semibold text-mm-navy mb-3">{activeCategory.name}</h3>
+                                        <h3 className="text-sm font-semibold text-mm-navy mb-3">{getCategoryName(activeCategory, i18n.language)}</h3>
                                     )}
                                     <ul className="space-y-2">
                                         {column.map((child) => (
@@ -97,7 +98,7 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ categories, onClose }) => {
                                                     onClick={onClose}
                                                     className="text-sm text-gray-600 hover:text-mm-purple transition-colors"
                                                 >
-                                                    {child.name}
+                                                    {getCategoryName(child, i18n.language)}
                                                 </Link>
                                             </li>
                                         ))}

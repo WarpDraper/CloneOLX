@@ -53,10 +53,22 @@ namespace Olx.BLL.Services
             {
                 // 1. ID користувача (тут усе добре)
                 new (ClaimTypes.NameIdentifier, user.Id.ToString()),
-        
+
+                // Short, non-schema aliases for the same id — jwt-decode on the frontend returns
+                // the raw JWT payload object keyed by whatever the claim "type" string literally
+                // is. ClaimTypes.NameIdentifier serializes as the long
+                // "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier" URI,
+                // which is easy to typo/miss client-side — "id"/"nameid" give the frontend a
+                // short key to read first without needing the schema URI at all.
+                new ("id", user.Id.ToString()),
+                new ("nameid", user.Id.ToString()),
+
                 // 2. Використовуємо стандартний ClaimTypes.Email (фронтенд його розпізнає краще)
                 new (ClaimTypes.Email, user.Email!),
-        
+
+                // Short alias, same reasoning as "id"/"nameid" above.
+                new ("email", user.Email ?? string.Empty),
+
                 // 3. Склеюємо ім'я та прізвище у стандартний ClaimTypes.Name
                 new (ClaimTypes.Name, $"{user.FirstName} {user.LastName}".Trim()),
         
@@ -81,8 +93,19 @@ namespace Olx.BLL.Services
             // authenticates fine but fails every role check with 403 Forbidden even for a valid
             // token — and the frontend's authSlice.ts decodes the same ClaimTypes.Role URI for
             // user.role, so this also silently hid the Header "Admin" button for actual admins.
-            var roles = await userManager.GetRolesAsync(user);
-            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+            // GetRolesAsync always returns a (possibly empty) list, never null — the ?? [] here
+            // is defense-in-depth against a custom IUserManager/IRoleStore implementation ever
+            // violating that contract, so a user with zero roles still logs in cleanly instead
+            // of a NullReferenceException on .Select() below.
+            var roles = await userManager.GetRolesAsync(user) ?? [];
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+                // Short alias — same "id"/"email" rationale above, so a frontend decoder never
+                // has to know the long
+                // "http://schemas.microsoft.com/ws/2008/06/identity/claims/role" URI to find it.
+                claims.Add(new Claim("role", role));
+            }
             return claims;
         }
 

@@ -11,7 +11,9 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { RootState } from '../../../store';
 import {logout} from "../../../Slice/authSlice.ts";
-import { useGetSellerProfileQuery, isRealUserId, isOwnProfileId } from '../../../services/profileService';
+import { isRealUserId } from '../../../services/profileService';
+import { useOwnProfile } from '../../../hooks/useOwnProfile';
+import { useGetMyProfileQuery } from '../../../services/accountService';
 import WalletTopUpModal from './WalletTopUpModal';
 import AccountTypeModal from './AccountTypeModal';
 import NovaPoshtaDeliveryPanel from './NovaPoshtaDeliveryPanel';
@@ -27,10 +29,17 @@ const UserProfilePage: React.FC = () => {
     const { isAuth } = useSelector((state: RootState) => state.auth);
     const currentUserId = Number(user?.id);
 
-    const { data: profile } = useGetSellerProfileQuery(currentUserId, { skip: !isOwnProfileId(currentUserId) });
+    // See useOwnProfile.ts: a 404 on the own-profile lookup only clears the cached profile
+    // piece of state — it never forces logout/redirect (that's reserved for 401, see
+    // createBaseQuery.ts).
+    const { data: profile } = useOwnProfile(currentUserId);
+
+    // Real, DB-backed wallet balance (GET /api/account/profile — JWT-scoped, self-only). Refetches
+    // automatically after a top-up via the "MyProfile" RTK Query tag invalidation.
+    const { data: myProfile } = useGetMyProfileQuery();
+    const walletBalance = myProfile?.balance ?? 0;
 
     const [activeTab, setActiveTab] = useState<TabKey>('profile');
-    const [walletBalance, setWalletBalance] = useState(0);
     const [isTopUpOpen, setIsTopUpOpen] = useState(false);
     const [isAccountTypeOpen, setIsAccountTypeOpen] = useState(false);
 
@@ -71,9 +80,8 @@ const UserProfilePage: React.FC = () => {
               <Button className="font-bold border-gray-300 text-[#002f34] h-10 px-6 rounded hover:border-[#002f34] hover:text-[#002f34]" onClick={() => setIsTopUpOpen(true)}>
                 {t('userProfile.topUpButton')}
               </Button>
-              <Button className="bg-[#002f34] border-0 text-white font-bold h-10 px-6 rounded hover:bg-[#002f34]/90 flex flex-col items-center justify-center leading-tight">
-                <span>{t('userProfile.buyPackageButton')}</span>
-                <span className="text-[10px] font-normal leading-none -mt-1 opacity-80">{t('userProfile.learnMore')}</span>
+              <Button className="bg-[#002f34] border-0 text-white font-bold h-10 px-6 rounded hover:bg-[#002f34]/90" onClick={() => navigate('/packages')}>
+                {t('userProfile.buyPackageButton')}
               </Button>
             </div>
           </div>
@@ -102,11 +110,11 @@ const UserProfilePage: React.FC = () => {
         {activeTab === 'profile' && (
         <>
         <div className="flex items-center gap-6 mb-10">
-          <div className="w-24 h-24 rounded-full bg-[#cbf7ee] flex items-center justify-center overflow-hidden flex-shrink-0">
+          <div className="relative aspect-square w-24 h-24 rounded-full bg-[#cbf7ee] flex items-center justify-center overflow-hidden flex-shrink-0">
               <ImageWithFallback
                   src={user?.avatarUrl}
                   alt={t('userProfile.avatarAlt')}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-center scale-110"
                   fallback={
                       <svg viewBox="0 0 100 100" className="w-20 h-20 text-[#002f34] mt-2">
                           <circle cx="50" cy="40" r="22" fill="currentColor"/>
@@ -222,7 +230,6 @@ const UserProfilePage: React.FC = () => {
       <WalletTopUpModal
           open={isTopUpOpen}
           onClose={() => setIsTopUpOpen(false)}
-          onSuccess={(amount) => setWalletBalance((b) => b + amount)}
       />
       <AccountTypeModal
           open={isAccountTypeOpen}

@@ -30,24 +30,59 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ onError }) =
             setIsExchanging(true);
             try {
                 const authResult = await googleLogin(tokenResponse.access_token).unwrap();
-                dispatch(setAuth({ token: authResult.accessToken }));
-                navigate(consumeReturnUrl());
+
+                // The token exchange succeeded — commit auth state and leave the page
+                // immediately. Everything below this point (the popup window teardown, any
+                // COOP "Cross-Origin-Opener-Policy policy would block the window.closed call"
+                // warning/throw, and Google's own reCAPTCHA-based abuse check inside the
+                // popup flow) happens on borrowed time after a real, valid token — none of it
+                // may ever gate or delay dispatch/navigate, and none of it should be allowed
+                // to leave the app on the login screen with a token nobody committed to Redux.
+                try {
+                    dispatch(setAuth({ token: authResult.accessToken }));
+                } catch (stateErr) {
+                    console.warn("[GoogleAuth] setAuth threw — retrying once before giving up.", stateErr);
+                    dispatch(setAuth({ token: authResult.accessToken }));
+                }
+
+                try {
+                    navigate(consumeReturnUrl());
+                } catch (navErr) {
+                    console.warn("[GoogleAuth] navigate() threw post-login — forcing a hard redirect instead.", navErr);
+                    window.location.assign(consumeReturnUrl());
+                }
             } catch (err: any) {
+                // Only a genuine failure of the /login/google exchange itself lands here —
+                // COOP/reCAPTCHA noise from the popup is swallowed above the try, never here.
                 onError?.(err?.data?.message || t('googleAuth.errors.loginFailed'));
             } finally {
                 setIsExchanging(false);
             }
         },
-        onError: () => {
+        onError: (errorResponse) => {
+            // @react-oauth/google + the browser's popup COOP policy can report a benign
+            // "Cross-Origin-Opener-Policy policy would block the window.closed call" here even
+            // when the user actually completed the Google consent screen. Log it but don't
+            // treat it as fatal beyond surfacing the message — never throw, never crash JS
+            // execution for the rest of the page.
+            console.warn("[GoogleAuth] popup/COOP-level error (login pipeline otherwise unaffected).", errorResponse);
             onError?.(t('googleAuth.errors.popupFailed'));
         },
     });
 
     const handleClick = () => {
-        if (isGoogleConfigured) {
-            login();
-        } else {
+        if (!isGoogleConfigured) {
             alert(t('googleAuth.notConfigured'));
+            return;
+        }
+        try {
+            login();
+        } catch (err) {
+            // Guards against a synchronous throw from the underlying Google Identity Services
+            // script (e.g. reCAPTCHA/COOP script not fully initialized yet) so a click never
+            // halts JS execution for the rest of the app.
+            console.warn("[GoogleAuth] login() threw synchronously — ignoring so the app keeps running.", err);
+            onError?.(t('googleAuth.errors.popupFailed'));
         }
     };
 

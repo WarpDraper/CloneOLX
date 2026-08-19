@@ -29,7 +29,7 @@ namespace Olx.BLL.Validators.User
                 .PhoneNumber().WithMessage(ValidationErrors.InvalidPhoneNumber)
                 .When(x => x.PhoneNumber != null);
             RuleFor(x => x.ImageFile)
-                .ImageFile().WithMessage(ValidationErrors.InvalidImageFileType)
+                .ImageFile()
                 .When(x => x.ImageFile != null);
             RuleFor(x => x.TermsAccepted)
                 .Equal(true).WithMessage(ValidationErrors.TermsNotAccepted);

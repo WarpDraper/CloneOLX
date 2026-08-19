@@ -3,12 +3,15 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using NETCore.MailKit.Core;
 using Olx.BLL.DTOs.Chat;
 using Olx.BLL.Entities;
 using Olx.BLL.Entities.ChatEntities;
 using Olx.BLL.Exceptions;
 using Olx.BLL.Exstensions;
 using Olx.BLL.Helpers;
+using Olx.BLL.Helpers.Email;
 using Olx.BLL.Hubs;
 using Olx.BLL.Interfaces;
 using Olx.BLL.Models.Chat;
@@ -26,7 +29,10 @@ namespace Olx.BLL.Services
         IRepository<ChatMessage> chatMessageRepository,
         IRepository<Advert> advertRepository,
         IMapper mapper,
-        IHubContext<MessageHub> hubContext
+        IHubContext<MessageHub> hubContext,
+        INotificationService notificationService,
+        IEmailService emailService,
+        ILogger<ChatService> logger
         ) : IChatService
     {
         public async Task<Chat> CreateAsync(int advertId, string? message = null)
@@ -36,20 +42,66 @@ namespace Olx.BLL.Services
                 ?? throw new HttpException(Errors.InvalidAdvertId,HttpStatusCode.BadRequest);
             var chat = await chatRepository.GetItemBySpec(new ChatSpecs.FindExisting(advertId, user.Id))
                 ?? new Chat() { Advert = advert, Buyer = user, SellerId = advert.UserId };
+            // Captured BEFORE AddAsync: an existing chat already has a non-zero Id, a brand-new one
+            // is still 0 here. Used below to fire the "New Chat Started" notification/email exactly
+            // once per chat (not on every subsequent message in an already-existing conversation).
+            var isNewChat = chat.Id == 0;
             if (message is not null)
             {
                 chat.Messages.Add(new() { Content = message, Sender = user });
             }
             chat.IsDeletedForSeller = false;
             chat.IsDeletedForBuyer = false;
-            if (chat.Id == 0) 
+            if (chat.Id == 0)
             {
                 await chatRepository.AddAsync(chat);
             }
             await chatRepository.SaveAsync();
             await hubContext.Clients.Users(advert.UserId.ToString())
                 .SendAsync(HubMethods.CreateChat,chat.Id);
+
+            // Only the very first message of a brand-new chat — never on chats that already
+            // existed — to avoid spamming the seller on every reply in an ongoing conversation.
+            if (isNewChat && message is not null)
+            {
+                await TryNotifyNewChatStartedAsync(advert, user);
+            }
+
             return chat;
+        }
+
+        // Best-effort in-app notification + email to the seller: a failure here must never fail
+        // chat creation itself, same reasoning as OrderService/AccountService's notification hooks.
+        private async Task TryNotifyNewChatStartedAsync(Advert advert, OlxUser sender)
+        {
+            var senderName = !string.IsNullOrWhiteSpace(sender.FirstName) ? sender.FirstName : (sender.Email ?? "Покупець");
+
+            try
+            {
+                await notificationService.CreateAsync(
+                    advert.UserId,
+                    "Нове повідомлення в чаті",
+                    $"{senderName} написав(ла) вам щодо оголошення «{advert.Title}».",
+                    "/chat",
+                    NotificationType.NewChat);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to create new-chat notification for advert {AdvertId}", advert.Id);
+            }
+
+            try
+            {
+                var seller = await userManager.FindByIdAsync(advert.UserId.ToString());
+                if (seller is not null && !string.IsNullOrWhiteSpace(seller.Email))
+                {
+                    await emailService.SendAsync(seller.Email, "Нове повідомлення на MultiMart", EmailTemplates.GetNewChatTemplate(senderName, advert.Title), true);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to send new-chat email for advert {AdvertId}", advert.Id);
+            }
         }
 
         public async Task<IEnumerable<ChatMessageDto>> GetChatMessagesAsync(int chatId) => await mapper.ProjectTo<ChatMessageDto>(chatMessageRepository.GetQuery().Where(x => x.ChatId == chatId)).ToArrayAsync();
@@ -148,7 +200,7 @@ namespace Olx.BLL.Services
                 .SendAsync(HubMethods.SetChatMessageReaded,
                     new SetChatMessageReaded
                     {
-                        MessegesIds = messeges.Select(x => x.Id),
+                        MessegesIds = messeges.Select(x => x.Id).ToList(),
                         ChatId = chat.Id,
                     });
             }

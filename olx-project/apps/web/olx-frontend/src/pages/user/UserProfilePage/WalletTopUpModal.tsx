@@ -2,22 +2,25 @@ import React, { useState } from 'react';
 import { Modal, Radio, InputNumber, message, Steps } from 'antd';
 import { CreditCardOutlined, CheckCircleFilled } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { useTopUpWalletMutation } from '../../../services/accountService';
 
 interface WalletTopUpModalProps {
     open: boolean;
     onClose: () => void;
-    onSuccess: (amount: number) => void;
+    onSuccess?: (amount: number) => void;
 }
 
 const PRESET_AMOUNTS = [100, 250, 500, 1000];
 
-// Mock payment flow only — there is no real payment gateway integration/backend wallet balance
-// field yet, so this simulates the UX (amount -> "processing" -> success) and reports the
-// top-up amount back to the caller, which keeps the running balance in local React state.
+// Payment method selection is still a mock (no real gateway integration — only "bank card" is
+// offered and it's not actually charged), but the top-up itself now hits the real backend
+// (POST /api/account/wallet/topup) and persists to the DB-backed Balance column, invalidating
+// the "MyProfile" RTK Query tag so the header/profile balance refetches automatically.
 const WalletTopUpModal: React.FC<WalletTopUpModalProps> = ({ open, onClose, onSuccess }) => {
     const { t } = useTranslation();
     const [amount, setAmount] = useState<number>(PRESET_AMOUNTS[1]);
     const [step, setStep] = useState<'amount' | 'processing' | 'done'>('amount');
+    const [topUpWallet] = useTopUpWalletMutation();
 
     const reset = () => {
         setStep('amount');
@@ -29,17 +32,20 @@ const WalletTopUpModal: React.FC<WalletTopUpModalProps> = ({ open, onClose, onSu
         onClose();
     };
 
-    const handlePay = () => {
+    const handlePay = async () => {
         if (!amount || amount <= 0) {
             message.error(t('userProfile.walletTopUp.amountRequired'));
             return;
         }
         setStep('processing');
-        // Mock payment processing delay — no real gateway is called.
-        setTimeout(() => {
+        try {
+            await topUpWallet(amount).unwrap();
             setStep('done');
-            onSuccess(amount);
-        }, 1200);
+            onSuccess?.(amount);
+        } catch {
+            message.error(t('userProfile.walletTopUp.topUpFailed'));
+            setStep('amount');
+        }
     };
 
     return (

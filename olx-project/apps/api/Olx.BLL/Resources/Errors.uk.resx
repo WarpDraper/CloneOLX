@@ -138,6 +138,9 @@
   <data name="InvalidResetPasswordData" xml:space="preserve">
     <value>Помилка даних при зміні паролю</value>
   </data>
+  <data name="PasswordResetCooldown" xml:space="preserve">
+    <value>Лист для відновлення паролю вже було нещодавно надіслано. Будь ласка, зачекайте перед повторним запитом.</value>
+  </data>
   <data name="UserCreateError" xml:space="preserve">
     <value>Помилка створення користувача</value>
   </data>
@@ -167,6 +170,12 @@
   </data>
   <data name="InvalidCategoryId" xml:space="preserve">
     <value>Невірний ідентифікатор категорії</value>
+  </data>
+  <data name="InvalidReportId" xml:space="preserve">
+    <value>Невірний ідентифікатор скарги</value>
+  </data>
+  <data name="ReportAlreadyResolved" xml:space="preserve">
+    <value>Цю скаргу вже розглянуто.</value>
   </data>
   <data name="InvalidAdvertId" xml:space="preserve">
     <value>Невірний ідентифікатор оголошення</value>

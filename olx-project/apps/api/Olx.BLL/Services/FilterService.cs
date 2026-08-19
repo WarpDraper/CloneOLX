@@ -93,7 +93,7 @@ namespace Olx.BLL.Services
             var query = mapper.ProjectTo<FilterDto>(filterRepository.GetQuery());
             var paginationBuilder = new PaginationBuilder<FilterDto>(query);
             var filter = new FiltersFilter(pageRequest.SearchName?.Trim());
-            var sortData =  new FilterSortData(pageRequest.IsDescending,pageRequest.SortKey);
+            var sortData =  new FilterSortData(pageRequest.IsDescending, pageRequest.SortKey ?? "id");
             var page = await paginationBuilder.GetPageAsync(pageRequest.Page,pageRequest.Size, filter, sortData);
             return new()
             {

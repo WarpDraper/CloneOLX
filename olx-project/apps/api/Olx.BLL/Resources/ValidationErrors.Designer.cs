@@ -115,11 +115,20 @@ namespace Olx.BLL.Resources {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на Invalid image file type (png,jpeg,jpg,gif,webp).
+        ///   Ищет локализованную строку, похожую на Invalid image file type (png,jpeg,jpg,gif,webp,svg).
         /// </summary>
         internal static string InvalidImageFileType {
             get {
                 return ResourceManager.GetString("InvalidImageFileType", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Image file must not exceed 10 MB..
+        /// </summary>
+        internal static string ImageFileTooLarge {
+            get {
+                return ResourceManager.GetString("ImageFileTooLarge", resourceCulture);
             }
         }
         

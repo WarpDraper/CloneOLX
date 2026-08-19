@@ -1,4 +1,5 @@
-﻿using Olx.BLL.DTOs.AdvertDtos;
+﻿using Microsoft.EntityFrameworkCore;
+using Olx.BLL.DTOs.AdvertDtos;
 using Olx.BLL.Pagination.Interfaces;
 
 namespace Olx.BLL.Pagination.Filters
@@ -62,11 +63,25 @@ namespace Olx.BLL.Pagination.Filters
             {
                 // Match title, description AND category name so a free-text search (header/hero
                 // search bar, /search?q=...) finds adverts by any of the three, not just the title.
-                var term = Search.ToLower();
+                //
+                // Two layers, OR'd together:
+                //  1. EF.Functions.ILike + wildcards — native Postgres ILIKE, same convention as
+                //     NewPostService.SearchSettlementsAsync. Case-insensitive substring match,
+                //     can use a trigram GIN/GIST index on these columns if one is ever added.
+                //  2. EF.Functions.TrigramsAreWordSimilar (pg_trgm's `<%` word_similarity operator,
+                //     extension enabled in AddPgTrgmExtension migration) — catches morphological
+                //     variants that don't literally contain the query as a substring, e.g. a search
+                //     for "цуцик" finding an advert titled "Цуценята" (shared root, different
+                //     ending) by comparing trigram overlap against the best-matching substring of
+                //     the title/description instead of requiring an exact substring hit.
+                var term = Search.Trim();
+                var likePattern = $"%{term}%";
                 query = query.Where(x =>
-                    x.Title.ToLower().Contains(term) ||
-                    x.Description.ToLower().Contains(term) ||
-                    x.CategoryName.ToLower().Contains(term));
+                    EF.Functions.ILike(x.Title, likePattern) ||
+                    EF.Functions.ILike(x.Description, likePattern) ||
+                    EF.Functions.ILike(x.CategoryName, likePattern) ||
+                    EF.Functions.TrigramsAreWordSimilar(term, x.Title) ||
+                    EF.Functions.TrigramsAreWordSimilar(term, x.Description));
             }
             if (!String.IsNullOrWhiteSpace(CategorySearch))
             {

@@ -4,6 +4,7 @@ using Olx.BLL.Entities.AdminMessages;
 using Olx.BLL.Entities.ChatEntities;
 using Olx.BLL.Entities.NewPost;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace Olx.BLL.Entities
@@ -57,8 +58,19 @@ namespace Olx.BLL.Entities
         public string? SettlementRef { get; set; }
         public Settlement? Settlement { get; set; }
 
+        // Telegram numeric user id (Telegram Login Widget "id" field), stored as text since it
+        // can exceed int range. Null for accounts that never used Telegram sign-in.
+        [StringLength(32)]
+        [Unicode(false)]
+        public string? TelegramId { get; set; }
+
         // Profile Settings -> "Subscribe to Newsletter / Updates" toggle (POST /api/Account/subscribe).
         public bool NewsletterSubscribed { get; set; } = false;
+
+        // OLX-account wallet balance (Profile -> "Мій гаманець" / used for "Buy Package"
+        // purchases). Persisted so it survives across sessions/devices, not just kept client-side.
+        [Column(TypeName = "numeric")]
+        public decimal Balance { get; set; } = 0;
 
         // Never serializable: these are the raw, bearer-equivalent rotation tokens.
         [JsonIgnore]

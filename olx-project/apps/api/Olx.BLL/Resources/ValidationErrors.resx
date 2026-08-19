@@ -163,7 +163,10 @@
     <value>{PropertyName}length must less</value>
   </data>
   <data name="InvalidImageFileType" xml:space="preserve">
-    <value>Invalid image file type (png,jpeg,jpg,gif,webp)</value>
+    <value>Invalid image file type (png,jpeg,jpg,gif,webp,svg)</value>
+  </data>
+  <data name="ImageFileTooLarge" xml:space="preserve">
+    <value>Image file must not exceed 10 MB.</value>
   </data>
   <data name="TermsNotAccepted" xml:space="preserve">
     <value>You must agree to the Terms of Service and Privacy Policy.</value>

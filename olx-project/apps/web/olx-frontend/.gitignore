@@ -26,3 +26,8 @@ dist-ssr
 .env
 .env.local
 .env.development.local
+
+# IMPORTANT: .env.development and .env.production ARE tracked (they hold non-secret defaults
+# like API base URLs and public client IDs). Never put real secrets/API keys in those two files —
+# use the *.local variants above instead (see security incident 2026-08-17: a real reCAPTCHA site
+# key was committed via .env.development).

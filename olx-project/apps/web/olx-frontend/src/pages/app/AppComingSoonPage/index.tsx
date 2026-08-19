@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { MobileOutlined, AppleOutlined, AndroidOutlined, BellOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
+import SiteQrCode from "../../../components/common/SiteQrCode";
 
 // /app-coming-soon — branded teaser page explaining that the MultiMart mobile app is
 // currently under development. Linked from the "Детальніше" button on the home page's
@@ -36,7 +37,7 @@ const AppComingSoonPage: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10">
                     <button
                         type="button"
                         className="flex items-center gap-2 bg-mm-orange hover:bg-orange-500 text-white font-bold text-sm px-6 py-2.5 rounded-lg transition-all duration-300 hover:-translate-y-1 shadow-sm"
@@ -49,6 +50,13 @@ const AppComingSoonPage: React.FC = () => {
                     >
                         {t('appComingSoon.backToHome')}
                     </Link>
+                </div>
+
+                <div className="flex flex-col items-center gap-3">
+                    <div className="bg-white p-3 rounded-xl shadow-lg">
+                        <SiteQrCode size={128} />
+                    </div>
+                    <p className="text-white/60 text-xs max-w-xs">{t('appComingSoon.qrHint')}</p>
                 </div>
             </div>
         </div>

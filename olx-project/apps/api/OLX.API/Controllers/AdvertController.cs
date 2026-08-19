@@ -100,10 +100,12 @@ namespace OLX.API.Controllers
             return Ok();
         }
 
-        // Створює нове оголошення від імені авторизованого користувача.
-        [Authorize]
+        // Створює нове оголошення від імені авторизованого користувача. Roles.User only (not bare
+        // [Authorize]) — admins manage the marketplace but must never be able to post an advert
+        // as themselves; they still use Chat (see ChatController — Roles.UserOrAdmin there).
+        [Authorize(Roles = Roles.User)]
         [HttpPut("create")]
-        public async Task<IActionResult> Create([FromForm] AdvertCreationModel creationModel) => 
+        public async Task<IActionResult> Create([FromForm] AdvertCreationModel creationModel) =>
             Ok(await advertService.CreateAsync(creationModel));
         
         // Видаляє оголошення за його ідентифікатором.

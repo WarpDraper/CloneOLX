@@ -230,7 +230,25 @@ namespace Olx.BLL.Resources {
                 return ResourceManager.GetString("InvalidCategoryId", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Invalid report id.
+        /// </summary>
+        internal static string InvalidReportId {
+            get {
+                return ResourceManager.GetString("InvalidReportId", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на This report has already been resolved..
+        /// </summary>
+        internal static string ReportAlreadyResolved {
+            get {
+                return ResourceManager.GetString("ReportAlreadyResolved", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Ищет локализованную строку, похожую на Invalid chat id.
         /// </summary>
@@ -331,7 +349,7 @@ namespace Olx.BLL.Resources {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на Invalid reser password data.
+        ///   Ищет локализованную строку, похожую на Invalid reset password data.
         /// </summary>
         internal static string InvalidResetPasswordData {
             get {
@@ -345,6 +363,15 @@ namespace Olx.BLL.Resources {
         internal static string InvalidRole {
             get {
                 return ResourceManager.GetString("InvalidRole", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на A password reset email was already sent recently. Please wait before requesting another one..
+        /// </summary>
+        internal static string PasswordResetCooldown {
+            get {
+                return ResourceManager.GetString("PasswordResetCooldown", resourceCulture);
             }
         }
         

@@ -20,5 +20,8 @@
         // also refreshes on disconnect so it reflects the real last-seen moment, not just login.
         public bool IsOnline { get; set; }
         public DateTime LastSeen => LastActivity;
+
+        /// <summary>Shallow copy — see <see cref="AdvertDtos.AdvertDto.CloneForPresenceStamping"/>.</summary>
+        public OlxUserShortDto ShallowCopy() => (OlxUserShortDto)MemberwiseClone();
     }
 }

@@ -5,7 +5,7 @@ namespace Olx.BLL.Models.SignaR
 {
     public class SetChatMessageReaded
     {
-        public IEnumerable<int> MessegesIds { get; set; }
+        public List<int> MessegesIds { get; set; } = [];
         public int ChatId { get; set; }
     }
 }

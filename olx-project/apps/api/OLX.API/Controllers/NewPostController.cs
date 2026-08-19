@@ -26,6 +26,13 @@ namespace OLX.API.Controllers
         [HttpGet("settlements")]
         public async Task<ActionResult> GetSettlement([FromQuery] string settlementRef) => Ok(await newPostService.GetSettlement(settlementRef));
 
+        // Local, case-insensitive lookup over already-synced settlements (EF.Functions.ILike —
+        // see NewPostService.SearchSettlementsAsync) — used by the delivery/settlement picker's
+        // autocomplete instead of round-tripping to the live Nova Poshta API on every keystroke.
+        [HttpGet("settlements/search")]
+        public async Task<ActionResult> SearchSettlements([FromQuery] string query, [FromQuery] int take = 20) =>
+            Ok(await newPostService.SearchSettlementsAsync(query, take));
+
         [HttpPost("update")]
         public async Task<ActionResult> UpdateData()
         {

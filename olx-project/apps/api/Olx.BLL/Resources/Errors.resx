@@ -136,7 +136,10 @@
     <value>Confirmation data error</value>
   </data>
   <data name="InvalidResetPasswordData" xml:space="preserve">
-    <value>Invalid reser password data</value>
+    <value>Invalid reset password data</value>
+  </data>
+  <data name="PasswordResetCooldown" xml:space="preserve">
+    <value>A password reset email was already sent recently. Please wait before requesting another one.</value>
   </data>
   <data name="UserCreateError" xml:space="preserve">
     <value>User creation error</value>
@@ -167,6 +170,12 @@
   </data>
   <data name="InvalidCategoryId" xml:space="preserve">
     <value>Invalid category id</value>
+  </data>
+  <data name="InvalidReportId" xml:space="preserve">
+    <value>Invalid report id</value>
+  </data>
+  <data name="ReportAlreadyResolved" xml:space="preserve">
+    <value>This report has already been resolved.</value>
   </data>
   <data name="InvalidAdvertId" xml:space="preserve">
     <value>Invalid advert id</value>

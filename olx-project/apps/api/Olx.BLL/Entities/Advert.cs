@@ -2,6 +2,7 @@
 using Olx.BLL.Entities.ChatEntities;
 using Olx.BLL.Entities.FilterEntities;
 using Olx.BLL.Entities.NewPost;
+using Pgvector;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -31,6 +32,14 @@ namespace Olx.BLL.Entities
         public bool Blocked { get; set; } = false;
         public bool Completed { get; set; } = false;
 
+        // "Б/в" / "Нове" badge. None for categories where condition doesn't apply (e.g.
+        // Тварини, Робота, Послуги) as well as "not specified".
+        public ItemCondition Condition { get; set; } = ItemCondition.None;
+
+        // Admin-controlled promotion (Admin > Products > "isPromoted"), distinct from the
+        // deterministic `Id % 5 == 0` demo placement AdvertProfile also folds into AdvertDto.IsTop.
+        public bool Promoted { get; set; } = false;
+
         [StringLength(36)]
         [Unicode(false)]
        
@@ -43,5 +52,10 @@ namespace Olx.BLL.Entities
         public ICollection<OlxUser> FavoritedByUsers { get; set; } = new HashSet<OlxUser>();
         public ICollection<Chat> Chats { get; set; } = new HashSet<Chat>();
 
+        // pgvector embedding for semantic search (see IAdvertService.SearchSimilarAdvertsAsync).
+        // 768 dimensions matches Google's text-embedding-004 model output; null until an
+        // embedding has been generated/backfilled for this advert.
+        [Column(TypeName = "vector(768)")]
+        public Vector? Embedding { get; set; }
     }
 }

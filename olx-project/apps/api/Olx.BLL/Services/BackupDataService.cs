@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Olx.BLL.Exceptions;
+using Olx.BLL.Helpers.Options;
 using Olx.BLL.Interfaces;
 using Olx.BLL.Models;
 using Olx.BLL.Resources;
@@ -18,25 +19,30 @@ namespace Olx.BLL.Services
         IConfiguration config,
         ILogger<BackupDataService> logger) : IBackupDataService
     {
-        private readonly string _host = config["DbSetings:Host"]!;
-        private readonly string _dbName = config["DbSetings:DbName"]!;
-        private readonly string _username = config["DbSetings:Username"]!;
+        // Bound once via the DbSettings model instead of ad-hoc IConfiguration string
+        // indexers — the previous "DbSetings:Host" / "DbSetings:DbName" / "DbSetings:Username"
+        // keys never matched the actual appsettings section (Server/Database/UserId under
+        // "DbSettings"), so those fields were always empty and pg_dump/pg_restore silently ran
+        // with blank -h/-U/-d arguments. _dbSettings.Server/.Database/.UserId/.Password are
+        // read directly at each use site below (a field initializer can't reference another
+        // instance field — CS0236 — so there's no _host/_dbName/_username/_password field).
+        private readonly DbSettings _dbSettings = config.GetSection(nameof(DbSettings)).Get<DbSettings>()
+            ?? throw new InvalidOperationException("Missing or invalid \"DbSettings\" configuration section.");
         private readonly string _backupDir = Path.Combine(config["BackupDir"]!);
         private readonly string _imagesDir = Path.Combine(config["ImagesDir"]!);
         private readonly string _backupTempDir = Path.Combine(config["BackupDir"]!, "temp");
-        private readonly string _password = config["DbSetings:Password"]!;
         private readonly string _imagesTempFolder = Path.Combine(config["BackupDir"]!, "temp", "images");
 
         private async Task<string?> CreateDbBackupAsync()
         {
-            var backupName = $"{_dbName}_backup_{DateTime.Now:yyyyMMdd_HHmmss}";
+            var backupName = $"{_dbSettings.Database}_backup_{DateTime.Now:yyyyMMdd_HHmmss}";
             if (!Directory.Exists(_backupDir))
             {
                 Directory.CreateDirectory(_backupDir);
             }
             Directory.CreateDirectory(_backupTempDir);
             var bdBackupFilePath = Path.Combine(_backupTempDir, $"{backupName}.dump");
-            var pgDumpCommand = $"-h {_host} -U {_username} -d {_dbName}  -F c -b -v -f \"{bdBackupFilePath}\"";
+            var pgDumpCommand = $"-h {_dbSettings.Server} -U {_dbSettings.UserId} -d {_dbSettings.Database}  -F c -b -v -f \"{bdBackupFilePath}\"";
 
             var processStartInfo = new ProcessStartInfo
             {
@@ -44,9 +50,9 @@ namespace Olx.BLL.Services
                 Arguments = pgDumpCommand,
                 RedirectStandardError = true,
                 CreateNoWindow = true,
-                Environment = { ["PGPASSWORD"] = _password }
+                Environment = { ["PGPASSWORD"] = _dbSettings.Password }
             };
-            processStartInfo.EnvironmentVariables["PGPASSWORD"] = _password;
+            processStartInfo.EnvironmentVariables["PGPASSWORD"] = _dbSettings.Password;
             Process? process = null;
             try
             {
@@ -108,15 +114,15 @@ namespace Olx.BLL.Services
                 var dbBackupFilePath = Path.Combine(_backupTempDir,$"{backupName}.dump");
                 if (File.Exists(dbBackupFilePath))
                 {
-                    var pgRestoreCommand = $" -h {_host} -U {_username} -d {_dbName} --if-exists --clean --no-reconnect --disable-triggers  --verbose  --exit-on-error  -v \"{dbBackupFilePath}\"";
+                    var pgRestoreCommand = $" -h {_dbSettings.Server} -U {_dbSettings.UserId} -d {_dbSettings.Database} --if-exists --clean --no-reconnect --disable-triggers  --verbose  --exit-on-error  -v \"{dbBackupFilePath}\"";
                     var processStartInfo = new ProcessStartInfo
                     {
                         FileName = "pg_restore",
                         Arguments = pgRestoreCommand,
                         CreateNoWindow = true,
-                        Environment = { ["PGPASSWORD"] = _password }
+                        Environment = { ["PGPASSWORD"] = _dbSettings.Password }
                     };
-                    processStartInfo.EnvironmentVariables["PGPASSWORD"] = config["DbSetings:Password"]!;
+                    processStartInfo.EnvironmentVariables["PGPASSWORD"] = _dbSettings.Password;
                     Process? process = null;
                     try
                     {

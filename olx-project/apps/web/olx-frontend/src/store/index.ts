@@ -14,6 +14,9 @@ import {chatService} from "../services/chatService.ts";
 import {newPostService} from "../services/newPostService.ts";
 import {orderService} from "../services/orderService.ts";
 import {adminMessageService} from "../services/adminMessageService.ts";
+import {aiService} from "../services/aiService.ts";
+import {settingsService} from "../services/settingsService.ts";
+import {notificationService} from "../services/notificationService.ts";
 
 export const store = configureStore({
 
@@ -29,6 +32,9 @@ export const store = configureStore({
       [newPostService.reducerPath]: newPostService.reducer,
       [orderService.reducerPath]: orderService.reducer,
       [adminMessageService.reducerPath]: adminMessageService.reducer,
+      [aiService.reducerPath]: aiService.reducer,
+      [settingsService.reducerPath]: settingsService.reducer,
+      [notificationService.reducerPath]: notificationService.reducer,
       auth: authReducer,
 
       notifications: notificationReducer,
@@ -50,6 +56,9 @@ export const store = configureStore({
             newPostService.middleware,
             orderService.middleware,
             adminMessageService.middleware,
+            aiService.middleware,
+            settingsService.middleware,
+            notificationService.middleware,
         ),
 });
 

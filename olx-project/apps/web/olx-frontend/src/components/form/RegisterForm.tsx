@@ -94,9 +94,22 @@ const RegisterForm: React.FC = () => {
             return;
         }
 
+        // Isolated from the registration try/catch below: executeRecaptcha() can reject on its
+        // own (script not ready, torn-down widget, transient network failure) and must never
+        // throw uncaught into handleSubmit or block the rest of a form the user already filled
+        // out — fail safe with a plain error instead of a crash.
+        let token: string | null = null;
         try {
-            const token = await executeRecaptcha("register");
+            token = await executeRecaptcha("register");
+        } catch (captchaErr) {
+            console.warn("reCAPTCHA execution failed, aborting registration safely.", captchaErr);
+        }
+        if (!token) {
+            setFormError(t('register.errors.captchaLoading'));
+            return;
+        }
 
+        try {
             const formData = new FormData();
 
             // Передаємо дані відповідно до назв у Swagger
@@ -118,13 +131,12 @@ const RegisterForm: React.FC = () => {
                 formData.append("ImageFile", fileList[0].originFileObj as File);
             }
 
-            // Надсилаємо PUT запит на реєстрацію
-            const userData = (await register(formData as any).unwrap()) as any;
-            console.log("Реєстрація успішна:", userData);
+            // Надсилаємо PUT запит на реєстрацію. Бекенд одразу повертає accessToken (як і
+            // /login), тому користувача можна автентифікувати без окремого виклику логіну —
+            // саме це усуває миттєвий "logout" одразу після реєстрації.
+            const userData = await register(formData as any).unwrap();
 
-            if (userData && userData.accessToken) {
-                dispatch(setAuth({ token: userData.accessToken }));
-            }
+            dispatch(setAuth({ token: userData.accessToken }));
 
             setShowWelcome(true);
         } catch (err: any) {

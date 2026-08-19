@@ -15,12 +15,20 @@ namespace Olx.BLL.Validators.Extentions
 
         public static IRuleBuilderOptions<T, IEnumerable<IFormFile>> ImageFile<T>(this IRuleBuilder<T, IEnumerable<IFormFile>> ruleBuilder)
         {
-            return ruleBuilder.Must(x => FileTypes.AllowedImageFileTypes.Any(z => x.Any(y => y.ContentType == z)));
+            return ruleBuilder
+                .Must(x => x.Any(y => FileTypes.AllowedImageFileTypes.Contains(y.ContentType)))
+                .WithMessage(ValidationErrors.InvalidImageFileType)
+                .Must(x => x.All(y => y.Length <= FileTypes.MaxImageFileSizeBytes))
+                .WithMessage(ValidationErrors.ImageFileTooLarge);
         }
 
         public static IRuleBuilderOptions<T, IFormFile?> ImageFile<T>(this IRuleBuilder<T, IFormFile?> ruleBuilder)
         {
-            return ruleBuilder.Must(x => x != null && FileTypes.AllowedImageFileTypes.Contains(x.ContentType));
+            return ruleBuilder
+                .Must(x => x != null && FileTypes.AllowedImageFileTypes.Contains(x.ContentType))
+                .WithMessage(ValidationErrors.InvalidImageFileType)
+                .Must(x => x == null || x.Length <= FileTypes.MaxImageFileSizeBytes)
+                .WithMessage(ValidationErrors.ImageFileTooLarge);
         }
 
         public static IRuleBuilderOptions<T, string?> Password<T>(this IRuleBuilder<T, string?> ruleBuilder)

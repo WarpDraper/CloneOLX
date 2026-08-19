@@ -2,6 +2,16 @@ import type { IAdvertImage } from "./IAdvertImage";
 import type { IFilterValue } from "./IFilterValue";
 import type { ISellerShort } from "../user/ISellerShort";
 
+// Дзеркалить Olx.BLL.Entities.ItemCondition (за числовим значенням enum-а, як його серіалізує
+// ASP.NET Core за замовчуванням — той самий підхід, що й DeliveryType/PaymentMethod в IOrder.ts).
+export const ItemCondition = {
+    None: 0,
+    Used: 1,
+    New: 2,
+} as const;
+
+export type ItemCondition = (typeof ItemCondition)[keyof typeof ItemCondition];
+
 // Дзеркалить Olx.BLL.DTOs.AdvertDtos.AdvertDto (GET /api/advert/get/{id})
 export interface IAdvert {
     id: number;
@@ -20,6 +30,7 @@ export interface IAdvert {
     approved: boolean;
     blocked: boolean;
     completed: boolean;
+    condition: ItemCondition;
     settlementName: string;
     settlementRef: string;
     regionRef: string;
@@ -30,6 +41,10 @@ export interface IAdvert {
     isTop: boolean;
     // Favorited-by count — backs the "За популярністю" sort option.
     favoritesCount: number;
+    // Fast, Redis-backed hit counter (see IAdvertViewCounterService on the backend) — not a
+    // persisted DB column. Only ever set on the GetByIdAsync (detail page) response; every other
+    // AdvertDto-returning endpoint leaves this at 0.
+    viewCount: number;
     filterValues: IFilterValue[];
     images: IAdvertImage[];
 }

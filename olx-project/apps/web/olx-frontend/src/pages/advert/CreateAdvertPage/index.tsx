@@ -4,12 +4,15 @@ import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { TreeSelect, Select, message } from "antd";
 import type { UploadFile } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 import type { RootState } from "../../../store";
 import { useCreateAdvertMutation } from "../../../services/advertService";
 import { useGetCategoryTreeQuery } from "../../../services/categoryService";
 import { useGetFiltersByRangeMutation } from "../../../services/filterService";
+import { useGenerateAdvertMutation } from "../../../services/aiService";
 import { parseServerValidationErrors } from "../../../utils/parseServerValidationErrors";
 import type { ICategory } from "../../../types/category/ICategory";
+import { ItemCondition } from "../../../types/advert/IAdvert";
 import SettlementPicker from "../../../components/location/SettlementPicker";
 import AdvertImageDropzone from "../../../components/uploaders/AdvertImageDropzone";
 
@@ -34,12 +37,20 @@ const CreateAdvertPage: React.FC = () => {
     const currentUserId = Number(user?.id);
 
     useEffect(() => {
-        if (!isAuth) navigate("/login", { replace: true });
-    }, [isAuth, navigate]);
+        if (!isAuth) {
+            navigate("/login", { replace: true });
+            return;
+        }
+        // Admins manage the marketplace but can't post adverts as themselves — the backend
+        // rejects this (see AdvertController.Create, Roles.User-only). Redirect straight home
+        // instead of letting an admin fill out the whole form only to hit a 403 on submit.
+        if (user?.role === "Admin") navigate("/", { replace: true });
+    }, [isAuth, user, navigate]);
 
     const { data: categoryTree = [] } = useGetCategoryTreeQuery();
     const [getFiltersByRange, { data: facetDefinitions }] = useGetFiltersByRangeMutation();
     const [createAdvert, { isLoading: isSubmitting }] = useCreateAdvertMutation();
+    const [generateAdvert, { isLoading: isGeneratingWithAi }] = useGenerateAdvertMutation();
 
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
@@ -47,6 +58,7 @@ const CreateAdvertPage: React.FC = () => {
     const [isContractPrice, setIsContractPrice] = useState(false);
     const [categoryId, setCategoryId] = useState<number | null>(null);
     const [settlementRef, setSettlementRef] = useState("");
+    const [condition, setCondition] = useState<ItemCondition>(ItemCondition.None);
     const [settlementDescription, setSettlementDescription] = useState("");
     const [contactPersone, setContactPersone] = useState(user?.name && user.name !== "Користувач" ? user.name : "");
     const [contactEmail, setContactEmail] = useState(user?.email ?? "");
@@ -73,6 +85,28 @@ const CreateAdvertPage: React.FC = () => {
     const facetNameById = new Map((selectedCategory?.filters ?? []).map((fid, i) => [fid, selectedCategory?.filterNames[i]]));
 
     if (!isAuth) return null;
+
+    // ✨ "Заповнити з AI": POST /api/AI/generate-advert (Gemini) — бере поточну назву,
+    // повертає пропоновану категорію + згенерований опис. Категорію застосовуємо лише якщо
+    // отриманий id справді існує в дереві категорій (findCategoryById); опис підставляємо
+    // завжди, навіть якщо категорію розпізнати не вдалось.
+    const handleGenerateWithAi = async () => {
+        if (!title.trim()) {
+            message.warning(t("createAdvert.ai.titleRequired"));
+            return;
+        }
+        try {
+            const result = await generateAdvert({ title: title.trim() }).unwrap();
+            setDescription(result.generatedDescription);
+            if (findCategoryById(categoryTree, result.suggestedCategoryId)) {
+                setCategoryId(result.suggestedCategoryId);
+            }
+            setFieldErrors((prev) => ({ ...prev, description: "", categoryId: "" }));
+            message.success(t("createAdvert.ai.success"));
+        } catch {
+            message.error(t("createAdvert.ai.error"));
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -101,6 +135,7 @@ const CreateAdvertPage: React.FC = () => {
         formData.append("IsContractPrice", String(isContractPrice));
         formData.append("Price", String(isContractPrice ? 0 : Number(price)));
         formData.append("CategoryId", String(categoryId));
+        formData.append("Condition", String(condition));
         formData.append("SettlementRef", settlementRef);
         formData.append("ContactPersone", contactPersone.trim());
         formData.append("ContactEmail", contactEmail.trim());
@@ -148,15 +183,40 @@ const CreateAdvertPage: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                        <label className="text-sm font-medium text-mm-navy">{t("createAdvert.fields.title")}</label>
-                        <input
-                            type="text"
-                            value={title}
-                            maxLength={256}
-                            onChange={(e) => setTitle(e.target.value)}
-                            placeholder={t("createAdvert.fields.titlePlaceholder")}
-                            className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-mm-purple"
+                        <label className="text-sm font-medium text-mm-navy">{t("createAdvert.fields.condition")}</label>
+                        <Select
+                            allowClear
+                            placeholder={t("createAdvert.fields.notSpecified")}
+                            value={condition === ItemCondition.None ? undefined : condition}
+                            onChange={(value) => setCondition(value ?? ItemCondition.None)}
+                            options={[
+                                { value: ItemCondition.Used, label: t("createAdvert.fields.conditionUsed") },
+                                { value: ItemCondition.New, label: t("createAdvert.fields.conditionNew") },
+                            ]}
                         />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                        <label className="text-sm font-medium text-mm-navy">{t("createAdvert.fields.title")}</label>
+                        <div className="flex items-start gap-2">
+                            <input
+                                type="text"
+                                value={title}
+                                maxLength={256}
+                                onChange={(e) => setTitle(e.target.value)}
+                                placeholder={t("createAdvert.fields.titlePlaceholder")}
+                                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-mm-purple"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleGenerateWithAi}
+                                disabled={isGeneratingWithAi || !title.trim()}
+                                className="shrink-0 flex items-center gap-1.5 whitespace-nowrap border border-mm-purple text-mm-purple hover:bg-mm-lavender disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent font-semibold text-sm px-3 py-2 rounded-lg transition-colors"
+                            >
+                                {isGeneratingWithAi ? <LoadingOutlined /> : null}
+                                {isGeneratingWithAi ? t("createAdvert.ai.generating") : t("createAdvert.ai.fillButton")}
+                            </button>
+                        </div>
                         {fieldErrors.title && <p className="text-red-500 text-xs">{fieldErrors.title}</p>}
                     </div>
 

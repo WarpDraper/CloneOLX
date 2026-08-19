@@ -34,6 +34,11 @@ namespace Olx.BLL.Mapper
                 // doesn't attempt (and fail) to translate it.
                 .ForMember(x => x.IsOnline, opt => opt.Ignore());
 
+            // Own-profile-only DTO (see MyProfileDto) — inherits every ForMember rule above via
+            // Include/IncludeBase, plus auto-maps the extra Balance property by name.
+            CreateMap<OlxUser, MyProfileDto>()
+                .IncludeBase<OlxUser, OlxUserDto>();
+
             CreateMap<UserEditModel, OlxUser>();
 
             CreateMap<OlxUser, OlxUserShortDto>()

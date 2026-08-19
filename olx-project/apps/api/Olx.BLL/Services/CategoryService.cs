@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Identity;
 using Olx.BLL.Exstensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Olx.BLL.Helpers;
 
 
 namespace Olx.BLL.Services
@@ -29,21 +30,31 @@ namespace Olx.BLL.Services
         IFilterService filterService,
         UserManager<OlxUser> userManager,
         IHttpContextAccessor httpContext,
+        ICacheService cacheService,
         ILogger<CategoryService> logger) : ICategoryService
     {
 
         // Falls back to an empty list instead of letting a DB outage (unreachable Neon instance,
         // missing table, etc.) bubble up as a raw 500 on the public Category/get endpoint — the
         // storefront can still render (just without categories) rather than hard-failing.
+        //
+        // Cached via FusionCache: the factory below is only ever invoked (once, even under
+        // concurrent requests) on a full L1+L2 miss. If the factory throws — e.g. the database is
+        // briefly unreachable — FusionCache's fail-safe transparently serves the last known-good
+        // cached value instead of propagating the failure; the try/catch here is a last-resort
+        // fallback for the case where there is no previous value at all to fail back to (e.g. a
+        // cold cache on first boot with the database also down).
         public async Task<IEnumerable<CategoryDto>> Get()
         {
             try
             {
-                return await mapper.ProjectTo<CategoryDto>(categoryRepository.GetQuery().AsNoTracking()).ToArrayAsync();
+                return await cacheService.GetOrSetAsync(
+                    CacheKeys.AllCategories,
+                    async _ => await mapper.ProjectTo<CategoryDto>(categoryRepository.GetQuery().AsNoTracking()).ToArrayAsync());
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to load categories from the database; returning an empty list.");
+                logger.LogError(ex, "Failed to load categories from the database or cache; returning an empty list.");
                 return [];
             }
         }
@@ -65,6 +76,8 @@ namespace Olx.BLL.Services
             }
             await categoryRepository.AddAsync(category);
             await categoryRepository.SaveAsync();
+            await cacheService.RemoveAsync(CacheKeys.AllCategories);
+            await cacheService.RemoveAsync(CacheKeys.CategoryTree);
             return mapper.Map<CategoryDto>(category);
         }
 
@@ -80,6 +93,9 @@ namespace Olx.BLL.Services
                 {
                     imageService.DeleteImageIfExists(category.Image);
                 }
+                await cacheService.RemoveAsync(CacheKeys.AllCategories);
+                await cacheService.RemoveAsync(CacheKeys.CategoryById(id));
+                await cacheService.RemoveAsync(CacheKeys.CategoryTree);
             }
             else throw new HttpException(Errors.InvalidCategoryId, HttpStatusCode.BadRequest);
         }
@@ -98,6 +114,12 @@ namespace Olx.BLL.Services
                 await categoryRepository.SaveAsync();
                 var images = categoriesToDelete.Where(x => !String.IsNullOrEmpty(x.Image)).Select(z => z.Image!);
                 imageService.DeleteImagesIfExists(images);
+                await cacheService.RemoveAsync(CacheKeys.AllCategories);
+                await cacheService.RemoveAsync(CacheKeys.CategoryTree);
+                foreach (var deleted in categoriesToDelete)
+                {
+                    await cacheService.RemoveAsync(CacheKeys.CategoryById(deleted.Id));
+                }
             }
         }
 
@@ -128,7 +150,7 @@ namespace Olx.BLL.Services
             {
                 category.Image = await imageService.SaveImageAsync(editModel.ImageFile);
             }
-            
+
             if (editModel.FilterIds?.Any() ?? false)
             {
                 var filters = await filterService.GetByIds(editModel.FilterIds);
@@ -136,21 +158,70 @@ namespace Olx.BLL.Services
             }
             else category.Filters.Clear();
             await categoryRepository.SaveAsync();
+            await cacheService.RemoveAsync(CacheKeys.AllCategories);
+            await cacheService.RemoveAsync(CacheKeys.CategoryById(category.Id));
+            await cacheService.RemoveAsync(CacheKeys.CategoryTree);
             return mapper.Map<CategoryDto>(category);
         }
 
-        public async Task<CategoryDto> GetById(int id) =>
-            await mapper.ProjectTo<CategoryDto>(categoryRepository.GetQuery().AsNoTracking().Where(x => x.Id == id)).SingleOrDefaultAsync()
-            ?? throw new HttpException(Errors.InvalidCategoryId,HttpStatusCode.BadRequest);
-       
+        public async Task ReorderAsync(CategoryReorderRequest reorderRequest)
+        {
+            await userManager.UpdateUserActivityAsync(httpContext);
+            var ids = reorderRequest.Items.Select(x => x.Id).ToList();
+            if (ids.Count == 0) return;
 
+            var categories = await categoryRepository.GetQuery().Where(x => ids.Contains(x.Id)).ToListAsync();
+            var sortById = reorderRequest.Items.ToDictionary(x => x.Id, x => x.SortOrder);
+            foreach (var category in categories)
+            {
+                category.SortOrder = sortById[category.Id];
+            }
+            await categoryRepository.SaveAsync();
+            await cacheService.RemoveAsync(CacheKeys.AllCategories);
+            await cacheService.RemoveAsync(CacheKeys.CategoryTree);
+            foreach (var id in ids)
+            {
+                await cacheService.RemoveAsync(CacheKeys.CategoryById(id));
+            }
+        }
+
+        public async Task<CategoryDto> GetById(int id) =>
+            await cacheService.GetOrSetAsync(
+                CacheKeys.CategoryById(id),
+                async _ => await mapper.ProjectTo<CategoryDto>(categoryRepository.GetQuery().AsNoTracking().Where(x => x.Id == id)).SingleOrDefaultAsync()
+                    ?? throw new HttpException(Errors.InvalidCategoryId, HttpStatusCode.BadRequest));
+
+
+        // The storefront mega-menu/category nav asks for this on effectively every page load
+        // (default `filters: true`), and it's expensive relative to a flat category read: it
+        // pulls every Category row (with Filters + Parent included) and recursively walks
+        // ParentId links in BuildTree to reconstruct the nested Childs graph. The tree changes
+        // only when an admin creates/edits/removes/reorders a category — far less often than it's
+        // read — so it's cached for a full hour (vs. the 10-minute default used elsewhere) under
+        // CacheKeys.CategoryTree, with explicit invalidation from every mutating method below so a
+        // change is picked up on its next read instead of waiting out the full hour.
+        //
+        // Only the default `filters: true` shape (the one actual caller, CategoryController.GetTree)
+        // is cached; a hypothetical `filters: false` caller bypasses the cache entirely rather than
+        // risk serving the wrong variant under the same key.
         public async Task<IEnumerable<CategoryDto>> GetAllTreeAsync(bool filters = true)
         {
-            var categories = await categoryRepository.GetListBySpec(new CategorySpecs.GetAll(filters 
-                ? CategoryOpt.NoTracking | CategoryOpt.Filters | CategoryOpt.Parent
-                : CategoryOpt.NoTracking | CategoryOpt.Parent));
-            return mapper.Map<IEnumerable<CategoryDto>>(BuildTree(null, categories));
-        } 
+            if (!filters)
+            {
+                var uncached = await categoryRepository.GetListBySpec(new CategorySpecs.GetAll(CategoryOpt.NoTracking | CategoryOpt.Parent));
+                return mapper.Map<IEnumerable<CategoryDto>>(BuildTree(null, uncached));
+            }
+
+            return await cacheService.GetOrSetAsync(
+                CacheKeys.CategoryTree,
+                async _ =>
+                {
+                    var categories = await categoryRepository.GetListBySpec(new CategorySpecs.GetAll(
+                        CategoryOpt.NoTracking | CategoryOpt.Filters | CategoryOpt.Parent));
+                    return mapper.Map<IEnumerable<CategoryDto>>(BuildTree(null, categories));
+                },
+                TimeSpan.FromHours(1));
+        }
                    
         public async Task<CategoryDto> GetTreeAsync(int categoryId)
         {

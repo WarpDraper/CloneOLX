@@ -27,6 +27,7 @@ namespace Olx.BLL.Services
         UserManager<OlxUser> userManager,
         IHttpContextAccessor httpContext,
         IEmailService emailService,
+        INotificationService notificationService,
         ILogger<OrderService> logger,
         IMapper mapper) : IOrderService
     {
@@ -80,8 +81,29 @@ namespace Olx.BLL.Services
             await orderRepository.SaveAsync();
 
             await SendOrderConfirmationEmailAsync(user, order);
+            await TryCreateOrderPlacedNotificationAsync(user.Id, order);
 
             return mapper.Map<OrderDto>(order);
+        }
+
+        // In-app "Order placed" notification (header bell + /notifications), alongside the email
+        // above. Best-effort: a notification-insert failure must never fail an already-persisted
+        // order, same reasoning as the email being best-effort.
+        private async Task TryCreateOrderPlacedNotificationAsync(int userId, Order order)
+        {
+            try
+            {
+                await notificationService.CreateAsync(
+                    userId,
+                    $"Замовлення №{order.Id} оформлено",
+                    $"Ваше замовлення на суму {order.TotalPrice:0.00} грн успішно оформлено.",
+                    "/profile/orders",
+                    NotificationType.OrderPlaced);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to create order-placed notification for order {OrderId}", order.Id);
+            }
         }
 
         // Best-effort: an SMTP hiccup must never fail an already-persisted order. Mirrors

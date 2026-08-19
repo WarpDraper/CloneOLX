@@ -4,7 +4,6 @@ import { AppstoreOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import { useGetCategoriesQuery } from "../../../services/categoryService";
 import { buildImageUrl, IMAGE_SIZES } from "../../../utils/buildImageUrl";
-import { getSeedTopLevelCategories } from "../../../utils/seedHydration";
 import FallbackImage from "../../../components/common/FallbackImage";
 import CubeLoader from "../../../components/common/CubeLoader";
 import { useMinLoadingTime } from "../../../hooks/useMinLoadingTime";
@@ -16,11 +15,7 @@ const CategoriesPage: React.FC = () => {
     // Keeps the CubeLoader overlay visible for at least 500ms so it never flashes
     // on/off for fast/cached responses.
     const showLoading = useMinLoadingTime(isLoading, 500);
-    const apiTopLevelCategories = (categories ?? []).filter((c) => c.parentId === null);
-    // Фолбек на локальні seed-дані, якщо бекенд офлайн (ERR_CONNECTION_REFUSED) або ще не засіяний.
-    const topLevelCategories = !isLoading && (isError || apiTopLevelCategories.length === 0)
-        ? getSeedTopLevelCategories()
-        : apiTopLevelCategories;
+    const topLevelCategories = (categories ?? []).filter((c) => c.parentId === null);
 
     return (
         <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-8">
@@ -40,11 +35,14 @@ const CategoriesPage: React.FC = () => {
                     <AppstoreOutlined className="text-4xl text-white" />
                     <span className="text-white text-sm font-semibold">{t('categories.allProducts')}</span>
                 </Link>
+                {!showLoading && !isError && topLevelCategories.length === 0 && (
+                    <p className="col-span-full text-center text-gray-400 py-10">{t('categories.empty')}</p>
+                )}
                 {topLevelCategories.map((category) => (
                     <Link
                         key={category.id}
                         to={`/category/${category.id}`}
-                        className="relative rounded-lg overflow-hidden aspect-[4/3] bg-gray-100 group border border-gray-100 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                        className="relative w-full aspect-[4/3] overflow-hidden rounded-lg bg-neutral-900 group border border-gray-100 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
                     >
                         {/* FallbackImage swaps to a keyword-matched Unsplash photo (and never a raw
                             broken <img>) whenever the backend-seeded file 404s or is missing — see
@@ -54,7 +52,7 @@ const CategoriesPage: React.FC = () => {
                             fallbackKeyword={category.name}
                             uniqueSeed={category.id}
                             alt={category.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            className="w-full h-full object-cover object-center scale-105 group-hover:scale-110 transition-transform duration-300"
                             placeholder={
                                 <div className="w-full h-full flex items-center justify-center bg-mm-lavender-light">
                                     <AppstoreOutlined className="text-4xl text-mm-purple" />

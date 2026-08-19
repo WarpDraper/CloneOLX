@@ -30,7 +30,7 @@ namespace Olx.BLL.Validators.User
             RuleFor(x => x.PhoneNumber)
                 .PhoneNumber().WithMessage(ValidationErrors.InvalidPhoneNumber);
             RuleFor(x => x.ImageFile)
-               .ImageFile().WithMessage(ValidationErrors.InvalidImageFileType)
+               .ImageFile()
                .When(x => x.ImageFile != null);
             RuleFor(x => x.AccountType)
                 .Must(x => x == "Individual" || x == "Business")

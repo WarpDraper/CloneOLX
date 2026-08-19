@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Olx.DAL.Data;
+using Pgvector;
 
 #nullable disable
 
@@ -20,6 +21,8 @@ namespace Olx.DAL.Migrations
                 .HasAnnotation("ProductVersion", "8.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "vector");
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pg_trgm");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("CategoryFilter", b =>
@@ -254,6 +257,9 @@ namespace Olx.DAL.Migrations
                     b.Property<bool>("Completed")
                         .HasColumnType("boolean");
 
+                    b.Property<int>("Condition")
+                        .HasColumnType("integer");
+
                     b.Property<string>("ContactEmail")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -273,6 +279,9 @@ namespace Olx.DAL.Migrations
                         .HasMaxLength(5000)
                         .HasColumnType("character varying(5000)");
 
+                    b.Property<Vector>("Embedding")
+                        .HasColumnType("vector(768)");
+
                     b.Property<bool>("IsContractPrice")
                         .HasColumnType("boolean");
 
@@ -283,6 +292,9 @@ namespace Olx.DAL.Migrations
 
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric");
+
+                    b.Property<bool>("Promoted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("SettlementRef")
                         .IsRequired()
@@ -353,7 +365,23 @@ namespace Olx.DAL.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("NameUk")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
                     b.Property<int?>("ParentId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Slug")
+                        .HasMaxLength(150)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<int>("SortOrder")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -562,6 +590,49 @@ namespace Olx.DAL.Migrations
                     b.ToTable("tbl_Settlements");
                 });
 
+            modelBuilder.Entity("Olx.BLL.Entities.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("TargetUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "IsRead");
+
+                    b.ToTable("tbl_Notifications");
+                });
+
             modelBuilder.Entity("Olx.BLL.Entities.OlxUser", b =>
                 {
                     b.Property<int>("Id")
@@ -579,11 +650,12 @@ namespace Olx.DAL.Migrations
 
                     b.Property<string>("AccountType")
                         .IsRequired()
-                        .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
                         .IsUnicode(false)
-                        .HasColumnType("character varying(20)")
-                        .HasDefaultValue("Individual");
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<decimal>("Balance")
+                        .HasColumnType("numeric");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -616,6 +688,9 @@ namespace Olx.DAL.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("NewsletterSubscribed")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
@@ -623,9 +698,6 @@ namespace Olx.DAL.Migrations
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
-
-                    b.Property<bool>("NewsletterSubscribed")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("text");
@@ -659,6 +731,11 @@ namespace Olx.DAL.Migrations
                         .IsUnicode(false)
                         .HasColumnType("character varying(36)");
 
+                    b.Property<string>("TelegramId")
+                        .HasMaxLength(32)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(32)");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
 
@@ -685,6 +762,92 @@ namespace Olx.DAL.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("Olx.BLL.Entities.Order", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DeliveryType")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PaymentMethod")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RecipientName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RecipientPhone")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SettlementDescription")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SettlementRef")
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("WarehouseDescription")
+                        .HasColumnType("text");
+
+                    b.Property<string>("WarehouseRef")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("tbl_Orders");
+                });
+
+            modelBuilder.Entity("Olx.BLL.Entities.OrderItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AdvertId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdvertId");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("tbl_OrderItems");
+                });
+
             modelBuilder.Entity("Olx.BLL.Entities.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
@@ -709,6 +872,57 @@ namespace Olx.DAL.Migrations
                     b.HasIndex("OlxUserId");
 
                     b.ToTable("tbl_RefreshTokens");
+                });
+
+            modelBuilder.Entity("Olx.BLL.Entities.Report", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AdvertId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("ReporterId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ResolvedByUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("TargetUserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdvertId");
+
+                    b.HasIndex("ReporterId");
+
+                    b.HasIndex("ResolvedByUserId");
+
+                    b.HasIndex("TargetUserId");
+
+                    b.ToTable("tbl_Reports");
                 });
 
             modelBuilder.Entity("tbl_AdvertFilterValue", b =>
@@ -951,6 +1165,17 @@ namespace Olx.DAL.Migrations
                     b.Navigation("SettlementRegion");
                 });
 
+            modelBuilder.Entity("Olx.BLL.Entities.Notification", b =>
+                {
+                    b.HasOne("Olx.BLL.Entities.OlxUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Olx.BLL.Entities.OlxUser", b =>
                 {
                     b.HasOne("Olx.BLL.Entities.NewPost.Settlement", "Settlement")
@@ -958,6 +1183,35 @@ namespace Olx.DAL.Migrations
                         .HasForeignKey("SettlementRef");
 
                     b.Navigation("Settlement");
+                });
+
+            modelBuilder.Entity("Olx.BLL.Entities.Order", b =>
+                {
+                    b.HasOne("Olx.BLL.Entities.OlxUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Olx.BLL.Entities.OrderItem", b =>
+                {
+                    b.HasOne("Olx.BLL.Entities.Advert", "Advert")
+                        .WithMany()
+                        .HasForeignKey("AdvertId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Olx.BLL.Entities.Order", "Order")
+                        .WithMany("Items")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Advert");
+
+                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("Olx.BLL.Entities.RefreshToken", b =>
@@ -969,6 +1223,38 @@ namespace Olx.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("OlxUser");
+                });
+
+            modelBuilder.Entity("Olx.BLL.Entities.Report", b =>
+                {
+                    b.HasOne("Olx.BLL.Entities.Advert", "Advert")
+                        .WithMany()
+                        .HasForeignKey("AdvertId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Olx.BLL.Entities.OlxUser", "Reporter")
+                        .WithMany()
+                        .HasForeignKey("ReporterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Olx.BLL.Entities.OlxUser", "ResolvedByUser")
+                        .WithMany()
+                        .HasForeignKey("ResolvedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Olx.BLL.Entities.OlxUser", "TargetUser")
+                        .WithMany()
+                        .HasForeignKey("TargetUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Advert");
+
+                    b.Navigation("Reporter");
+
+                    b.Navigation("ResolvedByUser");
+
+                    b.Navigation("TargetUser");
                 });
 
             modelBuilder.Entity("tbl_AdvertFilterValue", b =>
@@ -1060,6 +1346,11 @@ namespace Olx.DAL.Migrations
                     b.Navigation("RefreshTokens");
 
                     b.Navigation("SellChats");
+                });
+
+            modelBuilder.Entity("Olx.BLL.Entities.Order", b =>
+                {
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

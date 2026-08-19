@@ -1,9 +1,12 @@
 import './App.css'
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import type { RootState } from "./store";
 import { syncCartOwner } from "./store/cartSlice";
+import { clearNotifications } from "./store/notificationSlice";
+import NotificationManager from "./components/common/NotificationManager";
+import ProtectedRoute from "./components/common/ProtectedRoute";
 import LoginPage from "./pages/account/LoginPage";
 import RegisterPage from "./pages/account/RegisterPage";
 import ForgotPasswordPage from "./pages/account/ForgotPasswordPage";
@@ -21,6 +24,7 @@ import AdminProductsPage from "./pages/admin/ProductsPage";
 import AdminCategoriesPage from "./pages/admin/CategoriesPage";
 import SellersPage from "./pages/admin/SellersPage";
 import AdminChatsPage from "./pages/admin/ChatsPage";
+import AdminNewsletterPage from "./pages/admin/NewsletterPage";
 import ComingSoonPage from "./pages/admin/ComingSoonPage";
 import AdvertDetailsPage from "./pages/advert/AdvertDetailsPage";
 import SoldAdvertPage from "./pages/advert/SoldAdvertPage";
@@ -28,6 +32,7 @@ import SellerProfilePage from "./pages/profile/SellerProfilePage";
 import CategoriesPage from "./pages/category/CategoriesPage";
 import CategoryListingPage from "./pages/category/CategoryListingPage";
 import ChatPage from "./pages/chat/ChatPage";
+import NotificationsPage from "./pages/NotificationsPage";
 import FavoritesPage from "./pages/favorites/FavoritesPage";
 import CreateAdvertPage from "./pages/advert/CreateAdvertPage";
 import SettingsPage from "./pages/account/SettingsPage";
@@ -39,12 +44,14 @@ import HelpCenterPage from "./pages/info/HelpCenterPage";
 import AboutPage from "./pages/info/AboutPage";
 import TermsPage from "./pages/info/TermsPage";
 import AppComingSoonPage from "./pages/app/AppComingSoonPage";
+import PackagesPage from "./pages/packages/PackagesPage";
 import ScrollToTop from "./components/common/ScrollToTop";
 import RequireAdmin from "./components/common/RequireAdmin";
 
 
 function App() {
     const dispatch = useDispatch();
+    const location = useLocation();
     const userId = useSelector((state: RootState) => (state.auth.isAuth ? state.auth.user?.id ?? null : null));
 
     // Keeps the local cart scoped to whoever is currently signed in. Runs on every auth change
@@ -54,9 +61,25 @@ function App() {
         dispatch(syncCartOwner(userId));
     }, [dispatch, userId]);
 
+    // Global error-toast queue (notificationSlice, fed by createBaseQuery) must never carry over
+    // across a route change — e.g. a stray 403/backend-unreachable toast queued on one page
+    // should not still be sitting there (or pop up) after the user has already navigated
+    // somewhere else. Skips the very first render (prevRef starts equal to the initial pathname)
+    // so it only clears on an actual transition, not on mount.
+    const prevPathnameRef = useRef(location.pathname);
+    useEffect(() => {
+        if (prevPathnameRef.current !== location.pathname) {
+            prevPathnameRef.current = location.pathname;
+            dispatch(clearNotifications());
+        }
+    }, [location.pathname, dispatch]);
+
   return (
     <>
         <ScrollToTop />
+        {/* Mounted once, outside <Routes>, so it's never torn down/remounted by a route change —
+            see MainLayout.tsx for why that used to cause queued toasts to flood on arrival. */}
+        <NotificationManager />
         <Routes>
             <Route path="/admin" element={<RequireAdmin><AdminLayout /></RequireAdmin>}>
               <Route index element={<OverviewPage />} />
@@ -68,13 +91,16 @@ function App() {
               <Route path="chats" element={<AdminChatsPage />} />
               <Route path="reports" element={<ReportsPage />} />
               <Route path="analytics" element={<ComingSoonPage title="Аналітика" />} />
-              <Route path="marketing" element={<ComingSoonPage title="Маркетинг" />} />
+              <Route path="marketing" element={<AdminNewsletterPage />} />
               <Route path="settings" element={<ComingSoonPage title="Налаштування" />} />
             </Route>
 
             <Route element={<MainLayout />}>
               <Route path="/" element={<UserHomePage />} />
-              <Route path="/profile" element={<UserProfilePage />} />
+              {/* Own profile/account — requires auth. NOT /profile/:sellerId below, which is
+                  the public seller-listing page ([AllowAnonymous] on the backend, see
+                  profileService.ts) and must stay reachable by guests. */}
+              <Route path="/profile" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
               <Route path="/advert/sold/:id" element={<SoldAdvertPage />} />
               <Route path="/advert/:id" element={<AdvertDetailsPage />} />
               <Route path="/profile/:sellerId" element={<SellerProfilePage />} />
@@ -82,10 +108,11 @@ function App() {
               <Route path="/category/:id" element={<CategoryListingPage />} />
               <Route path="/search" element={<CategoryListingPage />} />
               <Route path="/chat" element={<ChatPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/favorites" element={<FavoritesPage />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/adverts/create" element={<CreateAdvertPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
               <Route path="/security" element={<SecurityPage />} />
               <Route path="/delivery-rules" element={<DeliveryRulesPage />} />
               <Route path="/delivery-safety" element={<DeliverySafetyPage />} />
@@ -96,6 +123,7 @@ function App() {
               <Route path="/about" element={<AboutPage />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/app-coming-soon" element={<AppComingSoonPage />} />
+              <Route path="/packages" element={<PackagesPage />} />
             </Route>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />

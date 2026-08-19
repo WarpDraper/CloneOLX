@@ -4,10 +4,26 @@ import type { IAdvert } from "../types/advert/IAdvert";
 import type { IAdvertPageRequest } from "../types/advert/IAdvertPageRequest";
 import type { IPageResponse } from "../types/common/IPageResponse";
 
-/** True for real backend advert ids — synthetic seed-fallback ids are negative (see
- *  utils/seedHydration.ts) and must never be sent to advert/favorites/chat endpoints
- *  (backend rejects e.g. GET /api/Advert/get/-2182 or POST /api/Account/favorites/add/-2182
- *  with 400 Bad Request). Mirrors profileService.isRealUserId. */
+// Warns (once per response, not once per card) when a page of adverts comes back from the
+// backend with items that have no usable cover photo — either `images` is empty/missing, or
+// every entry in it has a null/blank `name`. On its own this is silent in the UI (AdvertCard /
+// RecommendationCard just render the "Немає фото" placeholder, which is also the correct
+// behavior for adverts that genuinely have no photos), so without this log there's no signal to
+// tell "some sellers didn't upload photos" apart from "the list/mapping endpoint stopped
+// returning images for everyone" (see AdvertService.GetBalancedRandomPageAsync fix).
+const warnAboutMissingImages = (items: IAdvert[]): void => {
+    if (items.length === 0) return;
+    const withoutImage = items.filter((item) => !item.images?.some((img) => !!img?.name));
+    if (withoutImage.length === 0) return;
+    console.warn(
+        `[Advert ⚠] ${withoutImage.length}/${items.length} advert(s) in this page have no usable image`,
+        { advertIds: withoutImage.map((item) => item.id) }
+    );
+};
+
+/** True for a well-formed, positive backend advert id — guards call sites that turn a param
+ *  into an advert/favorites/chat request against sending NaN/0/negative ids (backend rejects
+ *  those with 400 Bad Request). Mirrors profileService.isRealUserId. */
 export const isRealAdvertId = (id: number | null | undefined): id is number =>
     typeof id === "number" && Number.isFinite(id) && id > 0;
 
@@ -48,6 +64,10 @@ export const advertService = createApi({
                 method: "POST",
                 body: pageRequest,
             }),
+            transformResponse: (response: IPageResponse<IAdvert>) => {
+                warnAboutMissingImages(response.items ?? []);
+                return response;
+            },
             providesTags: ["Advert"],
         }),
 

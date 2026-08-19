@@ -27,6 +27,8 @@ using Olx.BLL.Hubs;
 using SixLabors.ImageSharp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Pgvector;
+using Pgvector.EntityFrameworkCore;
 
 
 namespace Olx.BLL.Services
@@ -46,6 +48,8 @@ namespace Olx.BLL.Services
         IHubContext<MessageHub> hubContext,
         IConnectionTracker connectionTracker,
         IValidator<AdvertCreationModel> advertCreationModelValidator,
+        ICacheService cacheService,
+        IAdvertViewCounterService viewCounterService,
         ILogger<AdvertService> logger) : IAdvertService
     {
        
@@ -92,7 +96,8 @@ namespace Olx.BLL.Services
                 ?? throw new HttpException(Errors.InvalidAdvertId,HttpStatusCode.BadRequest);
             advertRepository.Delete(advert);
             await advertRepository.SaveAsync();
-            if (await userManager.IsInRoleAsync(user, Roles.Admin)) 
+            await cacheService.RemoveAsync(CacheKeys.AdvertById(id));
+            if (await userManager.IsInRoleAsync(user, Roles.Admin))
             {
                 var message = new AdminMessageCreationModel
                 {
@@ -147,11 +152,34 @@ namespace Olx.BLL.Services
             return adverts.WithOnlineStatus(connectionTracker);
         }
 
+        // The mapped AdvertDto itself is cached, but WithOnlineStatus is applied *after* every
+        // cache read (hit or miss): IsOnline is backed by the in-memory IConnectionTracker on
+        // this node, not a DB column, so it must never be baked into a value that's shared across
+        // requests (or, via L2, across nodes) — that would freeze a user's presence at whatever
+        // it was the moment the entry was cached.
         public async Task<AdvertDto> GetByIdAsync(int id)
         {
-            var advert = await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().AsNoTracking().Where(x => x.Id == id)).SingleOrDefaultAsync()
-                ?? throw new HttpException(Errors.InvalidAdvertId, HttpStatusCode.BadRequest);
-            return advert.WithOnlineStatus(connectionTracker);
+            var cached = await cacheService.GetOrSetAsync(
+                CacheKeys.AdvertById(id),
+                async _ => await mapper.ProjectTo<AdvertDto>(advertRepository.GetQuery().AsNoTracking().Where(x => x.Id == id)).SingleOrDefaultAsync()
+                    ?? throw new HttpException(Errors.InvalidAdvertId, HttpStatusCode.BadRequest));
+            var dto = cached.CloneForPresenceStamping().WithOnlineStatus(connectionTracker);
+
+            // Fast, best-effort view counter (LimiterRedis) — same "never let a side-effect fail
+            // the actual request" reasoning as the rest of this Redis architecture: an unreachable
+            // LimiterRedis (or IncrementAsync throwing for any other reason) must never turn
+            // viewing an advert into a 500. The in-memory IAdvertViewCounterService fallback never
+            // throws, so this only matters when the Redis-backed implementation is in play.
+            try
+            {
+                dto.ViewCount = await viewCounterService.IncrementAsync(id);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to increment view counter for advert {AdvertId}.", id);
+            }
+
+            return dto;
         }
 
         public async Task<IEnumerable<AdvertImageDto>> GetImagesAsync(int id) =>
@@ -172,11 +200,11 @@ namespace Olx.BLL.Services
                 // the page mixes categories instead of one dominating it.
                 if (string.Equals(pageRequest.SortKey, "random", StringComparison.OrdinalIgnoreCase))
                 {
-                    return await GetBalancedRandomPageAsync(query, filter, pageRequest.Size, connectionTracker);
+                    return await GetBalancedRandomPageAsync(query, filter, pageRequest.Size, connectionTracker, logger);
                 }
 
                 var paginationBuilder = new PaginationBuilder<AdvertDto>(query);
-                var sortData = new AdvertSortData(pageRequest.IsDescending, pageRequest.SortKey);
+                var sortData = new AdvertSortData(pageRequest.IsDescending, pageRequest.SortKey ?? "id");
                 var page = await paginationBuilder.GetPageAsync(pageRequest.Page, pageRequest.Size, filter, sortData);
                 return new()
                 {
@@ -186,20 +214,56 @@ namespace Olx.BLL.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to load advert page from the database; returning an empty page.");
+                // Context is essential here: this catch turns a real failure into a *silent*
+                // empty page (by design, so the storefront still renders), which means the only
+                // trace of what actually broke is this log line. Without SortKey/Page/Size/filter
+                // context, "failed to load advert page" is nearly useless for tracing which request
+                // shape triggered it (e.g. the Guid.NewGuid()-on-Npgsql translation failure that
+                // used to silently empty out the homepage "random" recommendations rail).
+                logger.LogError(ex,
+                    "Failed to load advert page from the database; returning an empty page. " +
+                    "SortKey={SortKey} Page={Page} Size={Size} IsDescending={IsDescending} " +
+                    "CategoryIds={CategoryIds} UserId={UserId} Search={Search}",
+                    pageRequest.SortKey, pageRequest.Page, pageRequest.Size, pageRequest.IsDescending,
+                    pageRequest.CategoryIds is null ? "(none)" : string.Join(",", pageRequest.CategoryIds),
+                    pageRequest.UserId, pageRequest.Search);
                 return new() { Total = 0, Items = [] };
             }
         }
 
-        private static async Task<PageResponse<AdvertDto>> GetBalancedRandomPageAsync(IQueryable<AdvertDto> query, AdvertFilter filter, int size, IConnectionTracker connectionTracker)
+        private static async Task<PageResponse<AdvertDto>> GetBalancedRandomPageAsync(IQueryable<AdvertDto> query, AdvertFilter filter, int size, IConnectionTracker connectionTracker, ILogger logger)
         {
             var filtered = filter.FilterQuery(query);
             var total = await filtered.CountAsync();
 
-            // Random order pushed down to the DB (Guid.NewGuid() per row), capped to a candidate
-            // pool big enough to give every category a fair shot without loading the whole table.
+            // Random order pushed down to the DB, capped to a candidate pool big enough to give
+            // every category a fair shot without loading the whole table.
+            //
+            // NOTE: this used to be `.OrderBy(x => Guid.NewGuid()).Take(poolSize)` directly on the
+            // SQL-translated IQueryable<AdvertDto>. That's a SQL Server idiom (NEWID() has a
+            // built-in provider translation there) — Npgsql/PostgreSQL has no translation for
+            // Guid.NewGuid(), so EF Core threw "could not be translated" on every single call.
+            // GetPageAsync's outer try/catch swallowed that exception and returned an empty page,
+            // which is exactly the sortKey=random path the homepage "Рекомендації для вас" rail
+            // uses — so every request silently emptied out, and the frontend fell back to local
+            // seed data (see UserHomePage/getSeedRecommendedAdverts) whose image references never
+            // resolve, hence every card showing the "Немає фото" placeholder while the (unrelated,
+            // non-random) advert detail endpoint rendered images fine.
+            //
+            // Fix: shuffle a plain list of matching ids in memory (cheap, no nested collections to
+            // translate), then re-query the real candidate pool by id — fully SQL-translatable
+            // (`WHERE Id IN (...)`) and keeps the full AdvertDto projection (Images included).
             var poolSize = Math.Max(size * 12, 200);
-            var candidates = await filtered.OrderBy(x => Guid.NewGuid()).Take(poolSize).ToListAsync();
+            var matchingIds = await filtered.Select(x => x.Id).ToListAsync();
+            var poolIds = matchingIds.OrderBy(_ => Guid.NewGuid()).Take(poolSize).ToHashSet();
+            var candidates = await filtered.Where(x => poolIds.Contains(x.Id)).ToListAsync();
+
+            if (total > 0 && candidates.Count == 0)
+            {
+                logger.LogWarning(
+                    "GetBalancedRandomPageAsync matched {Total} adverts but the id-based candidate pool came back empty (poolSize={PoolSize}).",
+                    total, poolSize);
+            }
 
             var byCategory = candidates
                 .GroupBy(x => x.CategoryId)
@@ -284,6 +348,7 @@ namespace Olx.BLL.Services
             advert.Completed = false;
             advert.Blocked = false;
             await advertRepository.SaveAsync();
+            await cacheService.RemoveAsync(CacheKeys.AdvertById(advert.Id));
             return mapper.Map<AdvertDto>(advert).WithOnlineStatus(connectionTracker);
         }
 
@@ -296,8 +361,50 @@ namespace Olx.BLL.Services
             {
                 advert.Approved = true;
                 await advertRepository.SaveAsync();
+                await cacheService.RemoveAsync(CacheKeys.AdvertById(id));
             }
             else throw new HttpException(Errors.AdvertIsBlocked, HttpStatusCode.BadRequest);
+        }
+
+        public async Task<AdvertDto> AdminUpdateAsync(int id, AdminAdvertUpdateModel model)
+        {
+            await userManager.UpdateUserActivityAsync(httpContext);
+            var advert = await advertRepository.GetItemBySpec(new AdvertSpecs.GetById(id, AdvertOpt.User | AdvertOpt.Images))
+                ?? throw new HttpException(Errors.InvalidAdvertId, HttpStatusCode.BadRequest);
+
+            if (model.CategoryId.HasValue && !await categorytRepository.AnyAsync(x => x.Id == model.CategoryId.Value))
+            {
+                throw new HttpException(Errors.InvalidCategoryId, HttpStatusCode.BadRequest);
+            }
+
+            if (model.Title is not null) advert.Title = model.Title;
+            if (model.Description is not null) advert.Description = model.Description;
+            if (model.Price.HasValue) advert.Price = model.Price.Value;
+            if (model.CategoryId.HasValue) advert.CategoryId = model.CategoryId.Value;
+            if (model.IsPromoted.HasValue) advert.Promoted = model.IsPromoted.Value;
+
+            // `Status` (if provided) wins over the individual flags — mirrors the same
+            // pending/active/sold/blocked vocabulary AdminController.GetProducts computes.
+            if (!string.IsNullOrWhiteSpace(model.Status))
+            {
+                switch (model.Status.Trim().ToLowerInvariant())
+                {
+                    case "active": advert.Approved = true; advert.Blocked = false; advert.Completed = false; break;
+                    case "blocked": advert.Blocked = true; break;
+                    case "sold": advert.Completed = true; advert.Blocked = false; break;
+                    case "pending": advert.Approved = false; advert.Blocked = false; advert.Completed = false; break;
+                    default: throw new HttpException("Invalid advert status value.", HttpStatusCode.BadRequest);
+                }
+            }
+            else if (model.IsActive.HasValue)
+            {
+                advert.Approved = model.IsActive.Value;
+                if (model.IsActive.Value) advert.Blocked = false;
+            }
+
+            await advertRepository.SaveAsync();
+            await cacheService.RemoveAsync(CacheKeys.AdvertById(id));
+            return mapper.Map<AdvertDto>(advert).WithOnlineStatus(connectionTracker);
         }
 
         public async Task SetLockedStatusAsync(AdvertLockRequest lockRequest)
@@ -306,7 +413,7 @@ namespace Olx.BLL.Services
             var advert = await advertRepository.GetItemBySpec(new AdvertSpecs.GetById(lockRequest.Id,AdvertOpt.User))
                  ?? throw new HttpException(Errors.InvalidAdvertId, HttpStatusCode.BadRequest);
             advert.Blocked = lockRequest.Status;
-            if (lockRequest.Status) 
+            if (lockRequest.Status)
             {
                 var message = new AdminMessageCreationModel
                 {
@@ -316,13 +423,14 @@ namespace Olx.BLL.Services
                     UserId = advert.UserId
                 };
                 await adminMessageService.SendToUser(message);
-               
+
                 var accountBlockedTemplate = EmailTemplates.GetAdvertLockedTemplate($"{message.Subject} {message.Content}");
                 await emailService.SendAsync(advert.User.Email ?? string.Empty, Messages.AdvertLocked, accountBlockedTemplate, true);
                 await hubContext.Clients.Users(advert.UserId.ToString())
                  .SendAsync(HubMethods.AdminLockAdvert);
             }
             await advertRepository.SaveAsync();
+            await cacheService.RemoveAsync(CacheKeys.AdvertById(lockRequest.Id));
         }
 
         public  async Task<int> RemoveCompletedAsync()
@@ -344,6 +452,7 @@ namespace Olx.BLL.Services
                 ?? throw new HttpException(Errors.InvalidAdvertId, HttpStatusCode.BadRequest);
             advertToComplete.Completed = true;
             await advertRepository.SaveAsync();
+            await cacheService.RemoveAsync(CacheKeys.AdvertById(advertId));
         }
 
         public async Task BuyAsync(int advertId)
@@ -353,6 +462,7 @@ namespace Olx.BLL.Services
                 ?? throw new HttpException(Errors.InvalidAdvertId, HttpStatusCode.BadRequest);
             advert.Completed = true;
             await advertRepository.SaveAsync();
+            await cacheService.RemoveAsync(CacheKeys.AdvertById(advertId));
 
             var buyerName = user.FirstName != null || user.LastName != null
                 ? $"{user.FirstName} {user.LastName}"
@@ -370,6 +480,28 @@ namespace Olx.BLL.Services
             await adminMessageService.SendToUser(message);
             var accountBlockedTemplate = EmailTemplates.GetAdvertBoughtTemplate(content);
             await emailService.SendAsync(advert.User.Email ?? string.Empty, Messages.AdvertLocked, accountBlockedTemplate, true);
+        }
+
+        // pgvector semantic search (see IAdvertService.SearchSimilarAdvertsAsync doc comment).
+        // `.CosineDistance(...)` is Pgvector.EntityFrameworkCore's LINQ extension for
+        // Advert.Embedding — EF Core translates it directly into Postgres's native `<=>`
+        // pgvector operator, so the ranking/ordering happens in the database, not in memory.
+        public async Task<IEnumerable<AdvertDto>> SearchSimilarAdvertsAsync(Vector embedding, int take = 10, int? excludeAdvertId = null)
+        {
+            var query = advertRepository.GetQuery()
+                .Where(x => x.Embedding != null && !x.Blocked && !x.Completed && x.Approved);
+
+            if (excludeAdvertId.HasValue)
+            {
+                query = query.Where(x => x.Id != excludeAdvertId.Value);
+            }
+
+            var ranked = query
+                .OrderBy(x => x.Embedding!.CosineDistance(embedding))
+                .Take(take);
+
+            var results = await mapper.ProjectTo<AdvertDto>(ranked).ToArrayAsync();
+            return results.WithOnlineStatus(connectionTracker);
         }
     }
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
@@ -11,10 +11,10 @@ import {
   LeftOutlined,
   RightOutlined,
   AppstoreOutlined,
-  QrcodeOutlined,
   AppleOutlined,
   AndroidOutlined,
 } from '@ant-design/icons';
+import SiteQrCode from '../../../components/common/SiteQrCode';
 import { QUICK_SEARCH_TAGS, HERO_SLIDES } from '../../../data/homePageData';
 import { UA_CITIES } from '../../../data/ukrainianCities';
 import { useGetCategoriesQuery } from '../../../services/categoryService';
@@ -22,8 +22,6 @@ import { useGetAdvertsPageQuery } from '../../../services/advertService';
 import RecommendationCard from '../../../components/advert/RecommendationCard';
 import MegaMenu from '../../../components/catalog/MegaMenu';
 import CategoryAvatar from '../../../components/catalog/CategoryAvatar';
-import SellerWidget from '../../../components/advert/SellerWidget';
-import { getSeedRecommendedAdverts, getSeedSellers, getSeedTopLevelCategories } from '../../../utils/seedHydration';
 import { arrangeFeedWithTopAds } from '../../../utils/arrangeFeedWithTopAds';
 import CubeLoader from '../../../components/common/CubeLoader';
 import ReleaseSubscriptionWidget from '../../../components/common/ReleaseSubscriptionWidget';
@@ -37,10 +35,6 @@ const RECOMMENDATIONS_COUNT = 12;
 const CATEGORY_RAIL_MAX = 8;
 // Hero carousel auto-scroll interval.
 const HERO_AUTOPLAY_MS = 7000;
-// Popular sellers toggle: 3 cards collapsed, 6 expanded.
-const SELLERS_COLLAPSED_COUNT = 3;
-const SELLERS_EXPANDED_COUNT = 6;
-
 const UserHomePage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -49,7 +43,6 @@ const UserHomePage: React.FC = () => {
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [city, setCity] = useState<string | undefined>(undefined);
-  const [sellersExpanded, setSellersExpanded] = useState(false);
   const slide = HERO_SLIDES[activeSlide];
 
   // Auto-scroll the hero carousel every 7s; pauses/resets cleanly on unmount or slide-count
@@ -89,11 +82,7 @@ const UserHomePage: React.FC = () => {
   const { data: categories, isLoading: isCategoriesLoading } = useGetCategoriesQuery();
   // Keeps each CubeLoader overlay visible for at least 500ms so it never flashes on/off.
   const showCategoriesLoading = useMinLoadingTime(isCategoriesLoading, 500);
-  const apiTopLevelCategories = (categories ?? []).filter((c) => c.parentId === null);
-  // Фолбек на локальні seed-дані (Categories.json), якщо бекенд ще не засіяний/недоступний.
-  const topLevelCategories = !isCategoriesLoading && apiTopLevelCategories.length === 0
-    ? getSeedTopLevelCategories()
-    : apiTopLevelCategories;
+  const topLevelCategories = (categories ?? []).filter((c) => c.parentId === null);
   // Rail always ends with the two pinned tiles ("Усі категорії" / "Усі товари"), so real
   // category tiles are capped to leave room for them within the 7-10 total tile target.
   const categoryRailTiles = topLevelCategories.slice(0, CATEGORY_RAIL_MAX);
@@ -109,28 +98,11 @@ const UserHomePage: React.FC = () => {
     isDescending: true,
     approved: true,
   });
-  // Фолбек на локальні seed-дані (Adverts.json), якщо бекенд не повернув оголошень. Category-
-  // balanced random sample (not just the first N, which are grouped by category in the
-  // fixture) — memoized so it stays stable across re-renders within the same mount, but
-  // re-shuffles on a fresh page load.
-  const usingSeedRecommendations = !isAdvertsLoading && (advertsPage?.items?.length ?? 0) === 0;
-  const seedRecommendations = useMemo(
-    () => (usingSeedRecommendations ? getSeedRecommendedAdverts(RECOMMENDATIONS_COUNT) : []),
-    [usingSeedRecommendations]
-  );
   // Reorder so a premium ("ТОП") card lands after every 4-5 regular ones instead of wherever
-  // the API's random/balanced order happened to place them.
-  const recommendations = arrangeFeedWithTopAds(
-    usingSeedRecommendations ? seedRecommendations : (advertsPage?.items ?? []).slice(0, RECOMMENDATIONS_COUNT)
-  );
+  // the API's random/balanced order happened to place them. If the API returns nothing, this
+  // is simply an empty array — no mock/placeholder cards.
+  const recommendations = arrangeFeedWithTopAds((advertsPage?.items ?? []).slice(0, RECOMMENDATIONS_COUNT));
   const showAdvertsLoading = useMinLoadingTime(isAdvertsLoading, 500);
-
-  // Продавці для стрічки "Популярні продавці" — публічного списку продавців ще немає,
-  // тож секція завжди живиться з seed-даних (Users.json). Toggle "Показати ще"/"Згорнути"
-  // switches the visible count between 3 and 6.
-  const allFeaturedSellers = useMemo(() => getSeedSellers(), []);
-  const featuredSellers = allFeaturedSellers.slice(0, sellersExpanded ? SELLERS_EXPANDED_COUNT : SELLERS_COLLAPSED_COUNT);
-  const canToggleSellers = allFeaturedSellers.length > SELLERS_COLLAPSED_COUNT;
 
   return (
     <div className="bg-white">
@@ -376,7 +348,7 @@ const UserHomePage: React.FC = () => {
       <section className="max-w-[1280px] mx-auto px-4 md:px-6 pb-12">
         <div className="bg-mm-lavender-light border border-purple-100 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-5 md:p-6 flex flex-col md:flex-row items-center gap-6">
           <div className="w-20 h-20 bg-white rounded-lg border border-gray-200 shrink-0 flex items-center justify-center p-2">
-            <QrcodeOutlined className="text-5xl text-mm-navy" />
+            <SiteQrCode size={64} />
           </div>
           <div className="flex-1 text-center md:text-left">
             <h3 className="text-base font-bold text-mm-navy mb-1">{t('home.appTitle')}</h3>
@@ -398,28 +370,6 @@ const UserHomePage: React.FC = () => {
           </Link>
         </div>
       </section>
-
-      {allFeaturedSellers.length > 0 && (
-        <section className="max-w-[1280px] mx-auto px-4 md:px-6 pb-12">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-xl font-bold text-mm-navy">{t('home.popularSellers')}</h2>
-            {canToggleSellers && (
-              <button
-                type="button"
-                onClick={() => setSellersExpanded((prev) => !prev)}
-                className="text-sm font-semibold text-mm-purple hover:underline"
-              >
-                {sellersExpanded ? t('home.collapse') : t('home.showMore')}
-              </button>
-            )}
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {featuredSellers.map((seller) => (
-              <SellerWidget key={seller.id} seller={seller} />
-            ))}
-          </div>
-        </section>
-      )}
 
       <ReleaseSubscriptionWidget />
     </div>

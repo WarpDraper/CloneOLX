@@ -18,6 +18,15 @@ interface FallbackImageProps {
      *  Optional — defaults to DEFAULT_IMAGE_PLACEHOLDER (a zero-network inline SVG) below, so
      *  callers that don't need a custom look never render a broken-image icon. */
     placeholder?: React.ReactNode;
+    /** Native `<img loading>` hint. Defaults to "lazy" — the browser defers the network
+     *  request until the image is near the viewport instead of firing it at mount time. Safe
+     *  default for grids/menus with many images (category rails, mega-menu strip, listings);
+     *  callers that render a single known-above-the-fold hero image can pass "eager" to opt out.
+     *  Purely a load-timing hint — has no effect on how the image looks once rendered. */
+    loading?: "lazy" | "eager";
+    /** Native `<img decoding>` hint. Defaults to "async" so image decoding never blocks the
+     *  main thread / first paint. */
+    decoding?: "async" | "sync" | "auto";
 }
 
 // Zero-network default placeholder: a plain inline SVG data URI. Used whenever a caller
@@ -75,7 +84,7 @@ const rememberBrokenSrc = (src: string): void => {
 // `placeholder` and stops — no keyword search, no background prefetch, no dynamic swap-in of
 // an externally-hosted photo. All real images must come from the local/backend static store
 // (apps/api/OLX.API/wwwroot/images/, via buildImageUrl.ts) or a relative /public asset.
-const FallbackImage: React.FC<FallbackImageProps> = ({ src, alt, className, placeholder }) => {
+const FallbackImage: React.FC<FallbackImageProps> = ({ src, alt, className, placeholder, loading = "lazy", decoding = "async" }) => {
     const usableSrc = src && !knownBrokenSrc.has(src) ? src : null;
     const [resolvedSrc, setResolvedSrc] = useState<string | null>(usableSrc);
     const [broken, setBroken] = useState(!!src && !usableSrc);
@@ -99,6 +108,8 @@ const FallbackImage: React.FC<FallbackImageProps> = ({ src, alt, className, plac
             src={resolvedSrc}
             alt={alt}
             className={className}
+            loading={loading}
+            decoding={decoding}
             onLoad={() => {
                 // A real backend {size}_{name}.webp URL just loaded successfully — clears the
                 // circuit breaker below so a transient blip (seeder mid-run, etc.) doesn't keep
@@ -107,13 +118,17 @@ const FallbackImage: React.FC<FallbackImageProps> = ({ src, alt, className, plac
             }}
             onError={() => {
                 // Backend seed data can reference webp files that were never generated on disk
-                // (dev/offline DB) — expected/recoverable, not a real error, so no console
-                // logging here. Remember the URL so no other mount of the same broken cover
-                // photo re-fires the request, then fall straight to the local `placeholder` —
-                // no online fallback is attempted. Also feeds the circuit breaker
-                // (buildImageUrl.ts) so once enough of these dead requests happen in a row,
-                // later calls skip straight to null instead of firing another doomed GET.
+                // (dev/offline DB) — expected/recoverable, not a hard error, so this stays a
+                // console.warn (not .error) and only fires once per unique src (guarded by the
+                // knownBrokenSrc check) rather than once per mounted card, so a single dead cover
+                // photo shared across the feed doesn't spam the console. Still logs *something*
+                // by design — a silently-swallowed broken image URL is exactly the kind of thing
+                // that hides a real backend/mapping bug (e.g. a list endpoint never returning
+                // photos) behind "well, the placeholder rendered, so it's fine".
                 if (resolvedSrc) {
+                    if (!knownBrokenSrc.has(resolvedSrc)) {
+                        console.warn(`[Image ✕] Failed to load: ${resolvedSrc}`, { alt });
+                    }
                     rememberBrokenSrc(resolvedSrc);
                     if (isBackendImageUrl(resolvedSrc)) reportBackendImageFailure();
                 }

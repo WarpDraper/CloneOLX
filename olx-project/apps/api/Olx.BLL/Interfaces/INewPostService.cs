@@ -3,7 +3,7 @@ using Olx.BLL.Entities.NewPost;
 
 namespace Olx.BLL.Interfaces
 {
-    public interface INewPostService : IDisposable
+    public interface INewPostService
     {
         Task<IEnumerable<Area>> GetAreasDataAsync() ;
         Task<IEnumerable<Settlement>> GetSettlementsDataAsync(IEnumerable<Region> regions);
@@ -14,6 +14,7 @@ namespace Olx.BLL.Interfaces
         Task<IEnumerable<RegionDto>> GetRegionsAsync();
         Task<IEnumerable<RegionDto>> GetRegionsByAreaAsync(string areaRef);
         Task<SettlementDto> GetSettlement(string settlementRef);
+        Task<IEnumerable<SettlementDto>> SearchSettlementsAsync(string query, int take = 20);
         Task UpdateNewPostData();
     }
 }

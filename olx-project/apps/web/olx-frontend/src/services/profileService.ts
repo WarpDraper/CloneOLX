@@ -2,10 +2,9 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import { createBaseQuery } from "../utils/createBaseQuery";
 import type { ISellerProfile } from "../types/user/ISellerProfile";
 
-// Seed-hydrated sellers/adverts use synthetic negative ids (see utils/seedHydration.ts) — the
-// backend can never resolve those (GET /api/User/get/-1747 -> 404 Not Found), so every call
-// site that turns a user/seller id into a profile request must treat id <= 0 (and NaN) as
-// "not a real API id" and skip the request instead of firing it.
+// Every call site that turns a user/seller id into a profile request must treat id <= 0
+// (and NaN) as "not a real API id" and skip the request instead of firing it (backend
+// rejects e.g. GET /api/User/get/-1 or /get/0 with 404 Not Found).
 //
 // id === 1 is excluded too: it's the fallback value several call sites can transiently produce
 // (e.g. Number(user?.id) before auth state has hydrated, or a stale/default param), and the

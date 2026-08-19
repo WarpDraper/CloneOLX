@@ -10,15 +10,15 @@ namespace OLX.API.Controllers
     [ApiController]
     public class ChatController(IChatService chatService ) : ControllerBase
     {
-        [Authorize(Roles = Roles.User)]
+        [Authorize(Roles = Roles.UserOrAdmin)]
         [HttpGet("chats")]
         public async Task<IActionResult> GetChats([FromQuery] int? advertId) => Ok(await chatService.GetUserChatsAsync(advertId));
 
-        [Authorize(Roles = Roles.User)]
+        [Authorize(Roles = Roles.UserOrAdmin)]
         [HttpGet("messages/{chatId:int}")]
         public async Task<IActionResult> GetChatsMessages([FromRoute]int chatId) => Ok(await chatService.GetChatMessagesAsync(chatId));
 
-        [Authorize(Roles = Roles.User)]
+        [Authorize(Roles = Roles.UserOrAdmin)]
         [HttpPost("send")]
         public async Task<IActionResult> Send([FromBody] ChatMessageSendModel sendModel)
         {
@@ -26,7 +26,7 @@ namespace OLX.API.Controllers
             return Ok();
         }
 
-        [Authorize(Roles = Roles.User)]
+        [Authorize(Roles = Roles.UserOrAdmin)]
         [HttpPost("set/readed")]
         public async Task<IActionResult> SetReaded([FromBody] SetReadedRequest request)
         {
@@ -34,7 +34,7 @@ namespace OLX.API.Controllers
             return Ok();
         }
 
-        [Authorize(Roles = Roles.User)]
+        [Authorize(Roles = Roles.UserOrAdmin)]
         [HttpPut("create")]
         public async Task<IActionResult> Create([FromBody] ChatCreationModel creationModel)
         {
@@ -42,7 +42,7 @@ namespace OLX.API.Controllers
             return Ok();
         }
 
-        [Authorize(Roles = Roles.User)]
+        [Authorize(Roles = Roles.UserOrAdmin)]
         [HttpDelete("user/delete/{chatId:int}")]
         public async Task<IActionResult> RemoveForUser([FromRoute] int chatId)
         {
@@ -50,7 +50,7 @@ namespace OLX.API.Controllers
             return Ok();
         }
 
-        [Authorize(Roles = Roles.User)]
+        [Authorize(Roles = Roles.UserOrAdmin)]
         [HttpDelete("user/delete")]
         public async Task<IActionResult> RemoveForUser([FromBody] IEnumerable<int> chatId)
         {

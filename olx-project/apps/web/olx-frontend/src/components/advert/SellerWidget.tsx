@@ -20,7 +20,7 @@ const SellerWidget: React.FC<SellerWidgetProps> = ({ seller }) => {
     return (
         <div className="border border-gray-100 rounded-xl p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-mm-purple/40">
             <Link to={`/profile/${seller.id}`} className="flex items-center gap-3 group">
-                <div className="w-12 h-12 rounded-full bg-mm-lavender flex items-center justify-center overflow-hidden shrink-0">
+                <div className="relative w-12 h-12 rounded-full bg-mm-lavender flex items-center justify-center overflow-hidden shrink-0 aspect-square">
                     {/* FallbackImage swaps to a keyword-matched Unsplash photo (never a raw
                         broken <img>) if the backend avatar is missing or 404s — see
                         components/common/FallbackImage.tsx. */}
@@ -29,7 +29,7 @@ const SellerWidget: React.FC<SellerWidgetProps> = ({ seller }) => {
                         fallbackKeyword={displayName}
                         uniqueSeed={seller.id}
                         alt={displayName}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover object-center scale-110"
                         placeholder={<UserOutlined className="text-mm-purple text-lg" />}
                     />
                 </div>

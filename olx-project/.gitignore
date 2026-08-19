@@ -6,11 +6,23 @@
 *.suo
 *.sln.docstates
 appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+appsettings.Staging.json
+# appsettings.example.json is intentionally NOT ignored — it's the tracked, secret-free template.
+set-user-secrets.local.ps1
+*.local.ps1
+
 # Node.js (Frontend) сміття
 node_modules/
 dist/
 .next/
 .env
+.env.local
+.env.production.local
+# .env.development and .env.production are tracked on purpose (non-secret defaults only —
+# see apps/web/olx-frontend/.gitignore). Real secrets go in the *.local variants above.
+
 # Системне сміття
 .DS_Store
 Thumbs.db

@@ -8,7 +8,7 @@ import type { RootState } from "../../store";
 import { addToCart, removeFromCart } from "../../store/cartSlice";
 import { addNotification } from "../../store/notificationSlice";
 import { buildImageUrl, IMAGE_SIZES } from "../../utils/buildImageUrl";
-import { getConditionLabel, getShortSpecs } from "../../utils/advertSpecs";
+import { getConditionBadge, getShortSpecs } from "../../utils/advertSpecs";
 import { saveReturnUrl } from "../../utils/returnUrl";
 import FallbackImage from "../common/FallbackImage";
 
@@ -36,7 +36,7 @@ const AdvertListItem: React.FC<AdvertListItemProps> = ({ advert, onQuickAdd, onT
 
     const cover = [...advert.images].sort((a, b) => a.priority - b.priority)[0];
     const imageUrl = buildImageUrl(cover?.name, IMAGE_SIZES.card);
-    const condition = getConditionLabel(advert, filterNameById);
+    const conditionBadge = getConditionBadge(advert, filterNameById);
     const shortSpecs = getShortSpecs(advert, filterNameById);
 
     const handleCartClick = (e: React.MouseEvent) => {
@@ -64,12 +64,16 @@ const AdvertListItem: React.FC<AdvertListItemProps> = ({ advert, onQuickAdd, onT
             to={`/advert/${advert.id}`}
             className="relative flex gap-4 bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group p-3"
         >
-            <div className="relative shrink-0 w-40 sm:w-48 aspect-[4/3] rounded-lg overflow-hidden bg-gray-100">
-                {condition && (
-                    // Only ever rendered for condition === "Нове" — getConditionLabel returns
-                    // undefined for used items, so no "Б/У" badge is ever shown (per spec).
-                    <span className="absolute top-2 left-2 z-10 text-[10px] font-semibold px-2 py-1 rounded-full bg-green-600 text-white">
-                        {condition}
+            <div className="relative shrink-0 w-40 sm:w-48 aspect-[4/3] overflow-hidden rounded-xl bg-neutral-900">
+                {conditionBadge && (
+                    <span
+                        className={`absolute top-2 left-2 z-10 text-[10px] font-semibold px-2 py-1 rounded-full ${
+                            conditionBadge.type === "new"
+                                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/50"
+                                : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
+                        }`}
+                    >
+                        {conditionBadge.type === "new" ? t("adverts.condition.new") : t("adverts.condition.used")}
                     </span>
                 )}
                 <FallbackImage
@@ -77,7 +81,7 @@ const AdvertListItem: React.FC<AdvertListItemProps> = ({ advert, onQuickAdd, onT
                     fallbackKeyword={advert.title}
                     uniqueSeed={advert.id || advert.title}
                     alt={advert.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover object-center scale-105 group-hover:scale-110 transition-transform duration-300"
                     placeholder={
                         <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">{t("advertCard.noPhoto")}</div>
                     }
@@ -103,6 +107,13 @@ const AdvertListItem: React.FC<AdvertListItemProps> = ({ advert, onQuickAdd, onT
                                 onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
+
+                                    if (!isAuth) {
+                                        saveReturnUrl(`${location.pathname}${location.search}`);
+                                        navigate("/login");
+                                        return;
+                                    }
+
                                     onToggleFavorite(advert);
                                     setHeartPulsing(true);
                                     window.setTimeout(() => setHeartPulsing(false), 200);

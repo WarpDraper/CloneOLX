@@ -64,9 +64,24 @@ const LoginForm: React.FC = () => {
             return;
         }
 
+        // reCAPTCHA v3 has no ref/reset() to guard here (that's react-google-recaptcha's v2 API
+        // — this app uses the hook-based v3 widget), but executeRecaptcha() itself can still
+        // reject (script not fully ready, an unmounted/torn-down widget, a transient network
+        // failure loading recaptcha__*.js). Isolated in its own try/catch so a captcha hiccup
+        // never throws uncaught into handleSubmit and never reaches the login API call below —
+        // it fails safe with a plain, actionable error instead of leaving the form stuck.
+        let token: string | null = null;
         try {
-            const token = await executeRecaptcha("login");
+            token = await executeRecaptcha("login");
+        } catch (captchaErr) {
+            console.warn("reCAPTCHA execution failed, aborting login safely.", captchaErr);
+        }
+        if (!token) {
+            setFormError(t('login.errors.captchaLoading'));
+            return;
+        }
 
+        try {
             const userData = await login({
                 email: formValues.email,
                 password: formValues.password,
@@ -74,6 +89,10 @@ const LoginForm: React.FC = () => {
                 action: "login",
             }).unwrap();
 
+            // Auth state must be committed the moment we have a token — nothing below this line
+            // (navigation, anything reCAPTCHA-related) may ever gate or delay it, so a follow-up
+            // reCAPTCHA teardown issue can never leave the store out of sync with a successful
+            // login.
             dispatch(setAuth({
                 token: userData.accessToken,
             }));

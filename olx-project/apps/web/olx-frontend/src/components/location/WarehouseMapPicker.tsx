@@ -15,8 +15,8 @@ const DEFAULT_CENTER: L.LatLngExpression = [48.3794, 31.1656]; // Ukraine, rough
 const DEFAULT_ZOOM = 6;
 const SELECTED_ZOOM = 15;
 
-const MARKER_COLOR = "#6C2BD9"; // mm-purple
-const SELECTED_MARKER_COLOR = "#F27127"; // mm-orange
+const MARKER_COLOR = "#E11D2E"; // red — Nova Poshta branch pins, per spec
+const SELECTED_MARKER_COLOR = "#F27127"; // mm-orange — visually distinct "selected" highlight
 
 // Visual pick-a-warehouse map for Nova Poshta delivery (Leaflet + OpenStreetMap tiles — no API
 // key required). Plots every warehouse returned for the chosen settlement using the real

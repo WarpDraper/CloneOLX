@@ -98,6 +98,17 @@ namespace Olx.BLL.Helpers.Email
         // receipt, in the same inline-style family as GetPasswordChangedTemplate/
         // GetEmailVerificationCodeTemplate rather than the full Stripo-exported .html templates,
         // since it's a small transactional message built from data, not a static asset.
+        // Sent to the seller only once — the very first message of a brand-new chat
+        // (ChatService.CreateAsync) — never on subsequent messages/chats, to avoid spamming an
+        // active conversation. advertTitle lets the seller identify which listing it's about
+        // without opening the app first.
+        public static string GetNewChatTemplate(string senderName, string advertTitle) =>
+            $@"<div style=""font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;padding:32px;text-align:center"">
+                <h2 style=""color:#1a1a2e;margin-bottom:8px"">Нове повідомлення на MultiMart</h2>
+                <p style=""color:#555;font-size:14px"">{WebUtility.HtmlEncode(senderName)} написав(ла) вам щодо оголошення «{WebUtility.HtmlEncode(advertTitle)}».</p>
+                <p style=""color:#999;font-size:12px"">Відповісти можна в розділі «Чати» на MultiMart.</p>
+            </div>";
+
         public static string GetOrderConfirmationTemplate(int orderId, string itemsHtml, decimal totalPrice, string deliveryDescription)
         {
             return $@"<div style=""font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;padding:32px"">

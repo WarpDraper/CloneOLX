@@ -2,21 +2,46 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Ardalis.Specification.EntityFrameworkCore" Version="8.0.0" />
-    <PackageReference Include="AutoMapper" Version="16.2.0" />
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
     <PackageReference Include="NETCore.MailKit" Version="2.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.10" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
+    <!-- pgvector support for EF Core 8 (brings in the Pgvector base types package as a
+         transitive dependency). NuGet has no package literally named
+         "Npgsql.EntityFrameworkCore.PostgreSQL.Vector" — pgvector-dotnet ships vector support
+         for Npgsql's EF Core provider as this separate add-on package instead. -->
+    <PackageReference Include="Pgvector.EntityFrameworkCore" Version="0.2.2" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
+    <!-- Backs RedisConnectionTracker (SignalRRedis presence) and the advert view counter
+         (LimiterRedis) — both talk to their own dedicated Redis instance directly via
+         IConnectionMultiplexer rather than through an IDistributedCache abstraction. Pinned to
+         the 2.8.x line (not the 3.x major) to stay API-compatible with
+         Microsoft.Extensions.Caching.StackExchangeRedis 8.0.29 used for CacheRedis in OLX.API. -->
+    <PackageReference Include="StackExchange.Redis" Version="2.8.37" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.2.0" />
+    <PackageReference Include="ZiggyCreatures.FusionCache" Version="2.6.0" />
+  </ItemGroup>
+
+  <!-- AutoMapper is intentionally pinned to 13.0.1 (not upgraded to 14+, which relicensed under
+       LuckyPenny's commercial terms). 13.0.1 is flagged by NU1903 for GHSA-rvv3-g6hj-g44x
+       (ReDoS in a string-matching helper used by AutoMapper's member-name convention
+       resolution) — this codebase's mapping profiles (see AdvertProfile, etc.) use only
+       explicit CreateMap/ForMember configuration, never end-user-controlled input as a
+       member/type name, so the advisory's attack surface isn't reachable here. Suppressed by
+       advisory id (not a blanket NU1903 NoWarn) so upgrading/adding any other package that
+       trips a *different* NU1903 advisory later still warns as normal. -->
+  <ItemGroup>
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-rvv3-g6hj-g44x" />
   </ItemGroup>
 
   <ItemGroup>

@@ -50,8 +50,21 @@ namespace Olx.BLL.Services
             var userDto = await mapper.ProjectTo<OlxUserDto>(userRepo.GetQuery().AsNoTracking().Where(x => x.Id == id)).SingleOrDefaultAsync();
             if (userDto is not null)
             {
+                // isAdmin=false is the PUBLIC/general lookup (see UserController.Get, [AllowAnonymous]
+                // — public seller-profile pages). Any existing user must resolve here regardless of
+                // their role: an Admin account is still a real user with a public profile. Previously
+                // this compared IsInRoleAsync(...) == isAdmin, which required a NON-admin match for the
+                // false case too — so an existing user who happened to hold the Admin role 404'd on
+                // their own public profile lookup (GET /api/User/get/{id}) even though the row exists.
+                // isAdmin=true (UserController.GetAdmin) intentionally stays role-restricted: it's the
+                // admin-management lookup and must only resolve ids that are actually admins.
+                if (!isAdmin)
+                {
+                    return userDto.WithOnlineStatus(connectionTracker);
+                }
+
                 var user = await userRepo.GetByIDAsync(id);
-                if (user is not null && (await userManager.IsInRoleAsync(user, Roles.Admin)) == isAdmin)
+                if (user is not null && await userManager.IsInRoleAsync(user, Roles.Admin))
                 {
                     return userDto.WithOnlineStatus(connectionTracker);
                 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Http;
 using Newtonsoft.Json;
 using Olx.BLL.Entities;
 using Olx.BLL.Entities.FilterEntities;
@@ -54,11 +55,26 @@ namespace OLX.API.Extensions
                 Console.WriteLine($"[DbSeeder] Roles seed failed: {ex.Message}\n{ex}");
             }
 
+            //Admin account seeder — runs on every startup, unlike the "Users seeder" block
+            // below (which only ever fires against a completely empty Users table). Guarantees
+            // a working Admin login exists even if the table already has rows, and self-heals a
+            // corrupt/manually-edited PasswordHash instead of leaving the account permanently
+            // unable to log in (see SeedAdminAccountAsync for the two failure modes it covers).
+            try
+            {
+                var adminUserManager = serviceProvider.GetRequiredService<UserManager<OlxUser>>();
+                await SeedAdminAccountAsync(app, adminUserManager);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DbSeeder] Admin account seed failed: {ex.Message}\n{ex}");
+            }
+
 
             //NewPost seeder
             try
             {
-                using var newPostService = scope.ServiceProvider.GetRequiredService<INewPostService>();
+                var newPostService = scope.ServiceProvider.GetRequiredService<INewPostService>();
                 var areaRepo = scope.ServiceProvider.GetRequiredService<IRepository<Area>>();
                 if (!await areaRepo.AnyAsync())
                 {
@@ -206,6 +222,40 @@ namespace OLX.API.Extensions
                 else Console.WriteLine("File \"JsonData/Categories.json\" not found");
             }
 
+            // One-time cleanup for category icons saved by an older build of ImageService that
+            // used ResizeMode.Pad + a white background: that baked visible letterbox bars into
+            // the saved file itself, which no amount of frontend CSS cropping (object-cover, etc.)
+            // can remove. Runs on every startup regardless of the AnyAsync() guard above — it needs
+            // to cover categories created later through the admin UI too, not just the JSON seed —
+            // but it's cheap and idempotent: an icon with no uniform border to trim (already clean,
+            // or already fixed on a previous run) is returned byte-for-byte unchanged.
+            try
+            {
+                await ReprocessLetterboxedCategoryImagesAsync(categoryRepo, imageService);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DbSeeder] Category image cleanup failed: {ex.Message}\n{ex}");
+            }
+
+            // One-time, opt-in backfill for subcategories with no Image set — downloads a
+            // representative photo per subcategory from a free/keyless image API. Off by default
+            // (see appsettings' Seeder:RunOneTimeSubcategorySeeder) so a normal app boot never
+            // fires a burst of outbound requests against a third-party service; an admin flips
+            // this to true for one run, then back to false.
+            if (app.Configuration.GetValue<bool>("Seeder:RunOneTimeSubcategorySeeder", false))
+            {
+                try
+                {
+                    var httpClientFactory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>();
+                    await SeedMissingSubcategoryImagesAsync(categoryRepo, imageService, httpClientFactory);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[DbSeeder] SeedMissingSubcategoryImagesAsync failed: {ex.Message}\n{ex}");
+                }
+            }
+
 
             //Advert seeder
             // Adverts are seeded exclusively from Helpers/JsonData/Adverts.json (deserialized into
@@ -255,6 +305,17 @@ namespace OLX.API.Extensions
                     var allCategories = categoryRepo is not null
                         ? (await categoryRepo.GetListBySpec(new CategorySpecs.GetAll())).ToList()
                         : new List<Category>();
+                    var categoriesById = allCategories.ToDictionary(c => c.Id);
+                    // Condition ("Б/в"/"Нове") makes no sense for these top-level categories —
+                    // an animal or a job/service listing isn't "new" or "used". Checked against
+                    // the top-level ancestor of each advert's resolved category (below), so a
+                    // random New/Used is skipped for e.g. any subcategory under "Тварини" too.
+                    // Real top-level category names from Categories.json — "Послуги" isn't a
+                    // top-level category on its own, it's folded into "Бізнес та послуги".
+                    var conditionExcludedTopLevelCategories = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        "Тварини", "Робота", "Бізнес та послуги"
+                    };
                     var seedImagesDir = Path.Combine(seederJsonDir, "SeedImages");
                     var advertImagesDestDir = Path.Combine(Environment.CurrentDirectory, app.Configuration["ImagesDir"]!, "products");
                     Directory.CreateDirectory(advertImagesDestDir);
@@ -352,6 +413,7 @@ namespace OLX.API.Extensions
                             IsContractPrice = def.IsContractPrice,
                             Price = def.Price,
                             CategoryId = categoryId.Value,
+                            Condition = GetSeededCondition(categoryId.Value, categoriesById, conditionExcludedTopLevelCategories),
                             FilterValues = filterValues,
                             Images = images,
                             Approved = true,
@@ -398,6 +460,295 @@ namespace OLX.API.Extensions
             }
 
             return match?.Id;
+        }
+
+        // Random Used/New for a seeded advert's resolved category — None (no badge) for
+        // categories where "condition" doesn't apply (see conditionExcludedTopLevelCategories at
+        // the call site) or if the category's top-level ancestor can't be resolved for any reason.
+        private static ItemCondition GetSeededCondition(
+            int categoryId,
+            Dictionary<int, Category> categoriesById,
+            HashSet<string> excludedTopLevelCategoryNames)
+        {
+            var topLevelName = ResolveTopLevelCategoryName(categoryId, categoriesById);
+            if (topLevelName is null || excludedTopLevelCategoryNames.Contains(topLevelName))
+            {
+                return ItemCondition.None;
+            }
+            return Random.Shared.Next(2) == 0 ? ItemCondition.Used : ItemCondition.New;
+        }
+
+        // Walks Category.ParentId up to the root to find the top-level category name a given
+        // (possibly deeply nested) categoryId ultimately belongs to. Guards against a corrupt/
+        // circular ParentId chain with a visited-count bound instead of looping forever.
+        private static string? ResolveTopLevelCategoryName(int categoryId, Dictionary<int, Category> categoriesById)
+        {
+            if (!categoriesById.TryGetValue(categoryId, out var category)) return null;
+
+            var guard = 0;
+            while (category.ParentId is int parentId && categoriesById.TryGetValue(parentId, out var parent) && guard++ < categoriesById.Count)
+            {
+                category = parent;
+            }
+            return category.Name;
+        }
+
+        /// <summary>
+        /// Guarantees a working Admin account exists and can actually log in, independent of the
+        /// rest of the seeder — the "Users seeder" block above only ever runs once, against a
+        /// completely empty Users table, so it can never repair or (re)create an admin once any
+        /// row exists. This method recovers from two specific failure modes:
+        ///   1. No account with the configured admin email exists at all (fresh DB where the
+        ///      Users seeder never ran, or the row it created was later deleted) — a fresh admin
+        ///      is created via UserManager.CreateAsync, which always produces a correctly
+        ///      formatted Identity password hash (never a manual/raw DB insert).
+        ///   2. An account exists but its PasswordHash column is corrupt / not valid Base64 —
+        ///      e.g. it was written or edited directly against the database, bypassing Identity
+        ///      entirely. UserManager.CheckPasswordAsync throws FormatException for that instead
+        ///      of returning false (the exact issue AccountService.LoginAsync now also guards
+        ///      against). Caught here and repaired by resetting the password through Identity's
+        ///      own RemovePasswordAsync/AddPasswordAsync, which is guaranteed to leave a
+        ///      well-formed hash behind.
+        /// Credentials come from "AdminSeed:Email"/"AdminSeed:Password" in configuration, falling
+        /// back to the same admin fixture already defined in Helpers/JsonData/Users.json so a
+        /// freshly seeded DB and one repaired by this method converge on the same admin login.
+        /// Never throws — every failure is logged and this returns, exactly like every other
+        /// seeder section in this file, so a problem here can never crash startup.
+        /// </summary>
+        private static async Task SeedAdminAccountAsync(WebApplication app, UserManager<OlxUser> userManager)
+        {
+            var adminEmail = app.Configuration["AdminSeed:Email"] ?? "valentyna.marchenko18@gmail.com";
+            var adminPassword = app.Configuration["AdminSeed:Password"] ?? "Passw0rd_23";
+
+            var admin = await userManager.FindByEmailAsync(adminEmail);
+
+            if (admin is null)
+            {
+                Console.WriteLine($"[DbSeeder] No admin account found for \"{adminEmail}\" — creating one.");
+                admin = new OlxUser
+                {
+                    UserName = adminEmail,
+                    Email = adminEmail,
+                    EmailConfirmed = true,
+                    FirstName = "Admin",
+                    LastName = "Admin",
+                };
+                var createResult = await userManager.CreateAsync(admin, adminPassword);
+                if (!createResult.Succeeded)
+                {
+                    Console.WriteLine($"[DbSeeder] Failed to create admin account \"{adminEmail}\": {string.Join("; ", createResult.Errors.Select(e => e.Description))}");
+                    return;
+                }
+                Console.WriteLine($"[DbSeeder] Admin account \"{adminEmail}\" created.");
+            }
+
+            if (!await userManager.IsInRoleAsync(admin, Roles.Admin))
+            {
+                var roleResult = await userManager.AddToRoleAsync(admin, Roles.Admin);
+                if (!roleResult.Succeeded)
+                {
+                    Console.WriteLine($"[DbSeeder] Failed to grant Admin role to \"{adminEmail}\": {string.Join("; ", roleResult.Errors.Select(e => e.Description))}");
+                }
+            }
+
+            // Probe the stored hash through Identity's own verifier before trusting it. A
+            // corrupt/non-Base64 PasswordHash throws FormatException here rather than returning
+            // a mismatch — a mismatch (wrong-but-well-formed hash) is left alone, since that just
+            // means the deployed admin password legitimately differs from the configured
+            // default and overwriting it would be destructive, not a repair.
+            var passwordHashIsUsable = true;
+            try
+            {
+                await userManager.CheckPasswordAsync(admin, adminPassword);
+            }
+            catch (FormatException)
+            {
+                passwordHashIsUsable = false;
+            }
+
+            if (!passwordHashIsUsable)
+            {
+                Console.WriteLine($"[DbSeeder] Admin account \"{adminEmail}\" has a corrupt password hash — resetting it.");
+                if (await userManager.HasPasswordAsync(admin))
+                {
+                    var removeResult = await userManager.RemovePasswordAsync(admin);
+                    if (!removeResult.Succeeded)
+                    {
+                        Console.WriteLine($"[DbSeeder] Failed to remove corrupt admin password hash for \"{adminEmail}\": {string.Join("; ", removeResult.Errors.Select(e => e.Description))}");
+                        return;
+                    }
+                }
+                var addResult = await userManager.AddPasswordAsync(admin, adminPassword);
+                if (!addResult.Succeeded)
+                {
+                    Console.WriteLine($"[DbSeeder] Failed to reset admin password hash for \"{adminEmail}\": {string.Join("; ", addResult.Errors.Select(e => e.Description))}");
+                    return;
+                }
+                Console.WriteLine($"[DbSeeder] Admin account \"{adminEmail}\" password hash repaired.");
+            }
+        }
+
+        /// <summary>
+        /// Re-runs every persisted category icon through <see cref="IImageService.ReprocessStoredImageAsync(string)"/>,
+        /// which trims any uniform (letterbox) border and re-encodes with the padding-free resize
+        /// pipeline. Updates Category.Image if the file's extension changed (rare — only when
+        /// trimming reveals/removes an alpha channel). See the call site above for why this runs
+        /// unconditionally instead of being gated behind an "already seeded" check.
+        /// </summary>
+        private static async Task ReprocessLetterboxedCategoryImagesAsync(IRepository<Category>? categoryRepo, IImageService imageService)
+        {
+            if (categoryRepo is null) return;
+
+            var categories = await categoryRepo.GetQuery(QueryTrackingBehavior.TrackAll)
+                .Where(c => c.Image != null && c.Image != "")
+                .ToListAsync();
+            if (categories.Count == 0) return;
+
+            var reprocessed = 0;
+            foreach (var category in categories)
+            {
+                var newName = await imageService.ReprocessStoredImageAsync(category.Image!);
+                if (newName is null)
+                {
+                    Console.WriteLine($"[DbSeeder] Category \"{category.Name}\" image \"{category.Image}\" not found on disk — skipping.");
+                    continue;
+                }
+                if (newName != category.Image)
+                {
+                    category.Image = newName;
+                }
+                reprocessed++;
+            }
+            await categoryRepo.SaveAsync();
+            Console.WriteLine($"[DbSeeder] Checked {reprocessed} category image(s) for baked-in letterbox padding.");
+        }
+
+        // Maps each top-level category name to an English loremflickr.com tag so backfilled
+        // subcategory images are at least thematically relevant instead of generic. Falls back to
+        // <see cref="DefaultCategoryImageTag"/> for any top-level category not listed here (keeps
+        // this from throwing if Categories.json gains a new top-level category later).
+        private static readonly Dictionary<string, string> TopLevelCategoryImageTags = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Дитячий світ"] = "kids",
+            ["Нерухомість"] = "house",
+            ["Авто"] = "car",
+            ["Запрчастини для транспорту"] = "carparts",
+            ["Робота"] = "office",
+            ["Тварини"] = "animal",
+            ["Дім і сад"] = "furniture",
+            ["Електроніка"] = "electronics",
+            ["Бізнес та послуги"] = "business",
+            ["Оренда та прокат"] = "rental",
+            ["Мода і стиль"] = "fashion",
+            ["Хоббі,відпочинок та спорт"] = "sport",
+        };
+        private const string DefaultCategoryImageTag = "product";
+
+        /// <summary>
+        /// One-time, opt-in backfill for subcategories (Category.ParentId != null) that have no
+        /// Image set. For each one, resolves its top-level category (see
+        /// <see cref="ResolveTopLevelCategoryName"/>) to an English tag via
+        /// <see cref="TopLevelCategoryImageTags"/> and requests a matching stock photo from
+        /// loremflickr.com — a fast, keyless stock-photo CDN. This replaced pollinations.ai, whose
+        /// on-demand AI image generation throttled bursts of sequential requests with 429 Too Many
+        /// Requests almost immediately. The downloaded bytes are routed through the same
+        /// <see cref="IImageService.SaveImageAsync(byte[])"/> pipeline every uploaded image goes
+        /// through (resize/re-encode to the app's standard format), then Category.Image is updated
+        /// to point at the saved file.
+        ///
+        /// Never runs automatically — gated behind Seeder:RunOneTimeSubcategorySeeder at the call
+        /// site in <see cref="SeedDataInternalAsync"/>. A failure on one subcategory (429/500 from
+        /// the CDN, network error, corrupt response) is logged and skipped so it can never abort
+        /// the whole batch; already-seeded rows from an earlier partial run are naturally skipped
+        /// too, since the Image == null/empty filter no longer matches them.
+        /// </summary>
+        private static async Task SeedMissingSubcategoryImagesAsync(
+            IRepository<Category>? categoryRepo,
+            IImageService imageService,
+            IHttpClientFactory httpClientFactory)
+        {
+            if (categoryRepo is null) return;
+
+            // CategoryOpt.Parent includes the Parent navigation property; categoriesById (built
+            // from the same full list) additionally lets ResolveTopLevelCategoryName walk the
+            // ParentId chain all the way to the root for accurate tag selection below.
+            var allCategories = (await categoryRepo.GetListBySpec(new CategorySpecs.GetAll(CategoryOpt.Parent))).ToList();
+            var categoriesById = allCategories.ToDictionary(c => c.Id);
+            var missing = allCategories
+                .Where(c => c.ParentId != null && string.IsNullOrEmpty(c.Image))
+                .ToList();
+
+            if (missing.Count == 0)
+            {
+                Console.WriteLine("[DbSeeder] SeedMissingSubcategoryImagesAsync: no subcategories are missing an image — nothing to do.");
+                return;
+            }
+
+            Console.WriteLine($"[DbSeeder] SeedMissingSubcategoryImagesAsync: backfilling {missing.Count} subcategory image(s).");
+
+            var httpClient = httpClientFactory.CreateClient(HttpClients.ImageDownload);
+            var seeded = 0;
+            var failed = 0;
+
+            foreach (var category in missing)
+            {
+                var topLevelName = ResolveTopLevelCategoryName(category.Id, categoriesById);
+                var tag = topLevelName is not null && TopLevelCategoryImageTags.TryGetValue(topLevelName, out var mappedTag)
+                    ? mappedTag
+                    : DefaultCategoryImageTag;
+
+                try
+                {
+                    // 800x800 stock photo matched to `tag`. Unlike pollinations.ai's on-demand AI
+                    // generation, loremflickr serves an existing photo with no per-request render
+                    // work, so it tolerates back-to-back requests without throttling.
+                    var imageUrl = $"https://loremflickr.com/800/800/{Uri.EscapeDataString(tag)}";
+                    using var request = new HttpRequestMessage(HttpMethod.Get, imageUrl);
+                    request.Headers.UserAgent.ParseAdd(
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+
+                    using var response = await httpClient.SendAsync(request);
+                    byte[] imageBytes;
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        // Guaranteed-uptime fallback: picsum.photos never 429s and doesn't depend
+                        // on a tag existing, so a bad/rate-limited loremflickr response still ends
+                        // in a usable image instead of leaving the subcategory blank.
+                        Console.WriteLine($"[DbSeeder] loremflickr returned {(int)response.StatusCode} for subcategory \"{category.Name}\" (tag \"{tag}\") — falling back to picsum.photos.");
+                        var fallbackUrl = $"https://picsum.photos/seed/{category.Id}/800/800";
+                        using var fallbackRequest = new HttpRequestMessage(HttpMethod.Get, fallbackUrl);
+                        fallbackRequest.Headers.UserAgent.ParseAdd(
+                            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+                        using var fallbackResponse = await httpClient.SendAsync(fallbackRequest);
+                        fallbackResponse.EnsureSuccessStatusCode();
+                        imageBytes = await fallbackResponse.Content.ReadAsByteArrayAsync();
+                    }
+                    else
+                    {
+                        imageBytes = await response.Content.ReadAsByteArrayAsync();
+                    }
+
+                    category.Image = await imageService.SaveImageAsync(imageBytes);
+                    seeded++;
+                }
+                catch (Exception ex)
+                {
+                    // Covers a 429/500 that also survives the fallback attempt above, plus any
+                    // network-level failure (timeout, DNS, etc.) on either request — logged and
+                    // skipped so one bad subcategory can never abort the whole batch.
+                    failed++;
+                    Console.WriteLine($"[DbSeeder] Failed to seed image for subcategory \"{category.Name}\" (tag \"{tag}\"): {ex.Message}");
+                }
+
+                // Polite pacing against a free, unauthenticated CDN — this only ever runs as a
+                // manually-triggered one-off, never on a normal boot, so the extra runtime is a
+                // good trade for not hammering a third-party service. Bumped from 500ms to 1500ms
+                // since loremflickr rate-limits bursts more aggressively than the previous provider.
+                await Task.Delay(1500);
+            }
+
+            await categoryRepo.SaveAsync();
+            Console.WriteLine($"[DbSeeder] SeedMissingSubcategoryImagesAsync done: {seeded} seeded, {failed} failed.");
         }
 
         private async static Task<IEnumerable<Category>> GetCategories(

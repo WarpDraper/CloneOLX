@@ -14,15 +14,40 @@
     "notificationsPanel": {
       "title": "Notifications",
       "markAllRead": "Mark all as read",
-      "empty": "No new notifications"
+      "empty": "No new notifications",
+      "viewAll": "View all notifications"
     },
-    "adminPanel": "Admin Panel",
+    "adminPanel": "Control panel",
     "addAdvert": "Post an Ad"
   },
   "footer": {
     "socials": "MultiMart communities on social media:",
     "qrLabel": "Scan to learn about the MultiMart app",
     "copyright": "© 2024 MultiMart Online Store. All rights reserved."
+  },
+  "qrModal": {
+    "title": "Share link",
+    "copyLink": "Copy link",
+    "copied": "Copied!"
+  },
+  "reportModal": {
+    "titleAdvert": "Report this listing",
+    "titleUser": "Report this user",
+    "reasonLabel": "Reason",
+    "reasons": {
+      "fraud": "Fraud",
+      "spam": "Spam",
+      "inappropriate": "Inappropriate content",
+      "other": "Other"
+    },
+    "descriptionLabel": "Comment (optional)",
+    "descriptionPlaceholder": "Add details if needed",
+    "submit": "Submit report",
+    "cancel": "Cancel",
+    "reasonRequired": "Select a reason",
+    "success": "Thanks, your report was sent to moderators",
+    "error": "Couldn't submit the report. Try again later",
+    "loginRequired": "Log in to submit a report"
   },
   "home": {
     "catalog": "Catalog",
@@ -160,7 +185,10 @@
     "avatar": {
       "changePhoto": "Change photo",
       "allowedFormats": "Allowed formats: JPG, PNG, GIF, WEBP.",
-      "maxSize": "Photo size must not exceed 2MB."
+      "maxSize": "Photo size must not exceed 2MB.",
+      "previewFailed": "Couldn't preview this photo. Please try a different file.",
+      "cropTitle": "Crop avatar photo",
+      "cropSave": "Save"
     },
     "email": {
       "label": "Email",
@@ -208,6 +236,14 @@
     "notConfigured": "Google sign-in is temporarily unavailable: VITE_GOOGLE_CLIENT_ID is not set in .env",
     "ariaLabel": "Sign in with Google"
   },
+  "telegramAuth": {
+    "errors": {
+      "loginFailed": "Failed to sign in with Telegram. Please try again.",
+      "widgetFailed": "Failed to load the Telegram widget. Check your internet connection."
+    },
+    "notConfigured": "Telegram sign-in is temporarily unavailable: VITE_TELEGRAM_BOT_ID is not set in .env",
+    "ariaLabel": "Sign in with Telegram"
+  },
   "accountSidebar": {
     "nav": {
       "profile": "Profile",
@@ -228,9 +264,21 @@
       "empty": "No categories found",
       "table": {
         "id": "ID",
+        "image": "Image",
         "name": "Name",
         "parent": "Parent category",
-        "filters": "Filters"
+        "filters": "Filters",
+        "actions": "Actions"
+      },
+      "image": {
+        "changeButton": "Change image",
+        "uploadButton": "Upload image",
+        "removeButton": "Remove",
+        "modalTitle": "Image — {{name}}",
+        "hint": "PNG, JPG, GIF or WebP, up to {{size}} MB.",
+        "invalidType": "Unsupported file type. Use PNG, JPG, GIF or WebP.",
+        "tooLarge": "File is too large. Max {{size}} MB.",
+        "saved": "Category image updated."
       }
     },
     "chats": {
@@ -348,47 +396,67 @@
     },
     "reports": {
       "title": "Report handling",
+      "empty": "No reports awaiting review",
       "messages": {
-        "statusChanged": "Report {{id}} marked as {{status}}",
-        "updateError": "Error updating status. Check your API connection.",
-        "blockSuccess": "User {{targetId}} has been blocked.",
-        "blockError": "Error blocking user. Check your API connection."
-      },
-      "statusVerb": {
-        "resolved": "resolved",
-        "dismissed": "dismissed"
+        "resolveSuccess": "Report #{{id}} marked as resolved",
+        "rejectSuccess": "Report #{{id}} rejected",
+        "updateError": "Error updating the report. Check your API connection."
       },
       "notifications": {
         "blockTitle": "Blocking",
-        "blockMessage": "User {{targetId}} was blocked based on a report."
+        "blockMessage": "The user behind report #{{id}} has been blocked.",
+        "unpublishTitle": "Listing unpublished",
+        "unpublishMessage": "The listing behind report #{{id}} was unpublished."
       },
       "table": {
         "id": "Report ID",
         "reporter": "Reported by",
         "target": "Target",
         "reason": "Reason",
+        "description": "Comment",
         "date": "Date",
         "status": "Status",
         "actions": "Actions"
       },
       "targetType": {
-        "ad": "Listing",
+        "advert": "Listing",
         "user": "User"
       },
       "status": {
-        "pending": "Pending",
-        "resolved": "Resolved",
-        "dismissed": "Dismissed"
+        "Pending": "Pending",
+        "Resolved": "Resolved",
+        "Rejected": "Rejected"
       },
       "actions": {
-        "confirm": "Confirm",
-        "dismiss": "Dismiss",
-        "block": "Block"
+        "resolve": "Confirm",
+        "reject": "Reject",
+        "banAndResolve": "Block & confirm",
+        "unpublishAndResolve": "Unpublish & confirm"
       },
-      "blockConfirm": {
-        "title": "Block this user?",
-        "description": "Are you sure you want to block the offender?"
+      "confirm": {
+        "resolveTitle": "Confirm this report?",
+        "resolveDescription": "The report will be marked as resolved.",
+        "rejectTitle": "Reject this report?",
+        "rejectDescription": "The report will be marked as not actionable.",
+        "banTitle": "Block this user?",
+        "banDescription": "The user will be blocked and the report marked as resolved.",
+        "unpublishTitle": "Unpublish this listing?",
+        "unpublishDescription": "The listing will be hidden and the report marked as resolved."
       }
+    },
+    "newsletter": {
+      "title": "Newsletter",
+      "subscribersLabel": "Subscribers",
+      "subjectLabel": "Subject",
+      "subjectPlaceholder": "E.g. New discounts on MultiMart",
+      "bodyLabel": "Message",
+      "bodyPlaceholder": "Write the newsletter content for subscribers...",
+      "sendButton": "Send newsletter",
+      "confirmTitle": "Send this newsletter?",
+      "confirmDescription": "This will email every subscribed user ({{count}}). This action cannot be undone.",
+      "sendSuccess": "Newsletter sent to {{count}} subscribers",
+      "sendError": "Couldn't send the newsletter. Check your API connection.",
+      "noSubscribers": "No subscribed users yet"
     },
     "sellers": {
       "title": "Sellers",
@@ -455,7 +523,7 @@
         "chats": "Chats",
         "reports": "Reports",
         "analytics": "Analytics",
-        "marketing": "Marketing",
+        "marketing": "Newsletter",
         "settings": "Settings"
       },
       "profileMenu": {
@@ -532,6 +600,50 @@
       "orderFailed": "Failed to place the order. Please try again."
     }
   },
+  "checkout": {
+    "recipient": {
+      "self": "I am the recipient",
+      "other": "Another recipient",
+      "phonePrompt": "Enter phone number for delivery",
+      "editHint": "You can edit your first and last name in profile settings"
+    }
+  },
+  "packagesPage": {
+    "title": "Packages & Promotion",
+    "subtitle": "Pick an active-listing tier or boost your best listings — all in one place.",
+    "perMonth": "/ mo.",
+    "purchaseSuccess": "\"{{plan}}\" package activated!",
+    "limits": {
+      "heading": "Active listing limits",
+      "description": "List more items at once — pick the limit that fits you.",
+      "popular": "Most popular",
+      "activeListings": "active listings",
+      "planLabel": "{{limit}} limit",
+      "selectButton": "Select"
+    },
+    "boosts": {
+      "heading": "Promotion boosts",
+      "description": "Move your listing higher in search results and get more views.",
+      "activateButton": "Activate",
+      "fastSale": {
+        "title": "Fast Sale",
+        "description": "TOP placement for {{days}} days",
+        "perks": ["Listed in category TOP", "Highlighted in color", "3x more views"]
+      },
+      "turbo": {
+        "title": "Turbo",
+        "description": "VIP placement for {{days}} days",
+        "perks": ["Featured on the homepage", "VIP badge", "Maximum visibility"]
+      }
+    }
+  },
+  "notificationsPage": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "loading": "Loading notifications...",
+    "emptyTitle": "No notifications yet",
+    "emptyDescription": "We'll let you know when something new happens."
+  },
   "favorites": {
     "add": "Add to favorites",
     "remove": "Remove from favorites",
@@ -549,6 +661,13 @@
   },
   "advertDetails": {
     "notFound": "Advert not found.",
+    "reportButton": "Report this listing",
+    "qr": {
+      "buttonLabel": "QR code to view on your phone",
+      "closeAriaLabel": "Close",
+      "title": "Scan to view",
+      "hint": "Open this listing on your smartphone"
+    },
     "demoUnavailable": {
       "title": "Unavailable",
       "message": "This action is not available for a demo advert"
@@ -612,6 +731,9 @@
     "fields": {
       "category": "Category",
       "categoryPlaceholder": "Select a category",
+      "condition": "Item condition",
+      "conditionUsed": "Used",
+      "conditionNew": "New",
       "title": "Advert title",
       "titlePlaceholder": "e.g. iPhone 13 Pro 128GB",
       "description": "Description",
@@ -621,6 +743,13 @@
       "contactPerson": "Contact person",
       "email": "Email",
       "phone": "Phone"
+    },
+    "ai": {
+      "fillButton": "✨ Fill with AI",
+      "generating": "Generating...",
+      "titleRequired": "Enter an advert title first",
+      "success": "Description and category generated with AI",
+      "error": "Failed to generate a description. Please try again."
     },
     "errors": {
       "required": "Required field",
@@ -648,6 +777,18 @@
     "description": "Thanks for your interest! This advert is closed and the item is no longer available for purchase. Browse other active adverts on MultiMart.",
     "backToHome": "Back to home"
   },
+  "adverts": {
+    "condition": {
+      "label": "Condition",
+      "used": "Used",
+      "new": "New"
+    },
+    "details": {
+      "id": "ID",
+      "views": "views",
+      "fullscreen": "Full screen"
+    }
+  },
   "advertCard": {
     "noPhoto": "No photo",
     "top": "TOP",
@@ -657,7 +798,10 @@
     }
   },
   "advertGallery": {
-    "noPhoto": "No photo"
+    "noPhoto": "No photo",
+    "prev": "Previous photo",
+    "next": "Next photo",
+    "close": "Close"
   },
   "sellerWidget": {
     "defaultName": "Seller",
@@ -667,10 +811,16 @@
     "addPhoto": "Add photo",
     "hint": "Up to {{maxCount}} photos, JPG/PNG/GIF/WEBP, up to {{maxSize}}MB each.",
     "upload": "+ Upload",
+    "editCrop": "Edit crop / center",
     "errors": {
       "allowedFormats": "Allowed formats: JPG, PNG, GIF, WEBP.",
       "maxSize": "Photo size cannot exceed {{size}}MB."
     }
+  },
+  "imageCropModal": {
+    "title": "Crop image",
+    "apply": "Apply",
+    "hint": "Drag to shift the center, or use the slider / pinch gesture to zoom."
   },
   "chat": {
     "page": {
@@ -732,7 +882,8 @@
   },
   "categories": {
     "title": "All categories",
-    "allProducts": "All products"
+    "allProducts": "All products",
+    "empty": "No categories yet"
   },
   "categoryListing": {
     "breadcrumb": {
@@ -1165,7 +1316,8 @@
     "appStoreSoon": "App Store · coming soon",
     "googlePlaySoon": "Google Play · coming soon",
     "notifyMe": "Notify me on release",
-    "backToHome": "Back to home"
+    "backToHome": "Back to home",
+    "qrHint": "Scan the QR code to open MultiMart on your phone right now."
   },
   "userProfile": {
     "title": "Profile",
@@ -1234,6 +1386,7 @@
     },
     "walletTopUp": {
       "amountRequired": "Please specify a top-up amount.",
+      "topUpFailed": "Couldn't top up your wallet. Please try again.",
       "stepAmount": "Amount",
       "stepPayment": "Payment",
       "stepDone": "Done",
@@ -1250,11 +1403,12 @@
       "badge": "Sold"
     },
     "amountCurrency": "{{amount}} UAH",
-    "notFound": "Profile not found.",
+    "notFound": "User not found",
     "defaultName": "Seller",
     "memberSince": "Member since {{date}}",
     "activeAdvertsCount": "Active listings: {{count}}",
     "messageSeller": "Message seller",
+    "reportButton": "Report this user",
     "reviews": {
       "heading": "Buyer reviews",
       "basedOnPrefix": "Based on",
@@ -1282,8 +1436,11 @@
     "online": "Online"
   },
   "newsletterWidget": {
-    "notificationTitle": "Subscription completed",
+    "notificationTitle": "Newsletter subscription",
     "notificationMessage": "We'll send MultiMart update news to {{email}}.",
+    "subscribedMessage": "You're subscribed to MultiMart updates.",
+    "unsubscribedMessage": "You've unsubscribed from MultiMart updates.",
+    "toggleFailed": "Couldn't update your subscription. Please try again.",
     "invalidEmail": "Enter a valid email.",
     "thankYouTitle": "Thanks for subscribing!",
     "thankYouDescription": "You'll be the first to receive MultiMart update news.",
@@ -1291,7 +1448,8 @@
     "description": "Be the first to know about new features and releases.",
     "emailPlaceholder": "Your email",
     "submitting": "Please wait...",
-    "subscribeButton": "Subscribe"
+    "subscribeButton": "Subscribe to MultiMart updates",
+    "unsubscribeButton": "Unsubscribe"
   },
   "welcomeModal": {
     "title": "Welcome!",

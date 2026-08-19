@@ -8,6 +8,7 @@ import type { RootState } from "../../store";
 import { addToCart, removeFromCart } from "../../store/cartSlice";
 import { addNotification } from "../../store/notificationSlice";
 import { buildImageUrl, IMAGE_SIZES } from "../../utils/buildImageUrl";
+import { getConditionBadge } from "../../utils/advertSpecs";
 import { saveReturnUrl } from "../../utils/returnUrl";
 import FallbackImage from "../common/FallbackImage";
 
@@ -26,6 +27,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({ advert }) => {
 
     const cover = [...advert.images].sort((a, b) => a.priority - b.priority)[0];
     const imageUrl = buildImageUrl(cover?.name, IMAGE_SIZES.thumbnail);
+    const conditionBadge = getConditionBadge(advert);
 
     // Неавторизований — запам'ятовуємо сторінку і ведемо на /login замість додавання в кошик;
     // авторизований — перемикаємо стан "у кошику" (додати/прибрати).
@@ -53,13 +55,24 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({ advert }) => {
             to={`/advert/${advert.id}`}
             className="bg-[#272942] border border-white/20 rounded-md p-3 flex flex-col h-full gap-2 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-mm-purple/60 group"
         >
-            <div className="relative aspect-square rounded overflow-hidden bg-white/5 shrink-0">
+            <div className="relative w-full aspect-square overflow-hidden rounded bg-white/5 shrink-0">
+                {conditionBadge && (
+                    <span
+                        className={`absolute top-1.5 left-1.5 z-10 text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${
+                            conditionBadge.type === "new"
+                                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/50"
+                                : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
+                        }`}
+                    >
+                        {conditionBadge.type === "new" ? t("adverts.condition.new") : t("adverts.condition.used")}
+                    </span>
+                )}
                 <FallbackImage
                     src={imageUrl}
                     fallbackKeyword={advert.title}
                     uniqueSeed={advert.id || advert.title}
                     alt={advert.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover object-center scale-105 group-hover:scale-110 transition-transform duration-300"
                     placeholder={
                         <div className="w-full h-full flex items-center justify-center text-white/30 text-xs">{t("advertCard.noPhoto")}</div>
                     }

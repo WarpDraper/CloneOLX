@@ -4,15 +4,26 @@ import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 import { useTranslation } from 'react-i18next';
 import LoginForm from "../../../components/form/LoginForm.tsx";
 import GoogleAuthButton from "../../../components/form/GoogleAuthButton.tsx";
+import TelegramAuthButton from "../../../components/form/TelegramAuthButton.tsx";
 import { APP_ENV } from "../../../env";
+import ErrorBoundary from "../../../components/common/ErrorBoundary.tsx";
+import { useRecaptchaCrashGuard } from "../../../hooks/useRecaptchaCrashGuard";
 
 const LoginPage: React.FC = () => {
   const { t } = useTranslation();
   const [socialError, setSocialError] = useState<string | null>(null);
 
+  // Swallows reCAPTCHA's own background promise rejections (e.g. its internal handshake/refresh
+  // failing after this page unmounts on a successful login) so they can never surface as an
+  // uncaught error — see the hook for the full story.
+  useRecaptchaCrashGuard();
+
   return (
     // Scoped here (not app-wide) so the reCAPTCHA script is only ever requested on the one
-    // page that actually needs it — see main.tsx for why.
+    // page that actually needs it — see main.tsx for why. ErrorBoundary contains any
+    // render/commit-phase crash from the widget itself (e.g. while it's being torn down mid
+    // navigation) so it can never take the rest of the app down with it.
+    <ErrorBoundary>
     <GoogleReCaptchaProvider reCaptchaKey={APP_ENV.RECAPTCHA_SITE_KEY}>
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       {/* Card */}
@@ -66,11 +77,7 @@ const LoginPage: React.FC = () => {
             </svg>
           </button>
           {/* Telegram */}
-          <button className="w-8 h-8 flex items-center justify-center hover:opacity-70 transition-opacity">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5" fill="#229ED9">
-              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/>
-            </svg>
-          </button>
+          <TelegramAuthButton onError={setSocialError} />
           {/* Instagram */}
           <button className="w-8 h-8 flex items-center justify-center hover:opacity-70 transition-opacity">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5">
@@ -98,6 +105,7 @@ const LoginPage: React.FC = () => {
       </div>
     </div>
     </GoogleReCaptchaProvider>
+    </ErrorBoundary>
   );
 };
 

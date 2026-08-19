@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Olx.BLL.Exceptions;
 using Olx.BLL.Helpers;
 using Olx.BLL.Interfaces;
 using Olx.BLL.Models;
 using Olx.BLL.Models.Authentication;
 using Olx.BLL.Models.User;
+using System.Security.Claims;
 
 
 namespace OLX.API.Controllers
@@ -13,12 +16,30 @@ namespace OLX.API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     // Контролер облікових операцій: надає API для входу, реєстрації, профілю та управління улюбленими оголошеннями.
-    public class AccountController(IAccountService accountService, IConfiguration configuration) : ControllerBase
+    public class AccountController(IAccountService accountService, IConfiguration configuration, ILogger<AccountController> logger) : ControllerBase
     {
         // Scoped to this controller's routes so the refresh token cookie is only ever sent
         // to the auth endpoints that need it (login/refresh/logout), never to unrelated APIs.
         private const string RefreshTokenCookiePath = "/api/Account";
         private readonly string _refreshTokenCookiesName = configuration["RefreshTokenCookiesName"]!;
+
+        // Профіль поточного авторизованого користувача (включно з Balance) — id береться з JWT,
+        // а не з параметра запиту, тож ніколи не може повернути чийсь чужий баланс. Використовує
+        // GET /api/User/get/{id} для перегляду ЧУЖОГО (публічного) профілю продавця — там Balance
+        // навмисно відсутній у DTO.
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetMyProfile() => Ok(await accountService.GetMyProfileAsync());
+
+        // Поповнює гаманець поточного користувача. Мок-оплата (WalletTopUpModal на фронтенді) —
+        // реального платіжного шлюзу тут немає, тільки персистентний запис результату в БД.
+        [Authorize]
+        [HttpPost("wallet/topup")]
+        public async Task<IActionResult> TopUpWallet([FromBody] WalletTopUpModel model)
+        {
+            var newBalance = await accountService.TopUpBalanceAsync(model.Amount);
+            return Ok(new { balance = newBalance });
+        }
 
         // Повертає список улюблених оголошень поточного користувача.
         // [Authorize] (not Roles = Roles.User): any authenticated account can have favorites,
@@ -35,11 +56,31 @@ namespace OLX.API.Controllers
 
         // Аутентифікує користувача за email/паролем і повертає токени доступу.
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] AuthRequest model )
+        public async Task<IActionResult> Login([FromBody] AuthRequest model)
         {
-            var authResponse = await accountService.LoginAsync(model);
-            SetRefreshTokenCookie(authResponse.RefreshToken);
-            return Ok(new AccessTokenResponse { AccessToken = authResponse.AccessToken });
+            try
+            {
+                var authResponse = await accountService.LoginAsync(model);
+                SetRefreshTokenCookie(authResponse.RefreshToken);
+                return Ok(new AccessTokenResponse { AccessToken = authResponse.AccessToken });
+            }
+            catch (HttpException)
+            {
+                // Expected business-rule failures (bad credentials, locked account, unconfirmed
+                // email, ...) — already logged/shaped correctly by GlobalExceptionHandlerMiddleware.
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Anything else here is unexpected — e.g. the Npgsql "column ... does not exist"
+                // error a schema/entity mismatch (missing migration) produces, or a JWT signing
+                // failure. Logged here with the request's email for context; the actual 500
+                // response is still shaped by GlobalExceptionHandlerMiddleware's catch-all so the
+                // client always gets a consistent { message } JSON body instead of an empty
+                // connection reset.
+                logger.LogError(ex, "Login failed unexpectedly for {Email}.", model.Email);
+                throw;
+            }
         }
 
         // Аутентифікує користувача через Google access token.
@@ -47,6 +88,16 @@ namespace OLX.API.Controllers
         public async Task<IActionResult> GoogleLogin([FromQuery] string googleAccessToken)
         {
             var authResponse = await accountService.GoogleLoginAsync(googleAccessToken);
+            SetRefreshTokenCookie(authResponse.RefreshToken);
+            return Ok(new AccessTokenResponse { AccessToken = authResponse.AccessToken });
+        }
+
+        // Аутентифікує/реєструє користувача через Telegram Login Widget (HMAC-SHA256 перевірка
+        // з токеном бота відбувається в AccountService.TelegramLoginAsync).
+        [HttpPost("telegram-login")]
+        public async Task<IActionResult> TelegramLogin([FromBody] TelegramAuthModel model)
+        {
+            var authResponse = await accountService.TelegramLoginAsync(model);
             SetRefreshTokenCookie(authResponse.RefreshToken);
             return Ok(new AccessTokenResponse { AccessToken = authResponse.AccessToken });
         }
@@ -139,12 +190,29 @@ namespace OLX.API.Controllers
         }
 
         // Оновлює профіль поточного користувача та повертає новий access token.
+        // [Authorize] (not Roles = Roles.User): editing your OWN profile has to work for both
+        // User and Admin accounts — DbSeeder/AccountService.AddUserAsync only ever grants an
+        // account ONE role (Admin xor User), so a logged-in Admin carries no "User" claim.
+        // Previously this action always called EditUserAsync(userEditModel) — isAdmin defaulted
+        // to false — so when the target account (userEditModel.Id) turned out to be an Admin,
+        // AccountService.EditUserAsync's own-role guard threw 403 Forbidden even though the
+        // caller WAS that admin editing themselves. We now derive isAdmin from the caller's own
+        // role claims (never trust the client for that) and additionally refuse to touch any
+        // account other than the caller's own, closing the IDOR that let userEditModel.Id target
+        // an arbitrary account.
         [Authorize]
         [HttpPost("edit/user")]
         public async Task<IActionResult> EditUser([FromForm] UserEditModel userEditModel)
         {
-             var token = await accountService.EditUserAsync(userEditModel);
-             return Ok( new UserEditResponse() { AccessToken = token} );
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (currentUserId is null || userEditModel.Id.ToString() != currentUserId)
+            {
+                return Forbid();
+            }
+
+            var isAdmin = User.IsInRole(Roles.Admin);
+            var token = await accountService.EditUserAsync(userEditModel, isAdmin);
+            return Ok( new UserEditResponse() { AccessToken = token} );
         }
 
         // Оновлює профіль адміністратора та повертає новий access token.
@@ -210,12 +278,18 @@ namespace OLX.API.Controllers
             return Ok();
         }
 
-        // Реєструє нового звичайного користувача.
+        // Реєструє нового звичайного користувача та одразу автентифікує його (як /login):
+        // повертає access token у тілі відповіді та refresh token — у HttpOnly cookie.
         [HttpPut("register/user")]
         public async Task<IActionResult> AddUser([FromForm] UserCreationModel userModel)
         {
-            await accountService.AddUserAsync(userModel);
-            return Ok();
+            var authResponse = await accountService.AddUserAsync(userModel);
+            if (authResponse is null)
+            {
+                return Ok();
+            }
+            SetRefreshTokenCookie(authResponse.RefreshToken);
+            return Ok(new AccessTokenResponse { AccessToken = authResponse.AccessToken });
         }
         
         // Видаляє оголошення зі списку улюблених поточного користувача.

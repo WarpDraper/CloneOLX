@@ -15,5 +15,9 @@ namespace Olx.BLL.Interfaces
         Task RemoveAsync(int id);
         Task RemoveTreeAsync(int id);
         Task<CategoryDto> EditAsync(CategoryCreationModel editModel);
+
+        // Admin drag-and-drop reorder (CategoriesPage): bulk-updates SortOrder for a batch of
+        // category ids in one call instead of one EditAsync round-trip per row.
+        Task ReorderAsync(CategoryReorderRequest reorderRequest);
     }
 }

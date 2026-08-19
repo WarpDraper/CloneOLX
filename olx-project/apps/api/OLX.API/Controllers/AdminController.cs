@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Olx.BLL.Entities;
 using Olx.BLL.Helpers;
 using Olx.BLL.Interfaces;
+using Olx.BLL.Models.Advert;
+using Olx.BLL.Models.Category;
 using Olx.BLL.Models.User;
 
 namespace OLX.API.Controllers
@@ -19,31 +21,50 @@ namespace OLX.API.Controllers
     public class AdminController(
         IUserService userService,
         IAccountService accountService,
+        ICategoryService categoryService,
+        IAdvertService advertService,
+        IAiService aiService,
         IRepository<Order> orderRepo,
         IRepository<Advert> advertRepo) : ControllerBase
     {
-        // GET /api/Admin/users — таблиця користувачів для UsersPage (id/name/email/status/registerDate).
+        // GET /api/Admin/users — таблиця користувачів для UsersPage
+        // (id/name/email/role/status/registerDate). Optional ?page=&size= switches to a paged
+        // { items, total } response for larger user bases; omitted, it returns the full flat
+        // array as before (non-breaking for existing UsersPage callers).
         [HttpGet("users")]
-        public async Task<IActionResult> GetUsers()
+        public async Task<IActionResult> GetUsers([FromQuery] int? page = null, [FromQuery] int? size = null)
         {
             var users = await userService.Get(false);
             var lockedIds = (await userService.GetLocked()).Select(x => x.Id).ToHashSet();
 
-            var result = users.Select(u => new
+            var projected = users.Select(u => new
             {
                 id = u.Id,
                 name = $"{u.FirstName} {u.LastName}".Trim(),
                 email = u.Email,
+                role = Roles.User,
                 status = lockedIds.Contains(u.Id) ? "blocked" : "active",
                 registerDate = u.CreatedDate.ToString("yyyy-MM-dd")
-            });
+            }).ToList();
 
-            return Ok(result);
+            if (page.HasValue && size.HasValue && size.Value > 0)
+            {
+                var total = projected.Count;
+                var items = projected.Skip((Math.Max(page.Value, 1) - 1) * size.Value).Take(size.Value);
+                return Ok(new { items, total });
+            }
+
+            return Ok(projected);
         }
 
-        // POST /api/Admin/users/{id}/toggle-block — блокує/розблоковує користувача.
+        // POST /api/Admin/users/{id}/toggle-block — блокує/розблоковує користувача (легасі-шлях, лишається для сумісності).
         [HttpPost("users/{id:int}/toggle-block")]
-        public async Task<IActionResult> ToggleUserBlock([FromRoute] int id)
+        public async Task<IActionResult> ToggleUserBlock([FromRoute] int id) => await ToggleUserBan(id);
+
+        // PUT /api/admin/users/{id}/toggle-ban — те саме перемикання блокування облікового
+        // запису, під іменем/дієсловом, що відповідає адмінському API-контракту.
+        [HttpPut("users/{id:int}/toggle-ban")]
+        public async Task<IActionResult> ToggleUserBan([FromRoute] int id)
         {
             var lockedIds = (await userService.GetLocked()).Select(x => x.Id).ToHashSet();
             var isLocked = lockedIds.Contains(id);
@@ -54,6 +75,96 @@ namespace OLX.API.Controllers
                 Lock = !isLocked
             });
 
+            return Ok();
+        }
+
+        // PUT /api/admin/users/{id}/confirm-email — примусово підтверджує email користувача.
+        [HttpPut("users/{id:int}/confirm-email")]
+        public async Task<IActionResult> ConfirmUserEmail([FromRoute] int id)
+        {
+            await accountService.ForceConfirmEmailAsync(id);
+            return Ok();
+        }
+
+        // GET /api/admin/categories — плаский список категорій (перевикористовує ICategoryService.Get()).
+        [HttpGet("categories")]
+        public async Task<IActionResult> GetCategories() => Ok(await categoryService.Get());
+
+        // POST /api/admin/categories — створює категорію з перекладеними назвами/slug/іконкою.
+        [HttpPost("categories")]
+        public async Task<IActionResult> CreateCategory([FromForm] CategoryCreationModel model) =>
+            Ok(await categoryService.CreateAsync(model));
+
+        // PUT /api/admin/categories/{id} — редагує категорію (включно з перекладами/slug/іконкою).
+        [HttpPut("categories/{id:int}")]
+        public async Task<IActionResult> UpdateCategory([FromRoute] int id, [FromForm] CategoryCreationModel model)
+        {
+            // CategoryCreationModel is a plain init-only class (not a record), so the route id
+            // is applied via a fresh copy rather than a `with` expression.
+            var editModel = new CategoryCreationModel
+            {
+                Id = id,
+                Name = model.Name,
+                NameUk = model.NameUk,
+                NameEn = model.NameEn,
+                Slug = model.Slug,
+                ImageFile = model.ImageFile,
+                CurrentImage = model.CurrentImage,
+                ParentId = model.ParentId,
+                FilterIds = model.FilterIds
+            };
+            return Ok(await categoryService.EditAsync(editModel));
+        }
+
+        // DELETE /api/admin/categories/{id} — видаляє категорію.
+        [HttpDelete("categories/{id:int}")]
+        public async Task<IActionResult> DeleteCategory([FromRoute] int id)
+        {
+            await categoryService.RemoveAsync(id);
+            return Ok();
+        }
+
+        // POST /api/admin/categories/reorder — масово оновлює SortOrder (drag-and-drop у CategoriesPage).
+        [HttpPost("categories/reorder")]
+        public async Task<IActionResult> ReorderCategories([FromBody] CategoryReorderRequest request)
+        {
+            await categoryService.ReorderAsync(request);
+            return Ok();
+        }
+
+        // GET /api/admin/newsletter/subscribers-count — скільки користувачів підписані
+        // (NewsletterSubscribed == true), для панелі "Маркетинг" перед розсилкою.
+        [HttpGet("newsletter/subscribers-count")]
+        public async Task<IActionResult> GetNewsletterSubscribersCount([FromServices] IRepository<OlxUser> userRepo) =>
+            Ok(new { count = await userRepo.CountAsync(u => u.NewsletterSubscribed) });
+
+        // POST /api/admin/newsletter/send — розсилає лист усім підписаним користувачам
+        // (OlxUser.NewsletterSubscribed == true). Повертає кількість отримувачів.
+        [HttpPost("newsletter/send")]
+        public async Task<IActionResult> SendNewsletter([FromBody] NewsletterBroadcastModel model)
+        {
+            var sentCount = await accountService.SendNewsletterAsync(model);
+            return Ok(new { sentCount });
+        }
+
+        // POST /api/admin/categories/auto-translate — Gemini генерує UK/EN назви + slug з короткого промпту.
+        [HttpPost("categories/auto-translate")]
+        public async Task<IActionResult> AutoTranslateCategory([FromBody] CategoryAutoTranslateRequest request)
+        {
+            var result = await aiService.GenerateCategoryTranslationAsync(request.Prompt);
+            return Ok(result);
+        }
+
+        // PUT /api/admin/adverts/{id} — редагує будь-яке поле будь-якого оголошення (обхід перевірки власника).
+        [HttpPut("adverts/{id:int}")]
+        public async Task<IActionResult> UpdateAdvert([FromRoute] int id, [FromBody] AdminAdvertUpdateModel model) =>
+            Ok(await advertService.AdminUpdateAsync(id, model));
+
+        // DELETE /api/admin/adverts/{id} — видаляє будь-яке оголошення.
+        [HttpDelete("adverts/{id:int}")]
+        public async Task<IActionResult> DeleteAdvert([FromRoute] int id)
+        {
+            await advertService.DeleteAsync(id);
             return Ok();
         }
 

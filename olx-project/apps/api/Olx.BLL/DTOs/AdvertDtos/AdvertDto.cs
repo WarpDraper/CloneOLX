@@ -1,5 +1,6 @@
 ﻿using Olx.BLL.DTOs.FilterDtos;
 using Olx.BLL.DTOs.OlxUserDtos;
+using Olx.BLL.Entities;
 
 namespace Olx.BLL.DTOs.AdvertDtos
 {
@@ -21,6 +22,7 @@ namespace Olx.BLL.DTOs.AdvertDtos
         public bool Approved { get; set; } = false;
         public bool Blocked { get; set; } = false;
         public bool Completed { get; set; } = false;
+        public ItemCondition Condition { get; set; } = ItemCondition.None;
         public string SettlementName { get; set; } = string.Empty;
         public string SettlementRef { get; set; } = string.Empty;
         public string RegionRef { get; set; } = string.Empty;
@@ -32,7 +34,29 @@ namespace Olx.BLL.DTOs.AdvertDtos
         public bool IsTop { get; set; }
         // Popularity signal (favorited-by count) used by the "За популярністю" sort option.
         public int FavoritesCount { get; set; }
+        // Fast, Redis-backed hit counter (LimiterRedis) — not persisted to the DB, see
+        // IAdvertViewCounterService. Only ever set on the GetByIdAsync (detail page) path; every
+        // other AdvertDto-returning method leaves this at its default (0).
+        public long ViewCount { get; set; }
         public ICollection<FilterValueDto> FilterValues { get; set; } = new HashSet<FilterValueDto>();
         public ICollection<AdvertImageDto> Images { get; set; } = new HashSet<AdvertImageDto>();
+
+        /// <summary>
+        /// Shallow copy of this DTO with its own copy of <see cref="User"/>. When an instance
+        /// comes back from ICacheService it may be the same in-process object handed to every
+        /// concurrent caller for that key (the memory cache layer stores references, not
+        /// copies), so mutating it in place — e.g. OnlineStatusExtensions.WithOnlineStatus
+        /// stamping live presence — would leak into other requests reading the same cached
+        /// entry. Cloning first keeps that mutation request-local.
+        /// </summary>
+        public AdvertDto CloneForPresenceStamping()
+        {
+            var clone = (AdvertDto)MemberwiseClone();
+            if (User is not null)
+            {
+                clone.User = User.ShallowCopy();
+            }
+            return clone;
+        }
     }
 }
