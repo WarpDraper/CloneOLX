@@ -13,7 +13,8 @@ namespace Olx.BLL.Services.BackgroundServices
         IServiceScopeFactory serviceScopeFactory,
         ILogger<TokenCleanupService> logger) : BackgroundService
     {
-        private readonly TimeSpan _interval = TimeSpan.FromHours(int.Parse(configuration["RefreshTokenCleanupIntervalHours"]!)); 
+        private readonly TimeSpan _interval = TimeSpan.FromHours(
+            int.TryParse(configuration["RefreshTokenCleanupIntervalHours"], out var refreshTokenCleanupIntervalHours) ? refreshTokenCleanupIntervalHours : 1);
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             logger.LogInformation("Token cleanup service started");

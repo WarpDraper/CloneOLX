@@ -58,27 +58,40 @@ const LoginForm: React.FC = () => {
             return;
         }
 
-        // Перевіряємо, чи скрипт капчі готовий
-        if (!executeRecaptcha) {
+        // Перевіряємо, чи скрипт капчі готовий. `executeRecaptcha` flips truthy as soon as
+        // GoogleReCaptchaProvider's onLoad fires, but that can land a tick before the actual
+        // `grecaptcha` global + its internal ready state are usable — checking window.grecaptcha
+        // too catches that gap instead of handing the library a call it can't service yet. (No
+        // ambient type ships for `grecaptcha` in this project, hence the cast.)
+        const grecaptchaGlobal = typeof window === "undefined" ? undefined : (window as unknown as { grecaptcha?: unknown }).grecaptcha;
+        if (!executeRecaptcha || !grecaptchaGlobal) {
             setFormError(t('login.errors.captchaLoading'));
             return;
         }
 
         // reCAPTCHA v3 has no ref/reset() to guard here (that's react-google-recaptcha's v2 API
-        // — this app uses the hook-based v3 widget), but executeRecaptcha() itself can still
-        // reject (script not fully ready, an unmounted/torn-down widget, a transient network
-        // failure loading recaptcha__*.js). Isolated in its own try/catch so a captcha hiccup
-        // never throws uncaught into handleSubmit and never reaches the login API call below —
-        // it fails safe with a plain, actionable error instead of leaving the form stuck.
+        // — this app uses the hook-based, container-less v3 badge), but executeRecaptcha() itself
+        // can still reject (script not fully ready, an unmounted/torn-down widget, a transient
+        // network failure loading recaptcha__*.js). Isolated in its own try/catch so a captcha
+        // hiccup never throws uncaught into handleSubmit and never reaches the login API call
+        // below — it fails safe with a plain, actionable error instead of leaving the form stuck.
         let token: string | null = null;
         try {
             token = await executeRecaptcha("login");
         } catch (captchaErr) {
-            console.warn("reCAPTCHA execution failed, aborting login safely.", captchaErr);
+            console.warn("[LoginForm] reCAPTCHA execution bypassed:", captchaErr);
         }
         if (!token) {
-            setFormError(t('login.errors.captchaLoading'));
-            return;
+            // In production a missing token still blocks submission (real abuse-check gate).
+            // In local dev, a flaky/misconfigured reCAPTCHA script must never be able to wedge
+            // the login form shut — proceed with an empty token instead of freezing the flow.
+            if (import.meta.env.DEV) {
+                console.warn("[LoginForm] Proceeding without a reCAPTCHA token (development mode).");
+                token = "";
+            } else {
+                setFormError(t('login.errors.captchaLoading'));
+                return;
+            }
         }
 
         try {

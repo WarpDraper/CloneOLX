@@ -20,9 +20,20 @@ export default defineConfig({
                 // Split large, rarely-changing third-party deps into their own chunks so a
                 // day-to-day app code change doesn't bust the browser cache for all of vendor
                 // too, and so no single chunk balloons past a reasonable size.
-                manualChunks: {
-                    'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-                    'redux-vendor': ['@reduxjs/toolkit', 'react-redux'],
+                // Function form, not an object literal keyed by chunk name — the object-literal
+                // shape isn't part of Rollup's ManualChunksFunction type, which is what
+                // rollupOptions.output.manualChunks is actually typed as here, so it fails with
+                // TS2769 ("'react-vendor' does not exist in type 'ManualChunksFunction'") even
+                // though Rollup accepts it at runtime.
+                manualChunks(id: string) {
+                    if (id.includes('node_modules')) {
+                        if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+                            return 'react-vendor';
+                        }
+                        if (id.includes('@reduxjs/toolkit') || id.includes('react-redux')) {
+                            return 'redux-vendor';
+                        }
+                    }
                 },
             },
         },

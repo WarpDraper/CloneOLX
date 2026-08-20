@@ -70,7 +70,12 @@ namespace OLX.API.Extensions
                     ValidateAudience = false,
                     ValidateIssuer = true,
                     ValidateLifetime = true,
-                    ValidIssuer = jwtOpts.Issuer,
+                    // EffectiveIssuer (not Issuer) — mirrors JwtService.CreateToken's fallback to
+                    // JwtOptions.DefaultIssuer when "JwtOptions:Issuer" isn't configured. Without
+                    // this, an unconfigured Issuer produced tokens with iss:"" while ValidateIssuer
+                    // stayed true, and IdentityModel rejects an empty issuer outright — "The issuer
+                    // '' is invalid" — even though ValidIssuer was also "".
+                    ValidIssuer = jwtOpts.EffectiveIssuer,
                     ValidateIssuerSigningKey = true,
                     NameClaimType = ClaimTypes.NameIdentifier,
                     ClockSkew = TimeSpan.FromMinutes(1)
@@ -94,7 +99,8 @@ namespace OLX.API.Extensions
   
             services.Configure<DataProtectionTokenProviderOptions>(options =>
             {
-                options.TokenLifespan = TimeSpan.FromMinutes(Double.Parse(configuration["TokenLifespanMinutes"]!)); // Термін дії токенів для відновлення та підтвердження
+                var tokenLifespanMinutes = Double.TryParse(configuration["TokenLifespanMinutes"], out var parsedTokenLifespanMinutes) ? parsedTokenLifespanMinutes : 120.0;
+                options.TokenLifespan = TimeSpan.FromMinutes(tokenLifespanMinutes); // Термін дії токенів для відновлення та підтвердження
             });
 
             var assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
@@ -226,9 +232,27 @@ namespace OLX.API.Extensions
             var serviceProvider = scope.ServiceProvider;
             var configuration = serviceProvider.GetRequiredService<IConfiguration>();
 
-            string imagesDir = Path.Combine(Directory.GetCurrentDirectory(), configuration["ImagesDir"]!);
-            string imagesPath = Path.Combine(Directory.GetCurrentDirectory(), configuration["ServerImagePath"]!);
-           
+            // ImagesDir/ServerImagePath are only documented in appsettings.example.json — a
+            // developer's own appsettings.Development.json (gitignored, copied from the example)
+            // can easily omit either key. That previously sent a null straight into Path.Combine's
+            // "path2" and crashed startup with ArgumentNullException; fall back to the same values
+            // appsettings.example.json ships so a fresh checkout still boots without extra setup.
+            string imagesDirConfig = configuration["ImagesDir"] ?? "wwwroot/images";
+            string imagesPathConfig = configuration["ServerImagePath"] ?? "/images";
+
+            // ContentRootPath is always populated by the host (unlike Directory.GetCurrentDirectory(),
+            // which can differ from the app root under some hosting setups); WebRootPath itself can
+            // be null on a fresh clone before wwwroot exists, so fall back to ContentRootPath/wwwroot
+            // — the same convention ASP.NET Core uses internally.
+            string contentRootPath = app.Environment.ContentRootPath ?? Directory.GetCurrentDirectory();
+            string webRootPath = app.Environment.WebRootPath ?? Path.Combine(contentRootPath, "wwwroot");
+
+            string imagesDir = Path.IsPathRooted(imagesDirConfig) ? imagesDirConfig : Path.Combine(contentRootPath, imagesDirConfig);
+
+            if (!Directory.Exists(webRootPath))
+            {
+                Directory.CreateDirectory(webRootPath);
+            }
             if (!Directory.Exists(imagesDir))
             {
                 Directory.CreateDirectory(imagesDir);
@@ -236,7 +260,7 @@ namespace OLX.API.Extensions
             app.UseStaticFiles(new StaticFileOptions
             {
                 FileProvider = new PhysicalFileProvider(imagesDir),
-                RequestPath = imagesPath
+                RequestPath = imagesPathConfig
             });
 
         }

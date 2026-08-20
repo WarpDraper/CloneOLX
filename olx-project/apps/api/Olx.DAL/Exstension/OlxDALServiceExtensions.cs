@@ -19,8 +19,11 @@ namespace Olx.DAL.Exstension
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddIdentity<OlxUser, IdentityRole<int>>(options =>
             {
-                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(Double.Parse(configuration["LockoutTimeSpanMinutes"]!)); // Тривалість блокування
-                options.Lockout.MaxFailedAccessAttempts = int.Parse(configuration["MaxFailedAccessAttempts"]!); // Кількість спроб
+                var lockoutMinutes = Double.TryParse(configuration["LockoutTimeSpanMinutes"], out var parsedLockoutMinutes) ? parsedLockoutMinutes : 5.0;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(lockoutMinutes); // Тривалість блокування
+
+                var maxFailedAccessAttempts = int.TryParse(configuration["MaxFailedAccessAttempts"], out var parsedMaxFailedAccessAttempts) ? parsedMaxFailedAccessAttempts : 5;
+                options.Lockout.MaxFailedAccessAttempts = maxFailedAccessAttempts; // Кількість спроб
                 options.Lockout.AllowedForNewUsers = true; // Дозволити блокування нових користувачів
               
                 options.Stores.MaxLengthForKeys = 128;

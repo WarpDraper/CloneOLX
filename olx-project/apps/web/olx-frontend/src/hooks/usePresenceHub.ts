@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../store";
 import { APP_ENV } from "../env";
 import { userCameOnline, userWentOffline } from "../store/presenceSlice";
-import { logout } from "../Slice/authSlice";
 import { isTokenExpired } from "../utils/tokenUtils";
 
 // Дзеркалить Olx.BLL.Helpers.HubMethods (Presence-константи).
@@ -37,11 +36,16 @@ export function usePresenceHub() {
     useEffect(() => {
         // A present-but-expired/invalid token (stale localStorage, backend JWT key rotated,
         // ...) must not attempt to connect either — the API rejects it at /hub/negotiate with a
-        // 401 every time. Bail out the same as "no token" and clear the dead session so other
-        // guarded requests (favorites, etc.) stop firing too.
+        // 401 every time. Bail out the same as "no token", but do NOT dispatch(logout()) here —
+        // per createBaseQuery.ts's CRITICAL_AUTH_REQUESTS policy, session validity is only ever
+        // disproven by a 401 on Account/profile, Account/me, or Account/refresh. This hook used
+        // to short-circuit that policy and nuke a perfectly good session (e.g. right after
+        // login, before this hook's own token prop had settled) purely because ITS narrower,
+        // hub-specific view of the token looked stale — REST calls remain the single source of
+        // truth for "the session is dead"; this hook just quietly skips connecting.
         if (!token) return;
         if (isTokenExpired(token)) {
-            dispatch(logout());
+            console.warn("[PresenceHub] Token looks expired — skipping hub connection (not logging out).");
             return;
         }
 
@@ -89,14 +93,18 @@ export function usePresenceHub() {
                 .catch((err) => {
                     if (cancelled || isNegotiationAbortError(err)) return;
 
-                    // The token passed every client-side check above but the server still rejected
-                    // the handshake (401/Unauthorized) — e.g. the JWT signing key rotated after this
-                    // token was issued. Clear the dead session instead of logging a scary error:
-                    // this is an expected consequence of an invalid token, not an unexpected failure.
+                    // The token passed every client-side check above but the hub handshake still
+                    // rejected it (401/Unauthorized). This does NOT dispatch(logout()) — a hub
+                    // negotiate 401 is not on createBaseQuery.ts's CRITICAL_AUTH_REQUESTS list,
+                    // and this hook has no way to tell a stale JWT signing key apart from a
+                    // request that simply raced ahead of a just-issued token (the exact race
+                    // that CRITICAL_AUTH_REQUESTS was introduced to stop REST calls from acting
+                    // on). Log it and skip connecting; if the session really is dead, the next
+                    // guarded REST call (Account/profile, /me, /refresh) will catch it properly.
                     const message = String(err?.message ?? err ?? "");
                     const isUnauthorized = err?.statusCode === 401 || /unauthorized|401/i.test(message);
                     if (isUnauthorized) {
-                        dispatch(logout());
+                        console.warn("[PresenceHub] /hub negotiate rejected the token (401) — not logging out.", err);
                         return;
                     }
 

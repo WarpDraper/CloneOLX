@@ -45,32 +45,26 @@ namespace Olx.BLL.Hubs
 
         public async Task Disconnect()
         {
-            // Group removal goes through the Redis backplane (SendGroupActionAndWaitForAck),
-            // which waits on an ack from every server instance. If Redis is slow/unreachable or
-            // the underlying connection has already dropped (abrupt client disconnect), that wait
-            // is cancelled and throws TaskCanceledException/OperationCanceledException. Letting
-            // that bubble up crashes DefaultHubDispatcher's invocation of this method, so we catch
-            // and log instead — group membership is moot anyway once the connection is gone.
+            // No manual Groups.RemoveFromGroupAsync here: SignalR already removes a connection
+            // from every group it belongs to as soon as the connection tears down, so the call
+            // was redundant. It also used to round-trip through the Redis backplane
+            // (SendGroupActionAndWaitForAck) and throw TaskCanceledException whenever Redis or
+            // the socket was already gone by the time it ran — a no-op that only produced noisy
+            // warnings. This method now just logs which role disconnected.
             try
             {
                 if (await _isAdmin())
                 {
-                    await Groups.RemoveFromGroupAsync(Context.ConnectionId, "Admins");
                     logger.LogInformation("----------------- Admin SignalR disconnected ----------------------");
                 }
                 else
                 {
-                    await Groups.RemoveFromGroupAsync(Context.ConnectionId, "Users");
                     logger.LogInformation("----------------- User SignalR disconnected ----------------------");
                 }
             }
-            catch (OperationCanceledException ex)
-            {
-                logger.LogWarning(ex, "Disconnect: group removal for connection {ConnectionId} was canceled (Redis backplane timeout or connection already closed).", Context.ConnectionId);
-            }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Disconnect: failed to remove connection {ConnectionId} from its group.", Context.ConnectionId);
+                logger.LogWarning(ex, "Disconnect: failed to determine role for connection {ConnectionId}.", Context.ConnectionId);
             }
         }
 

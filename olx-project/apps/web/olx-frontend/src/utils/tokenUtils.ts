@@ -25,3 +25,29 @@ export const isTokenExpired = (token: string | null | undefined): boolean => {
 
 /** True when `token` is present and not expired. */
 export const isTokenValid = (token: string | null | undefined): boolean => !isTokenExpired(token);
+
+/**
+ * Reads the access token straight out of localStorage, bypassing Redux state entirely.
+ * authSlice persists the whole `{ user, token, isAuth }` shape under a single "auth" key (see
+ * authSlice.getInitialState) — there is no bare "token" key. Used as a fallback wherever a
+ * request could fire before the Redux store has caught up with a token that was *just* written
+ * to storage (prepareHeaders on the first authenticated request right after login/refresh, or a
+ * component's query mounting before the store's re-render lands) — exactly the race that used
+ * to send a request with no Authorization header, get a spurious 401 back, and trip the global
+ * logout even though the session was actually fine.
+ */
+export const getStoredToken = (): string | null => {
+    try {
+        const raw = localStorage.getItem("auth");
+        if (!raw) return null;
+        // authSlice.setAuth always normalizes to `token` before persisting (see authSlice.ts),
+        // but `accessToken` is checked too in case this ever reads a payload/state shape that
+        // forwarded the backend's raw AuthResponse (`{ accessToken, refreshToken }` — the actual
+        // shape POST /login and /login/google return, see ILoginResult) without normalizing it
+        // first.
+        const parsed = JSON.parse(raw) as { token?: string | null; accessToken?: string | null };
+        return parsed.token ?? parsed.accessToken ?? null;
+    } catch {
+        return null;
+    }
+};

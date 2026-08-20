@@ -30,10 +30,17 @@ namespace Olx.BLL.Services
 
         public string CreateToken(IEnumerable<Claim> claims)
         {
-            var time = DateTime.UtcNow.AddMinutes(_jwtOpts.AccessTokenLifetimeInMinutes);
+            // EffectiveAccessTokenLifetimeInMinutes (not AccessTokenLifetimeInMinutes) — falls
+            // back to JwtOptions.DefaultAccessTokenLifetimeInMinutes when
+            // "JwtOptions:AccessTokenLifetimeInMinutes" isn't configured, so this can never mint
+            // a token that's already expired (AddMinutes(0)) the instant it's issued.
+            var time = DateTime.UtcNow.AddMinutes(_jwtOpts.EffectiveAccessTokenLifetimeInMinutes);
             var credentials = getCredentials(_jwtOpts);
             var token = new JwtSecurityToken(
-                issuer: _jwtOpts.Issuer,
+                // EffectiveIssuer (not Issuer) — falls back to JwtOptions.DefaultIssuer when
+                // "JwtOptions:Issuer" isn't configured, so this can never mint a token with an
+                // empty "iss" claim (see OlxApiServiceExtensions' matching ValidIssuer).
+                issuer: _jwtOpts.EffectiveIssuer,
                 claims: claims,
                 expires: time,
                 signingCredentials: credentials);
@@ -109,7 +116,10 @@ namespace Olx.BLL.Services
             return claims;
         }
 
-        public int GetRefreshTokenLiveTime() => _jwtOpts.RefreshTokenLifetimeInDays;
+        // EffectiveRefreshTokenLifetimeInDays (not RefreshTokenLifetimeInDays) — see JwtOptions
+        // for why an unconfigured value must never fall through to 0 (an already-expired
+        // refresh-token DB row the instant it's created).
+        public int GetRefreshTokenLiveTime() => _jwtOpts.EffectiveRefreshTokenLifetimeInDays;
 
         private SigningCredentials getCredentials(JwtOptions options)
         {

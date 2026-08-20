@@ -71,6 +71,16 @@ namespace Olx.BLL.Services
             }
 
             var advert = mapper.Map<Advert>(advertModel);
+
+            // New listings must be immediately visible in the public catalog/feed — the storefront
+            // (UserHomePage, CategoryListingPage, AdvertDetailsPage's related/seller carousels) all
+            // query GetAdvertsPage with approved: true, and Advert.Approved defaults to false. Without
+            // this, every freshly created advert silently sat in "pending admin approval" limbo and
+            // never showed up anywhere a seller (or anyone else) could find it, looking exactly like
+            // "the advert wasn't saved" even though CreateAsync/SaveAsync below succeeded. Mirrors
+            // DbSeeder's demo data, which is also created with Approved = true.
+            advert.Approved = true;
+
             var images = advertModel.ImageFiles.Select(async (x, index) => new AdvertImage()
             {
                 Priority = index,
@@ -457,29 +467,69 @@ namespace Olx.BLL.Services
 
         public async Task BuyAsync(int advertId)
         {
-           var user =  await userManager.UpdateUserActivityAsync(httpContext);
+            var user = await userManager.UpdateUserActivityAsync(httpContext);
             var advert = await advertRepository.GetItemBySpec(new AdvertSpecs.GetById(advertId, AdvertOpt.User | AdvertOpt.Images))
                 ?? throw new HttpException(Errors.InvalidAdvertId, HttpStatusCode.BadRequest);
+
+            // Instant Buy has no cart/checkout step (unlike OrderService.CreateAsync) to catch
+            // this earlier — without this check, a seller could "buy" and thus permanently lock
+            // (Completed = true) their own listing.
+            if (advert.UserId == user.Id)
+            {
+                throw new HttpException(Errors.CannotBuyOwnAdvert, HttpStatusCode.BadRequest);
+            }
+
+            // Guards against a double purchase (two requests racing, or a stale "Buy" button
+            // still on screen after the advert already sold) silently re-sending the "sold"
+            // notification/email to the seller a second time.
+            if (advert.Completed)
+            {
+                throw new HttpException(Errors.AdvertAlreadySold, HttpStatusCode.BadRequest);
+            }
+
             advert.Completed = true;
             await advertRepository.SaveAsync();
             await cacheService.RemoveAsync(CacheKeys.AdvertById(advertId));
 
-            var buyerName = user.FirstName != null || user.LastName != null
-                ? $"{user.FirstName} {user.LastName}"
-                : user.Email;
-            var content = string.Format(Messages.UserBoughtAdvert, buyerName, advert.Title);
-            var image = advert.Images.FirstOrDefault(x => x.Priority == 0)?.Name;
-
-            var message = new AdminMessageCreationModel
+            // Best-effort seller notification, same reasoning as
+            // OrderService.SendOrderConfirmationEmailAsync/TryCreateOrderPlacedNotificationAsync:
+            // the purchase itself (advert.Completed, already saved above) must never be undone or
+            // surfaced to the buyer as a failure just because the in-app admin message or the
+            // seller's email notification hit a hiccup (e.g. SMTP not configured in dev — see
+            // AccountService's SendEmailConfirmationMessageAsync for the same caveat). Previously
+            // neither call here was guarded, so any failure in either one turned an already-
+            // successful purchase into an unhandled 500 for the buyer.
+            try
             {
-                MessageLogo = image,
-                Content = content,
-                Subject = string.Format(Messages.UserBouth),
-                UserId = advert.UserId
-            };
-            await adminMessageService.SendToUser(message);
-            var accountBlockedTemplate = EmailTemplates.GetAdvertBoughtTemplate(content);
-            await emailService.SendAsync(advert.User.Email ?? string.Empty, Messages.AdvertLocked, accountBlockedTemplate, true);
+                var buyerName = user.FirstName != null || user.LastName != null
+                    ? $"{user.FirstName} {user.LastName}"
+                    : user.Email;
+                var content = string.Format(Messages.UserBoughtAdvert, buyerName, advert.Title);
+                var image = advert.Images.FirstOrDefault(x => x.Priority == 0)?.Name;
+
+                var message = new AdminMessageCreationModel
+                {
+                    MessageLogo = image,
+                    Content = content,
+                    Subject = string.Format(Messages.UserBouth),
+                    UserId = advert.UserId
+                };
+                await adminMessageService.SendToUser(message);
+
+                // advert.User is normally populated (AdvertOpt.User was requested above), but
+                // stays null-safe in case of a data-integrity gap (e.g. the seller's account was
+                // since removed) — a missing/empty seller email just skips the email step instead
+                // of throwing a NullReferenceException.
+                if (!string.IsNullOrWhiteSpace(advert.User?.Email))
+                {
+                    var accountBlockedTemplate = EmailTemplates.GetAdvertBoughtTemplate(content);
+                    await emailService.SendAsync(advert.User.Email, Messages.AdvertLocked, accountBlockedTemplate, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to notify seller {SellerId} about the purchase of advert {AdvertId}", advert.UserId, advertId);
+            }
         }
 
         // pgvector semantic search (see IAdvertService.SearchSimilarAdvertsAsync doc comment).

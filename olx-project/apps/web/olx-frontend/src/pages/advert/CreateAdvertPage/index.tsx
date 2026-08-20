@@ -15,8 +15,9 @@ import type { ICategory } from "../../../types/category/ICategory";
 import { ItemCondition } from "../../../types/advert/IAdvert";
 import SettlementPicker from "../../../components/location/SettlementPicker";
 import AdvertImageDropzone from "../../../components/uploaders/AdvertImageDropzone";
+import PhoneInput from "../../../components/inputs/PhoneInput";
+import { extractSubscriberDigits, ukrainianPhoneErrorMessage } from "../../../utils/phone";
 
-const PHONE_REGEX = /^\+38\s?\(\d{3}\)\s?\d{3}[-\s]?\d{2}[-\s]?\d{2}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const findCategoryById = (categories: ICategory[], id: number): ICategory | null => {
@@ -69,6 +70,16 @@ const CreateAdvertPage: React.FC = () => {
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [formError, setFormError] = useState<string | null>(null);
 
+    // Autofill the phone field from the user's profile once it's available, but only while the
+    // field is still empty — never clobber whatever the seller has already typed (e.g. a number
+    // different from their account's saved one for this particular listing).
+    useEffect(() => {
+        if (user?.phoneNumber && !phoneNumber) {
+            setPhoneNumber(user.phoneNumber);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.phoneNumber]);
+
     const selectedCategory = useMemo(
         () => (categoryId ? findCategoryById(categoryTree, categoryId) : null),
         [categoryTree, categoryId]
@@ -117,23 +128,38 @@ const CreateAdvertPage: React.FC = () => {
         else if (title.length > 256) errors.title = t("createAdvert.errors.titleMaxLength");
         if (!description.trim()) errors.description = t("createAdvert.errors.required");
         else if (description.length > 5000) errors.description = t("createAdvert.errors.descriptionMaxLength");
-        if (!isContractPrice && (price.trim() === "" || Number(price) < 0)) errors.price = t("createAdvert.errors.invalidPrice");
+        // "Договірна" (isContractPrice) no longer forces the price field to empty/disabled — a
+        // seller can still enter an indicative price alongside it. Backend
+        // (AdvertCreationModelValidator) only requires Price > 0 when !IsContractPrice, but Price
+        // must always be >= 0 either way, so a negative value entered while negotiable is still
+        // rejected here instead of silently passing through as 0.
+        if (!isContractPrice && (price.trim() === "" || Number(price) < 0)) {
+            errors.price = t("createAdvert.errors.invalidPrice");
+        } else if (isContractPrice && price.trim() !== "" && Number(price) < 0) {
+            errors.price = t("createAdvert.errors.invalidPrice");
+        }
         if (!categoryId) errors.categoryId = t("createAdvert.errors.selectCategory");
         if (!settlementRef) errors.settlementRef = t("createAdvert.errors.selectSettlement");
         if (!contactPersone.trim()) errors.contactPersone = t("createAdvert.errors.required");
         if (!contactEmail.trim() || !EMAIL_REGEX.test(contactEmail.trim())) errors.contactEmail = t("createAdvert.errors.invalidEmail");
-        if (phoneNumber.trim() && !PHONE_REGEX.test(phoneNumber.trim())) errors.phoneNumber = t("createAdvert.errors.invalidPhoneFormat");
+        const phoneError = ukrainianPhoneErrorMessage(extractSubscriberDigits(phoneNumber));
+        if (phoneError) errors.phoneNumber = phoneError;
         if (fileList.length === 0) errors.images = t("createAdvert.errors.imagesRequired");
 
         setFieldErrors(errors);
         if (Object.keys(errors).length > 0) return;
+
+        // Preserve whatever price the seller entered even when the advert is marked "Договірна" —
+        // previously this always sent 0 once isContractPrice was checked, silently discarding an
+        // indicative price the seller had already typed in.
+        const priceToSubmit = price.trim() === "" ? 0 : Number(price);
 
         const formData = new FormData();
         formData.append("UserId", String(currentUserId));
         formData.append("Title", title.trim());
         formData.append("Description", description.trim());
         formData.append("IsContractPrice", String(isContractPrice));
-        formData.append("Price", String(isContractPrice ? 0 : Number(price)));
+        formData.append("Price", String(priceToSubmit));
         formData.append("CategoryId", String(categoryId));
         formData.append("Condition", String(condition));
         formData.append("SettlementRef", settlementRef);
@@ -269,10 +295,9 @@ const CreateAdvertPage: React.FC = () => {
                                 type="number"
                                 min={0}
                                 value={price}
-                                disabled={isContractPrice}
                                 onChange={(e) => setPrice(e.target.value)}
                                 placeholder="0"
-                                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-mm-purple disabled:bg-gray-50 disabled:text-gray-400"
+                                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-mm-purple"
                             />
                             <label className="flex items-center gap-2 text-sm text-gray-600 whitespace-nowrap cursor-pointer">
                                 <input
@@ -324,11 +349,10 @@ const CreateAdvertPage: React.FC = () => {
                         </div>
                         <div className="flex flex-col gap-1">
                             <label className="text-sm font-medium text-mm-navy">{t("createAdvert.fields.phone")}</label>
-                            <input
-                                type="text"
+                            <PhoneInput
                                 value={phoneNumber}
-                                onChange={(e) => setPhoneNumber(e.target.value)}
-                                placeholder="+38 (0XX) XXX-XX-XX"
+                                onChange={setPhoneNumber}
+                                aria-invalid={!!fieldErrors.phoneNumber}
                                 className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-mm-purple"
                             />
                             {fieldErrors.phoneNumber && <p className="text-red-500 text-xs">{fieldErrors.phoneNumber}</p>}

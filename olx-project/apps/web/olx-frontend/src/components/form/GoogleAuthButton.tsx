@@ -31,6 +31,12 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ onError }) =
             try {
                 const authResult = await googleLogin(tokenResponse.access_token).unwrap();
 
+                // Backend contract is `accessToken` (see ILoginResult), but normalize against a
+                // `token` field too in case a proxy/older backend build ever forwards the raw
+                // AuthResponse under that name instead — never let a naming mismatch alone leave
+                // us holding a valid exchange with nothing to dispatch.
+                const rawToken = authResult.accessToken || (authResult as unknown as { token?: string }).token;
+
                 // The token exchange succeeded — commit auth state and leave the page
                 // immediately. Everything below this point (the popup window teardown, any
                 // COOP "Cross-Origin-Opener-Policy policy would block the window.closed call"
@@ -39,10 +45,10 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ onError }) =
                 // may ever gate or delay dispatch/navigate, and none of it should be allowed
                 // to leave the app on the login screen with a token nobody committed to Redux.
                 try {
-                    dispatch(setAuth({ token: authResult.accessToken }));
+                    dispatch(setAuth({ token: rawToken }));
                 } catch (stateErr) {
                     console.warn("[GoogleAuth] setAuth threw — retrying once before giving up.", stateErr);
-                    dispatch(setAuth({ token: authResult.accessToken }));
+                    dispatch(setAuth({ token: rawToken }));
                 }
 
                 try {

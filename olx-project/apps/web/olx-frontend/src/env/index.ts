@@ -1,4 +1,22 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+// Every backend call (createBaseQuery's fetchBaseQuery, buildImageUrl, useChatHub/usePresenceHub's
+// SignalR .withUrl(...)) builds its target as `${API_BASE_URL}/...`. If this is unset — a missing
+// .env.development(.local)/.env.production(.local), or one left with unresolved git merge
+// conflict markers so VITE_API_BASE_URL never actually got assigned — that template literal
+// degrades to a bare relative path ("/api/Account", "/images/foo.jpg", ...), which the browser
+// silently resolves against the *frontend's own* origin (e.g. http://localhost:5173/images/foo.jpg)
+// instead of the backend. That surfaces as ERR_CONNECTION_REFUSED on every image/API/hub request
+// with no indication why — logging loudly here turns a silent, hard-to-trace misconfiguration
+// into an obvious one.
+if (!API_BASE_URL) {
+    console.error(
+        "[env] VITE_API_BASE_URL is not set. API, image, and SignalR hub requests will resolve " +
+        "as relative URLs against this app's own origin instead of the backend. Set it in " +
+        ".env.development.local (or .env.development) — see .env.template."
+    );
+}
+
 const UNSPLASH_ACCESS_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
 // OAuth 2.0 Client ID from Google Cloud Console (Credentials -> OAuth client ID -> Web application).
 // This is a public identifier (not a secret) — safe to ship to the client, same as the reCAPTCHA

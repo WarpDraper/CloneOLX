@@ -15,8 +15,9 @@ namespace Olx.BLL.Services.BackgroundServices
         IServiceScopeFactory serviceScopeFactory,
         ILogger<AdminMesssageCleanupService> logger) : BackgroundService
     {
-        private readonly TimeSpan _interval = TimeSpan.FromHours(int.Parse(configuration["AdminMessageCleanupIntervalHours"]!));
-        private readonly int messageExpDay = int.Parse(configuration["AdminMessageExpDays"]!);
+        private readonly TimeSpan _interval = TimeSpan.FromHours(
+            int.TryParse(configuration["AdminMessageCleanupIntervalHours"], out var adminMessageCleanupIntervalHours) ? adminMessageCleanupIntervalHours : 1);
+        private readonly int messageExpDay = int.TryParse(configuration["AdminMessageExpDays"], out var adminMessageExpDays) ? adminMessageExpDays : 30;
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             logger.LogInformation("Admin message cleanup service started");

@@ -89,7 +89,13 @@ const RegisterForm: React.FC = () => {
             return;
         }
 
-        if (!executeRecaptcha) {
+        // `executeRecaptcha` flips truthy as soon as GoogleReCaptchaProvider's onLoad fires,
+        // which can land a tick before the actual `grecaptcha` global + its internal ready state
+        // are usable — checking window.grecaptcha too catches that gap instead of handing the
+        // library a call it can't service yet. (No ambient type ships for `grecaptcha` in this
+        // project, hence the cast.)
+        const grecaptchaGlobal = typeof window === "undefined" ? undefined : (window as unknown as { grecaptcha?: unknown }).grecaptcha;
+        if (!executeRecaptcha || !grecaptchaGlobal) {
             setFormError(t('register.errors.captchaLoading'));
             return;
         }
@@ -102,11 +108,19 @@ const RegisterForm: React.FC = () => {
         try {
             token = await executeRecaptcha("register");
         } catch (captchaErr) {
-            console.warn("reCAPTCHA execution failed, aborting registration safely.", captchaErr);
+            console.warn("[RegisterForm] reCAPTCHA execution bypassed:", captchaErr);
         }
         if (!token) {
-            setFormError(t('register.errors.captchaLoading'));
-            return;
+            // Same dev-mode escape hatch as LoginForm: production still requires a real token,
+            // but a flaky/misconfigured reCAPTCHA script must never be able to wedge the
+            // registration form shut locally.
+            if (import.meta.env.DEV) {
+                console.warn("[RegisterForm] Proceeding without a reCAPTCHA token (development mode).");
+                token = "";
+            } else {
+                setFormError(t('register.errors.captchaLoading'));
+                return;
+            }
         }
 
         try {

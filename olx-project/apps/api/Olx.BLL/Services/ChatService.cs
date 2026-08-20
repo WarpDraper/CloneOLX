@@ -40,6 +40,17 @@ namespace Olx.BLL.Services
             var user = await userManager.UpdateUserActivityAsync(httpContext);
             var advert = await advertRepository.GetItemBySpec( new AdvertSpecs.GetById(advertId))
                 ?? throw new HttpException(Errors.InvalidAdvertId,HttpStatusCode.BadRequest);
+
+            // Mirrors AdvertService.BuyAsync's "cannot buy your own advert" guard: the frontend
+            // hides/disables the "Повідомлення" button for the advert owner, but that's only a UI
+            // nicety — without this server-side check a direct PUT /api/Chat/create call could still
+            // let a seller open a chat (and receive their own "new chat" notification/email) about
+            // their own listing.
+            if (advert.UserId == user.Id)
+            {
+                throw new HttpException(Errors.CannotMessageSelf, HttpStatusCode.BadRequest);
+            }
+
             var chat = await chatRepository.GetItemBySpec(new ChatSpecs.FindExisting(advertId, user.Id))
                 ?? new Chat() { Advert = advert, Buyer = user, SellerId = advert.UserId };
             // Captured BEFORE AddAsync: an existing chat already has a non-zero Id, a brand-new one

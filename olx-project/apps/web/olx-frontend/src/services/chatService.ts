@@ -34,8 +34,13 @@ export const chatService = createApi({
         }),
 
         // 2. ІСТОРІЯ ПОВІДОМЛЕНЬ ЧАТУ: GET /api/chat/messages/{chatId}.
+        // Бекенд не гарантує порядок — сортуємо за зростанням createdAt (найстаріше зверху,
+        // найновіше знизу), інакше стрічка виглядає переплутаною і нові SignalR-повідомлення
+        // (які просто пушаться в кінець кешу) опиняються не там, де очікує користувач.
         getChatMessages: builder.query<IChatMessage[], number>({
             query: (chatId) => `/messages/${chatId}`,
+            transformResponse: (response: IChatMessage[]) =>
+                [...response].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
             providesTags: (_result, _error, chatId) => [{ type: "Messages", id: chatId }],
         }),
 

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Olx.BLL.Exceptions;
 using Olx.BLL.Helpers;
+using Olx.BLL.Helpers.Options;
 using Olx.BLL.Interfaces;
 using Olx.BLL.Models;
 using Olx.BLL.Models.Authentication;
@@ -22,6 +23,14 @@ namespace OLX.API.Controllers
         // to the auth endpoints that need it (login/refresh/logout), never to unrelated APIs.
         private const string RefreshTokenCookiePath = "/api/Account";
         private readonly string _refreshTokenCookiesName = configuration["RefreshTokenCookiesName"]!;
+
+        // Bound the same way JwtService/OlxApiServiceExtensions read JwtOptions, instead of the
+        // previous raw configuration.GetValue<double>("JwtOptions:RefreshTokenLifeTimeInDays")
+        // read below, which had no fallback and silently returned 0 whenever the key was
+        // unconfigured (see JwtOptions.EffectiveRefreshTokenLifetimeInDays) — that set this
+        // cookie's Expires to "now", so the browser dropped it immediately after login and no
+        // refresh was ever possible.
+        private readonly JwtOptions _jwtOptions = configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>() ?? new JwtOptions();
 
         // Профіль поточного авторизованого користувача (включно з Balance) — id береться з JWT,
         // а не з параметра запиту, тож ніколи не може повернути чийсь чужий баланс. Використовує
@@ -318,7 +327,7 @@ namespace OLX.API.Controllers
         // in the JSON body separately and is short-lived by design.
         private void SetRefreshTokenCookie(string refreshToken)
         {
-            var days = configuration.GetValue<double>("JwtOptions:RefreshTokenLifeTimeInDays");
+            var days = _jwtOptions.EffectiveRefreshTokenLifetimeInDays;
             Response.Cookies.Append(_refreshTokenCookiesName, refreshToken, new CookieOptions
             {
                 IsEssential = true,

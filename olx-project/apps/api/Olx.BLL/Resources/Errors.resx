@@ -192,6 +192,15 @@
   <data name="AdvertIsBlocked" xml:space="preserve">
     <value>Advert is blocked</value>
   </data>
+  <data name="CannotBuyOwnAdvert" xml:space="preserve">
+    <value>You cannot purchase your own advert.</value>
+  </data>
+  <data name="AdvertAlreadySold" xml:space="preserve">
+    <value>This advert has already been sold.</value>
+  </data>
+  <data name="CannotMessageSelf" xml:space="preserve">
+    <value>You cannot start a conversation with yourself.</value>
+  </data>
   <data name="InvalidSettlementId" xml:space="preserve">
     <value>Invalid settlement id</value>
   </data>

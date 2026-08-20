@@ -192,6 +192,15 @@
   <data name="AdvertIsBlocked" xml:space="preserve">
     <value>Оголошення заблоковане</value>
   </data>
+  <data name="CannotBuyOwnAdvert" xml:space="preserve">
+    <value>Ви не можете придбати власне оголошення.</value>
+  </data>
+  <data name="AdvertAlreadySold" xml:space="preserve">
+    <value>Це оголошення вже продано.</value>
+  </data>
+  <data name="CannotMessageSelf" xml:space="preserve">
+    <value>Ви не можете почати розмову із самим собою.</value>
+  </data>
   <data name="InvalidSettlementId" xml:space="preserve">
     <value>Невірний ідетифікатор населеного пункту</value>
   </data>

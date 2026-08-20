@@ -13,7 +13,8 @@ namespace Olx.BLL.Services.BackgroundServices
         IServiceScopeFactory serviceScopeFactory,
         ILogger<ImageCeanupService> logger) : BackgroundService
     {
-        private readonly TimeSpan _interval = TimeSpan.FromHours(int.Parse(configuration["ImageCleanupIntervalHours"]!));
+        private readonly TimeSpan _interval = TimeSpan.FromHours(
+            int.TryParse(configuration["ImageCleanupIntervalHours"], out var imageCleanupIntervalHours) ? imageCleanupIntervalHours : 1);
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             logger.LogInformation("Image cleanup service started");

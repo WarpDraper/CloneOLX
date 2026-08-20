@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using NETCore.MailKit.Core;
 using Newtonsoft.Json;
 using Olx.BLL.DTOs.AdvertDtos;
@@ -54,7 +55,8 @@ namespace Olx.BLL.Services
         IValidator<UserCreationModel> userCreationModelValidator,
         IValidator<UserEditModel> userEditModelValidator,
         IValidator<NewsletterBroadcastModel> newsletterBroadcastModelValidator,
-        IHostEnvironment environment) : IAccountService
+        IHostEnvironment environment,
+        ILogger<AccountService> logger) : IAccountService
     {
         private static readonly ConcurrentDictionary<int, SemaphoreSlim> _userSemaphores = new();
         // In-memory 6-digit email verification codes for the Profile Settings "confirm email"
@@ -888,19 +890,25 @@ namespace Olx.BLL.Services
 
             // Best-effort broadcast: one bad/bounced address must never abort the rest of the
             // batch — same fail-open philosophy as the rest of this service's email sends.
+            // Failures are logged (not silently swallowed) and excluded from the returned count,
+            // so admins can tell a broadcast that silently failed for everyone (e.g. bad SMTP
+            // config) apart from one that actually reached its subscribers.
+            var sentCount = 0;
             foreach (var email in subscriberEmails)
             {
                 try
                 {
                     await emailService.SendAsync(email, model.Subject, html, true);
+                    sentCount++;
+                    logger.LogInformation("Newsletter sent successfully to {Email}", email);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Intentionally swallowed — see comment above.
+                    logger.LogError(ex, "Failed to send newsletter email to {Email}", email);
                 }
             }
 
-            return subscriberEmails.Count;
+            return sentCount;
         }
     }
 }

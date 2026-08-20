@@ -77,7 +77,34 @@ namespace Olx.BLL.Resources {
                 return ResourceManager.GetString("AdvertIsBlocked", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на You cannot purchase your own advert..
+        /// </summary>
+        internal static string CannotBuyOwnAdvert {
+            get {
+                return ResourceManager.GetString("CannotBuyOwnAdvert", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на This advert has already been sold..
+        /// </summary>
+        internal static string AdvertAlreadySold {
+            get {
+                return ResourceManager.GetString("AdvertAlreadySold", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на You cannot start a conversation with yourself..
+        /// </summary>
+        internal static string CannotMessageSelf {
+            get {
+                return ResourceManager.GetString("CannotMessageSelf", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Ищет локализованную строку, похожую на Backup creatin error: {0}.
         /// </summary>

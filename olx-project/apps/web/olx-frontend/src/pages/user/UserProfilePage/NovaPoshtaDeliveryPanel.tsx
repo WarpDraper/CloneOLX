@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useGetWarehousesBySettlementQuery } from '../../../services/newPostService';
 import SettlementPicker from '../../../components/location/SettlementPicker';
 import WarehouseMapPicker from '../../../components/location/WarehouseMapPicker';
+import { branchLabel } from '../../../utils/warehouseLabel';
 
 // Nova Poshta branch picker for the profile page (formerly the generic "OLX Доставка" tab).
 // Reuses the same SettlementPicker + WarehouseMapPicker + NewPostController-backed
@@ -73,7 +74,9 @@ const NovaPoshtaDeliveryPanel: React.FC = () => {
                             >
                                 <div className="flex items-start gap-1.5 font-medium">
                                     <EnvironmentOutlined className="mt-0.5 shrink-0" />
-                                    <span>{w.description}</span>
+                                    <span>
+                                        {branchLabel(w, t)} — {w.description}
+                                    </span>
                                 </div>
                                 {w.phone && (
                                     <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1">
@@ -90,7 +93,10 @@ const NovaPoshtaDeliveryPanel: React.FC = () => {
                 <div className="mt-4 flex items-start gap-2 bg-mm-lavender-light border border-purple-100 rounded-lg px-4 py-3 text-sm text-mm-navy">
                     <CheckCircleFilled className="text-mm-purple mt-0.5 shrink-0" />
                     <span>
-                        {t('userProfile.novaPoshta.selectedWarehousePrefix')} <strong>{selectedWarehouse.description}</strong>
+                        {t('userProfile.novaPoshta.selectedWarehousePrefix')}{' '}
+                        <strong>
+                            {branchLabel(selectedWarehouse, t)} — {selectedWarehouse.description}
+                        </strong>
                     </span>
                 </div>
             )}
