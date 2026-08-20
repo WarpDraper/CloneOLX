@@ -225,11 +225,12 @@ app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 // Swagger/Swagger UI expose the full API surface (routes, DTOs, auth scheme) and must never be
 // reachable in production — restricted to Development only. Static files/cultures stay enabled
 // in every environment.
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "OLX API v1");
+    c.RoutePrefix = "swagger";
+});
 app.AddStaticFiles();
 app.AddCultures();
 
