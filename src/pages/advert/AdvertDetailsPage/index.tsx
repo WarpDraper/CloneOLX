@@ -17,7 +17,7 @@ import {
 import { Eye } from "lucide-react";
 import { Tooltip } from "antd";
 import type { RootState } from "../../../store";
-import { useGetAdvertByIdQuery, useBuyAdvertMutation, useGetAdvertsPageQuery } from "../../../services/advertService";
+import { useGetAdvertByIdQuery, useGetAdvertsPageQuery } from "../../../services/advertService";
 import {
     useGetFavoritesQuery,
     useAddToFavoritesMutation,
@@ -41,7 +41,8 @@ const AdvertDetailsPage: React.FC = () => {
     const advertId = Number(id);
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { isAuth } = useSelector((state: RootState) => state.auth);
+    const { isAuth, user } = useSelector((state: RootState) => state.auth);
+    const currentUserId = Number(user?.id);
 
     // Статичні пункти доставки — бекенд не має API служби доставки/тарифів,
     // тому це загальні інформаційні варіанти (не прив'язані до конкретного оголошення).
@@ -56,7 +57,6 @@ const AdvertDetailsPage: React.FC = () => {
     const { data: apiAdvert, isLoading } = useGetAdvertByIdQuery(advertId, { skip: !isValidApiId });
     const advert = apiAdvert;
 
-    const [buyAdvert, { isLoading: isBuying }] = useBuyAdvertMutation();
     const { data: favorites } = useGetFavoritesQuery(undefined, { skip: !isAuth });
     const [addToFavorites] = useAddToFavoritesMutation();
     const [removeFromFavorites] = useRemoveFromFavoritesMutation();
@@ -108,6 +108,11 @@ const AdvertDetailsPage: React.FC = () => {
         return <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-16 text-center text-gray-400">{t("advertDetails.notFound")}</div>;
     }
 
+    // The listing owner viewing their own advert — gates both "Купити"/"Додати в кошик" (can't buy
+    // your own item) and "Повідомлення" (can't chat with yourself; backend ChatService.CreateAsync
+    // enforces the same rule server-side).
+    const isOwnAdvert = isAuth && Number.isFinite(currentUserId) && advert.userId === currentUserId;
+
     const requireAuth = (action: () => void) => {
         if (!isAuth) {
             navigate("/login");
@@ -119,6 +124,10 @@ const AdvertDetailsPage: React.FC = () => {
     // Was missing the auth check other "add to cart" entry points already have — unauthenticated
     // users must never get the item added or the "Додано в кошик" toast, just a redirect.
     const handleAddToCart = () => requireAuth(() => {
+        if (isOwnAdvert) {
+            dispatch(addNotification({ type: "error", title: t("advertDetails.purchase.ownAdvertError"), message: advert.title }));
+            return;
+        }
         const cover = [...advert.images].sort((a, b) => a.priority - b.priority)[0];
         dispatch(addToCart({
             advertId: advert.id,
@@ -130,9 +139,25 @@ const AdvertDetailsPage: React.FC = () => {
         dispatch(addNotification({ type: "success", title: t("cart.addedTitle"), message: advert.title }));
     });
 
-    const handleBuy = () => requireAuth(async () => {
-        await buyAdvert(advert.id).unwrap();
-        dispatch(addNotification({ type: "success", title: t("advertDetails.purchase.successTitle"), message: advert.title }));
+    // "Купити" — adds the advert to the (local) cart and takes the buyer straight to /cart to
+    // finish checkout there (see CartPage/useCreateOrderMutation), instead of instantly completing
+    // a purchase from the detail page. Guards: unauthenticated -> /login (via requireAuth); the
+    // listing owner gets a toast instead of being able to add their own item to their own cart.
+    const handleBuy = () => requireAuth(() => {
+        if (isOwnAdvert) {
+            dispatch(addNotification({ type: "error", title: t("advertDetails.purchase.ownAdvertError"), message: advert.title }));
+            return;
+        }
+        const cover = [...advert.images].sort((a, b) => a.priority - b.priority)[0];
+        dispatch(addToCart({
+            advertId: advert.id,
+            title: advert.title,
+            price: advert.price,
+            image: buildImageUrl(cover?.name, IMAGE_SIZES.thumbnail),
+            quantity,
+        }));
+        dispatch(addNotification({ type: "success", title: t("cart.addedTitle"), message: advert.title }));
+        navigate("/cart");
     });
 
     const handleToggleFavorite = () => requireAuth(async () => {
@@ -143,6 +168,9 @@ const AdvertDetailsPage: React.FC = () => {
         }
     });
 
+    // Self-messaging guard: the button itself is disabled (see JSX below) when isOwnAdvert, so this
+    // only ever runs for a genuine buyer -> seller chat. Backend still enforces the same rule (see
+    // ChatService.CreateAsync) in case this endpoint is ever hit directly.
     const handleMessage = () => requireAuth(() => navigate(`/chat?advertId=${advert.id}`));
 
     const handleShowPhone = () => requireAuth(() => setIsPhoneRevealed(true));
@@ -231,7 +259,8 @@ const AdvertDetailsPage: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={handleAddToCart}
-                                className="flex-1 bg-mm-navy hover:bg-mm-navy/90 text-white font-bold text-sm py-2.5 rounded-lg transition-colors"
+                                disabled={isOwnAdvert}
+                                className="flex-1 bg-mm-navy hover:bg-mm-navy/90 text-white font-bold text-sm py-2.5 rounded-lg transition-colors disabled:opacity-50"
                             >
                                 {t("cart.addToCart")}
                             </button>
@@ -241,10 +270,10 @@ const AdvertDetailsPage: React.FC = () => {
                     <button
                         type="button"
                         onClick={handleBuy}
-                        disabled={isBuying}
+                        disabled={isOwnAdvert}
                         className="w-full bg-mm-purple hover:bg-mm-purple-dark text-white font-bold text-sm py-2.5 rounded-lg transition-colors disabled:opacity-50"
                     >
-                        {isBuying ? t("advertDetails.buy.processing") : t("cart.buy")}
+                        {t("cart.buy")}
                     </button>
 
                     {!isAuth && (
@@ -259,13 +288,16 @@ const AdvertDetailsPage: React.FC = () => {
                     <div className="border border-gray-100 rounded-xl p-4">
                         <p className="text-xs font-medium text-gray-500 mb-3">{t("advertDetails.contactSeller")}</p>
                         <div className="flex flex-col gap-2">
-                            <button
-                                type="button"
-                                onClick={handleMessage}
-                                className="flex items-center justify-center gap-2 border border-gray-200 text-mm-navy font-medium text-sm py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-                            >
-                                <MessageOutlined /> {t("advertDetails.messageButton")}
-                            </button>
+                            <Tooltip title={isOwnAdvert ? t("advertDetails.cannotMessageSelf") : undefined}>
+                                <button
+                                    type="button"
+                                    onClick={handleMessage}
+                                    disabled={isOwnAdvert}
+                                    className="flex items-center justify-center gap-2 border border-gray-200 text-mm-navy font-medium text-sm py-2.5 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                                >
+                                    <MessageOutlined /> {t("advertDetails.messageButton")}
+                                </button>
+                            </Tooltip>
                             <button
                                 type="button"
                                 onClick={handleShowPhone}

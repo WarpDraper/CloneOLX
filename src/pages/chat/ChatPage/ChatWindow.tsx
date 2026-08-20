@@ -101,6 +101,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         );
     }
 
+    // Захист від непослідовного порядку (бекенд/SignalR не гарантують ascending createdAt) —
+    // стрічка завжди рендериться від найстарішого повідомлення зверху до найновішого знизу.
+    const sortedMessages = [...messages].sort(
+        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+
     let lastDateKey: string | null = null;
 
     return (
@@ -149,7 +155,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                         {t('chat.window.firstMessagePrompt')}
                     </p>
                 ) : (
-                    messages.map((message) => {
+                    sortedMessages.map((message) => {
                         const isOwn = message.sender.id === currentUserId;
                         const dateKey = new Date(message.createdAt).toDateString();
                         const showDivider = dateKey !== lastDateKey;

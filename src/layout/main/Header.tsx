@@ -21,6 +21,7 @@ import {
 } from '../../services/notificationService';
 import type { INotification } from '../../services/notificationService';
 import ImageWithFallback from '../../components/common/ImageWithFallback';
+import { getStoredToken } from '../../utils/tokenUtils';
 
 const Header: React.FC = () => {
     const navigate = useNavigate();
@@ -37,13 +38,28 @@ const Header: React.FC = () => {
     ];
 
     // ДОДАЄМО: витягуємо дані користувача (user) з auth slice
-    const { isAuth, user } = useSelector((state: RootState) => state.auth);
+    const { isAuth, user, token: reduxToken } = useSelector((state: RootState) => state.auth);
+    // Falls back to localStorage when this slice hasn't caught up yet — e.g. right after
+    // login/refresh, or on a hard reload, Header can mount and this selector can run before the
+    // "auth" write has propagated through a re-render. Without the fallback the query below
+    // fires with no Authorization header, the backend 401s, and (previously) that 401 forced an
+    // immediate logout — killing a session that was actually fine. See getStoredToken.
+    const token = reduxToken ?? getStoredToken();
 
     const isAdmin = isAuth && user?.role === 'Admin';
 
     // DB-persisted notifications (see services/notificationService.ts) — top 3 unread + true
-    // unread total in one round-trip, refetched on focus/mount by RTK Query's default caching.
-    const { data: topUnread } = useGetTopUnreadQuery(3, { skip: !isAuth });
+    // unread total in one round-trip. Guarded on BOTH token presence and isAuth: setAuth/logout
+    // (authSlice.ts) always set them in the same synchronous reducer call, so there's no
+    // in-between render where one is true and the other isn't — requiring both is free
+    // insurance against firing mid-login-transition, not a re-introduction of the old race
+    // (that race was token going stale on 401 teardown vs. this component's re-render lag,
+    // which the localStorage fallback above and refetchOnMountOrArgChange: false below already
+    // cover). Never refetched on mount/arg-change so it can't re-fire mid auth-state sync either.
+    const { data: topUnread } = useGetTopUnreadQuery(3, {
+        skip: !token || !isAuth,
+        refetchOnMountOrArgChange: false,
+    });
     const [markAsRead] = useMarkAsReadMutation();
     const [markAllAsRead] = useMarkAllAsReadMutation();
     const notificationItems = topUnread?.items ?? [];

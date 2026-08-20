@@ -3,7 +3,8 @@ import type { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
 import { APP_ENV } from "../env";
 import type { RootState } from "../store";
 import { addNotification } from "../store/notificationSlice";
-import { logout } from "../Slice/authSlice";
+import { logout, setAuth } from "../Slice/authSlice";
+import { getStoredToken } from "./tokenUtils";
 
 // Shared base query for every *Service.ts RTK Query slice. Wraps fetchBaseQuery with
 // request/response/error console logging (see debug logging spec): every request is
@@ -63,6 +64,90 @@ const SILENCED_GLOBAL_TOAST_REQUESTS: ReadonlyArray<{ endpoint: string; url: str
 const isSilencedGlobalToastRequest = (endpoint: string, requestUrl: string): boolean =>
     SILENCED_GLOBAL_TOAST_REQUESTS.some((entry) => entry.endpoint === endpoint && entry.url === requestUrl);
 
+// Endpoints whose 401 is the authoritative signal that the session itself is dead. A 401 from
+// anywhere else — background polling (Notification/top-unread), chat, presence, favorites, ...
+// — is far more often caused by a request racing ahead of auth state (fired before
+// prepareHeaders picks up a token that's mid-sync, e.g. right after login or on a hard
+// refresh) than by an actually-expired session. Auto-logging out on those tore down perfectly
+// good sessions the instant the Header mounted (see Header.tsx's top-unread query). Session
+// validity is now only ever treated as disproven by a 401 on one of these core endpoints —
+// everything else just logs and lets the caller's own `data`/`error` handle the miss (RTK
+// Query already returns `undefined` data on error, so callers like Header degrade to "no
+// notifications yet" instead of crashing).
+const CRITICAL_AUTH_REQUESTS: ReadonlyArray<{ endpoint: string; urlPrefix: string }> = [
+    { endpoint: "Account", urlPrefix: "/profile" },
+    { endpoint: "Account", urlPrefix: "/me" },
+    // AccountController's actual route is POST /api/Account/user/refresh, not /refresh — kept in
+    // sync with REFRESH_URL below so this list and the silent-refresh call below can never drift.
+    { endpoint: "Account", urlPrefix: "/user/refresh" },
+];
+
+const isCriticalAuthRequest = (endpoint: string, requestUrl: string): boolean =>
+    CRITICAL_AUTH_REQUESTS.some((entry) => entry.endpoint === endpoint && requestUrl.startsWith(entry.urlPrefix));
+
+// --- Silent refresh -----------------------------------------------------------------------
+// Previously a 401 on a CRITICAL_AUTH_REQUESTS endpoint went straight to dispatch(logout()) —
+// there was no attempt to use the refresh token first, even though AccountController.RefreshTokens
+// (POST /api/Account/user/refresh) exists and works. The refresh token itself lives in an
+// HttpOnly cookie (see AccountController.SetRefreshTokenCookie) — it's deliberately
+// inaccessible to JS, so "using the stored refreshToken" here means letting the browser attach
+// that cookie via credentials: 'include', not reading one out of localStorage.
+const REFRESH_URL = "/user/refresh";
+
+// A dedicated fetchBaseQuery instance rather than reusing accountService's RTK Query endpoints:
+// this module is imported BY accountService.ts (via createBaseQuery("Account")), so calling back
+// into accountService here would be a circular dependency. Every *Service.ts instance (Account,
+// Advert, Notification, Chat, ...) shares this one refresh call/in-flight promise below, so a
+// page that fires several guarded queries at once when the access token has expired triggers
+// exactly one refresh request, not one per failed query.
+const refreshBaseQuery = fetchBaseQuery({
+    baseUrl: `${APP_ENV.API_BASE_URL}/api/Account`,
+    credentials: "include",
+});
+
+let refreshPromise: Promise<string | null> | null = null;
+
+// Attempts POST /api/Account/user/refresh once (de-duplicated across concurrent callers via
+// refreshPromise) and, on success, stores the new access token via setAuth (Redux + localStorage,
+// see authSlice.setAuth) so the retried request's prepareHeaders picks it up. Returns null when
+// the refresh endpoint itself fails (expired/rotated/missing refresh-token cookie — "no
+// refreshToken exists" from the caller's point of view), which is the only case that should still
+// fall through to logout() below.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- structural subset of RTK Query's
+// BaseQueryApi; `any` on dispatch's parameter avoids fighting redux's generic Dispatch<A> variance
+// for what is otherwise just "something with a dispatch method" (see call site below).
+const performTokenRefresh = (api: { dispatch: (action: any) => void }): Promise<string | null> => {
+    if (!refreshPromise) {
+        refreshPromise = (async () => {
+            try {
+                const result = await refreshBaseQuery({ url: REFRESH_URL, method: "POST" }, api as never, {});
+                if (result.error) {
+                    if (import.meta.env.DEV) {
+                        console.warn("[Auth] Silent refresh failed:", result.error);
+                    }
+                    return null;
+                }
+                const newToken = (result.data as { accessToken?: string } | undefined)?.accessToken;
+                if (!newToken) return null;
+                api.dispatch(setAuth({ accessToken: newToken }));
+                return newToken;
+            } catch (err) {
+                if (import.meta.env.DEV) {
+                    console.warn("[Auth] Silent refresh threw:", err);
+                }
+                return null;
+            }
+        })();
+        // Clear the shared in-flight promise once it settles so the NEXT expired-token 401
+        // (e.g. after the newly-refreshed token itself expires later) triggers a fresh refresh
+        // instead of forever replaying this one's (possibly stale) result.
+        refreshPromise.finally(() => {
+            refreshPromise = null;
+        });
+    }
+    return refreshPromise;
+};
+
 export const createBaseQuery = (endpoint: string) => {
     const rawBaseQuery = fetchBaseQuery({
         baseUrl: `${APP_ENV.API_BASE_URL}/api/${endpoint}`,
@@ -72,10 +157,23 @@ export const createBaseQuery = (endpoint: string) => {
         // AllowCredentials() policy has nothing to match against.
         credentials: 'include',
         prepareHeaders: (headers, { getState }) => {
-            const token = (getState() as RootState).auth.token;
+            // Fall back to localStorage when the Redux slice hasn't caught up yet (e.g. the
+            // very first request fired in the tick right after setAuth/page load, before this
+            // slice's state has re-rendered downstream consumers) — see getStoredToken for why
+            // this can't just be `localStorage.getItem('token')`.
+            const token = (getState() as RootState).auth.token ?? getStoredToken();
 
             if (token) {
                 headers.set('Authorization', `Bearer ${token}`);
+                // Diagnostic only (kept terse — never logs the full token): confirms a request
+                // actually left with an Authorization header attached, to distinguish "we sent
+                // no/a stale token" from "the backend rejected a token we believed was good" when
+                // chasing a 401 on a CRITICAL_AUTH_REQUESTS endpoint (see below).
+                if (import.meta.env.DEV) {
+                    console.log(`[Auth Header Attached] ${endpoint}:`, `Bearer ${token.slice(0, 10)}...`);
+                }
+            } else if (import.meta.env.DEV) {
+                console.warn(`[Auth Header Missing] ${endpoint}: no token in Redux state or localStorage for this request.`);
             }
             return headers;
         },
@@ -86,7 +184,34 @@ export const createBaseQuery = (endpoint: string) => {
             console.log(`[API →] ${endpoint}`, args);
         }
 
-        const result = await rawBaseQuery(args, api, extraOptions);
+        let result = await rawBaseQuery(args, api, extraOptions);
+
+        if (result.error?.status === 401) {
+            // Attempt a silent refresh-and-retry BEFORE any of the logout/toast handling below
+            // ever sees this 401. Skipped for: public auth-entry endpoints (a wrong-password 401
+            // on /login is not an expired session), the refresh call itself (would recurse), and
+            // callers with no session to begin with (an anonymous background poll 401ing is not
+            // something a refresh could fix — there's no refresh-token cookie to use).
+            const requestUrlForRefresh = typeof args === "string" ? args : args.url;
+            const isPublicAuthEndpoint = isSilencedGlobalToastRequest(endpoint, requestUrlForRefresh);
+            const isRefreshCall = endpoint === "Account" && requestUrlForRefresh.startsWith(REFRESH_URL);
+            const hadSession = Boolean(
+                (api.getState() as RootState).auth.isAuth || (api.getState() as RootState).auth.token || getStoredToken()
+            );
+
+            if (!isPublicAuthEndpoint && !isRefreshCall && hadSession) {
+                const newToken = await performTokenRefresh(api);
+                if (newToken) {
+                    // Refresh succeeded — retry the original request once. prepareHeaders reads
+                    // the token fresh from Redux state/localStorage (see above), so the new
+                    // Authorization header is picked up automatically.
+                    result = await rawBaseQuery(args, api, extraOptions);
+                }
+                // newToken === null means the refresh endpoint itself returned 401/errored (no
+                // usable refresh-token cookie) — fall through with the ORIGINAL 401 result so the
+                // existing handling below can still log the user out for a critical endpoint.
+            }
+        }
 
         if (result.error) {
             // Single clear, formatted line for every failed request, in every environment (not
@@ -119,13 +244,15 @@ export const createBaseQuery = (endpoint: string) => {
                     );
                 }
             } else if (result.error.status === 401) {
-                // Expired/invalid token: the backend will keep rejecting every guarded request
-                // (chats, favorites, ...) with 401 until the user re-authenticates, so retrying
-                // or letting each `*Service.ts` slice keep firing is pointless and just spams the
-                // console. Log once, then force a logout — this clears the dead token/user from
-                // the store (and localStorage, see authSlice), which flips every
-                // `skip: !isAuth` / `skip: !token` guard across the app so those queries stop
-                // re-firing instead of looping on 401 forever.
+                // Only a 401 on one of CRITICAL_AUTH_REQUESTS (Account/profile, Account/me, a
+                // refresh-token call, ...) is trusted as proof the session itself is dead — see
+                // that list's comment for why everything else (background polling, chat,
+                // presence, favorites, ...) is deliberately NOT treated as a logout signal
+                // anymore. A 401 from a public auth-entry endpoint (wrong password on /login,
+                // ...) must also never tear down an unrelated already-valid session, even in the
+                // edge case where an authenticated user re-submits the login form —
+                // isSilencedGlobalToastRequest already tracks exactly that endpoint list, so
+                // reuse it here instead of duplicating it.
                 console.error(`[API ✕] ${endpoint}`, {
                     request: args,
                     status: result.error.status,
@@ -133,7 +260,8 @@ export const createBaseQuery = (endpoint: string) => {
                     requestId,
                 });
                 const state = api.getState() as RootState;
-                if (state.auth.isAuth || state.auth.token) {
+                const isPublicAuthEndpoint = isSilencedGlobalToastRequest(endpoint, requestUrl);
+                if (!isPublicAuthEndpoint && isCriticalAuthRequest(endpoint, requestUrl) && (state.auth.isAuth || state.auth.token)) {
                     api.dispatch(logout());
                 }
             } else if (isSilencedGlobalToastRequest(endpoint, requestUrl)) {

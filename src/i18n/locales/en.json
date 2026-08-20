@@ -673,12 +673,14 @@
       "message": "This action is not available for a demo advert"
     },
     "purchase": {
-      "successTitle": "Purchase completed"
+      "successTitle": "Purchase completed",
+      "ownAdvertError": "You cannot purchase your own advert"
     },
     "unknownCharacteristic": "Characteristic #{{id}}",
     "buy": {
       "processing": "Processing..."
     },
+    "cannotMessageSelf": "You cannot message yourself about your own advert",
     "loginPrompt": {
       "text": "Log in to your MultiMart profile or create a new one to contact the seller.",
       "link": "Log in or create a profile"
@@ -1470,6 +1472,12 @@
     "settlementPlaceholder": "City / village"
   },
   "warehouseMapPicker": {
-    "ariaLabel": "Map of Nova Poshta branches"
+    "ariaLabel": "Map of Nova Poshta branches",
+    "branch": "Branch",
+    "postomat": "Parcel locker",
+    "selectBranch": "Select this branch",
+    "selectedBranch": "Selected ✓",
+    "schedulePrefix": "Working hours:",
+    "clusterCount": "{{count}} branches nearby — click to zoom in"
   }
 }

@@ -86,8 +86,19 @@ const authSlice = createSlice({
     name: "auth",
     initialState: getInitialState(),
     reducers: {
-        setAuth: (state, action: PayloadAction<{ token: string }>) => {
-            const { token } = action.payload;
+        // Every call site is expected to already unwrap the backend's response and pass the JWT
+        // as `token` (see LoginForm/RegisterForm/GoogleAuthButton/TelegramAuthButton — all map
+        // `userData.accessToken` -> `token` before dispatching). This accepts `accessToken` too
+        // as a fallback so a future call site that forwards the raw AuthResponse shape
+        // (`{ accessToken, refreshToken }`, which is what POST /login and /login/google actually
+        // return — see ILoginResult) still authenticates instead of silently storing `undefined`
+        // as the token and leaving prepareHeaders with nothing to send.
+        setAuth: (state, action: PayloadAction<{ token?: string; accessToken?: string }>) => {
+            const token = action.payload.token ?? action.payload.accessToken;
+            if (!token) {
+                console.error("[authSlice] setAuth called with neither token nor accessToken — ignoring.", action.payload);
+                return;
+            }
 
             // Wipe any previous session's identity from storage BEFORE decoding/writing the new
             // one. This is what actually prevents the "stale id 29" bug: if a prior login/logout

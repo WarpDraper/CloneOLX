@@ -673,12 +673,14 @@
       "message": "Ця дія недоступна для демонстраційного оголошення"
     },
     "purchase": {
-      "successTitle": "Купівля оформлена"
+      "successTitle": "Купівля оформлена",
+      "ownAdvertError": "Ви не можете придбати власне оголошення"
     },
     "unknownCharacteristic": "Характеристика #{{id}}",
     "buy": {
       "processing": "Обробка..."
     },
+    "cannotMessageSelf": "Ви не можете написати собі про власне оголошення",
     "loginPrompt": {
       "text": "Увійдіть у свій профіль MultiMart або створіть новий, щоб зв'язатися з продавцем.",
       "link": "Увійдіть або створіть профіль"
@@ -1470,6 +1472,12 @@
     "settlementPlaceholder": "Місто / село"
   },
   "warehouseMapPicker": {
-    "ariaLabel": "Карта відділень Нової пошти"
+    "ariaLabel": "Карта відділень Нової пошти",
+    "branch": "Відділення",
+    "postomat": "Поштомат",
+    "selectBranch": "Обрати це відділення",
+    "selectedBranch": "Обрано ✓",
+    "schedulePrefix": "Графік роботи:",
+    "clusterCount": "{{count}} відділень поруч — натисніть, щоб наблизити"
   }
 }

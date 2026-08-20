@@ -28,6 +28,7 @@ import { DeliveryType, PaymentMethod, type IOrder } from "../../../types/order/I
 import { useOwnProfile } from "../../../hooks/useOwnProfile";
 import PhoneInput from "../../../components/inputs/PhoneInput";
 import { extractSubscriberDigits, ukrainianPhoneErrorMessage } from "../../../utils/phone";
+import { branchLabel } from "../../../utils/warehouseLabel";
 
 type RecipientMode = "self" | "other";
 
@@ -334,7 +335,7 @@ const CartPage: React.FC = () => {
                                                 value={warehouseRef || undefined}
                                                 optionFilterProp="label"
                                                 onChange={(ref) => setWarehouseRef(ref)}
-                                                options={warehouses.map((w) => ({ value: w.ref, label: w.description }))}
+                                                options={warehouses.map((w) => ({ value: w.ref, label: `${branchLabel(w, t)} — ${w.description}` }))}
                                             />
                                         ) : (
                                             <>

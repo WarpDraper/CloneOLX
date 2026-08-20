@@ -119,7 +119,7 @@ const UserHomePage: React.FC = () => {
               {t('home.catalog')}
             </button>
             <div className="flex-[2] flex items-center bg-white/10 border-b lg:border-b-0 lg:border-r border-white/10 px-4 py-3">
-              <SearchOutlined className="text-white/70 text-lg mr-3" />
+              <SearchOutlined className="text-white/60 text-lg mr-3" />
               <input
                 type="text"
                 placeholder={t('home.searchPlaceholder')}
@@ -130,14 +130,14 @@ const UserHomePage: React.FC = () => {
               />
             </div>
             <div className="flex-1 flex items-center bg-white/10 border-b lg:border-b-0 lg:border-r border-white/10 px-4 py-3">
-              <EnvironmentOutlined className="text-white/70 text-lg mr-3 shrink-0" />
+              <EnvironmentOutlined className="text-white/60 text-lg mr-3 shrink-0" />
               <Select
                 variant="borderless"
                 placeholder={t('home.wholeCountry')}
                 allowClear
                 value={city}
                 onChange={(value) => setCity(value)}
-                className="w-full [&_.ant-select-selection-placeholder]:text-white/60 [&_.ant-select-selection-item]:text-white"
+                className="w-full [&_.ant-select-selection-placeholder]:text-white/60 [&_.ant-select-selection-item]:text-white [&_.ant-select-arrow]:text-white/60 [&_.ant-select-clear]:text-white/60 [&_.ant-select-clear]:bg-transparent"
                 popupMatchSelectWidth={false}
                 options={UA_CITIES.map((c) => ({ value: c, label: c }))}
               />
